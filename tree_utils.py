@@ -13,7 +13,7 @@ import time
 
 ##### Visualization functions #####
 
-def draw(graph, delay=0, colors=None):
+def draw(graph, delay=0, edge_colors=None, node_colors=None):
     '''
     A way to visualize a graph.
     Input: Networkx graph.
@@ -23,16 +23,18 @@ def draw(graph, delay=0, colors=None):
     size = 0.5 * (x_dim + y_dim)
     plt.figure(figsize=(y_dim,x_dim)) # this is needed to keep aspect ratio correct
     plt.tight_layout()
-    if colors is not None:
-        colors = [graph[u][v][colors] for u,v,c in graph.edges(data=True)]
+    if edge_colors is not None:
+        edge_colors = [graph[u][v][colors] for u,v,c in graph.edges(data=True)]
     else:
-        colors = ['black' for u,v in graph.edges()]
+        edge_colors = ['black' for u,v in graph.edges()]
     nx.draw(graph, 
             pos={(x,y): (x, y) for x,y in graph.nodes()},
             width=2,
             with_labels=False,
             node_size=80*size,
-            edge_color=colors)
+            edge_color=edge_colors,
+            node_color=node_colors
+           )
     plt.show()
     time.sleep(delay)
     clear_output(wait=True)
