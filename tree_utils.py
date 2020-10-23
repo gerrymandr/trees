@@ -24,7 +24,7 @@ def draw(graph, delay=0, edge_colors=None, node_colors=None):
     plt.figure(figsize=(y_dim,x_dim)) # this is needed to keep aspect ratio correct
     plt.tight_layout()
     if edge_colors is not None:
-        edge_colors = [graph[u][v][colors] for u,v,c in graph.edges(data=True)]
+        edge_colors = [graph[u][v]['colors'] for u,v,c in graph.edges(data=True)]
     else:
         edge_colors = ['black' for u,v in graph.edges()]
     nx.draw(graph, 
@@ -38,6 +38,17 @@ def draw(graph, delay=0, edge_colors=None, node_colors=None):
     plt.show()
     time.sleep(delay)
     clear_output(wait=True)
+    return
+
+def draw_plan(partition, delay=0):
+    graph = partition.graph
+    graph = nx.create_empty_copy(graph)
+    edges = []
+    for part, subgraph in partition.subgraphs.items():
+        for edge in subgraph.edges():
+            edges.append(edge)
+    graph.update(edges=edges)
+    draw(graph, delay=delay)
     return
 
 ##### Sampling STs functions #####
@@ -332,3 +343,90 @@ def plot_sampled_STs(STs, data, save=None):
         plt.savefig(save, dpi=200)
     plt.show()
     return
+
+##### Enumerating ominos #####
+
+def load_partitions(n):
+    '''
+    Read in Zach Schutzman's enumeration of all possible
+    ominoes of an nXn grid and turn it into a dataframe, where
+    each row is an assignment of nodes to districts.
+    Currently, only have 3x3 - 6x6 stored in the enumerations folder.
+    '''
+    parts_path = f"./enumerations/{n}x{n}_{n}.txt"
+    df = pd.read_csv(parts_path, header=None)
+    return df
+
+def make_assignment_dicts(n):
+    '''
+    Returns a list of every possible node-to-district 
+    assignment on the nXn grid.
+    '''
+    assignment_dicts = []
+    grid = Grid((n,n))
+    nodes = grid.graph.nodes()
+    df = load_partitions(n)
+    for i in range(len(df)):
+        assignment_dict = {}
+        partition = df.iloc[i].values.tolist()
+        for i, node in enumerate(nodes):
+            assignment_dict[node] = partition[i]
+        assignment_dicts.append(assignment_dict)
+    return assignment_dicts
+
+def make_partitions(n):
+    '''
+    Returns a list of every possible partition
+    on the nXn grid. This is nearly instantaneous for n = 3-5,
+    and takes about 60s for n=6.
+    '''
+    partitions = []
+    assignment_dict = make_assignment_dicts(n)
+    grid = Grid((n,n))
+    for i in range(len(assignment_dict)):
+        partition = Partition(grid.graph, assignment_dict[i])
+        partitions.append(partition)
+    return partitions
+
+def sp_score(partition):
+    '''
+    Take the product of the number of spanning trees in each part of the partition.
+    '''
+    prod = 1
+    for part, subgraph in partition.subgraphs.items():
+        NST = find_NST(subgraph)
+        prod *= NST
+    return prod
+
+def cut_edges(partition):
+    '''
+    For each edge in the graph, it is a cut edge if the
+    adjacent nodes are in different parts of the partition.
+    '''
+    cut_edges = 0
+    for edge in partition.graph.edges():
+        if partition.assignment[edge[0]] != partition.assignment[edge[1]]:
+            cut_edges += 1
+    return cut_edges
+
+def compute_weights(partitions):
+    '''
+    Returns a list of spanning tree scores for each
+    partition in the list of partitions.
+    '''
+    weights = []
+    for partition in tqdm(partitions):
+        sp = sp_score(partition)
+        weights.append(sp)
+    return weights
+
+def compute_cut_edges(partitions):
+    '''
+    Returns a list of the cut edges for each
+    partition in the list of partitions.
+    '''
+    ces = []
+    for partition in tqdm(partitions):
+        ce = cut_edges(partition)
+        ces.append(ce)
+    return ces
