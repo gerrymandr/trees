@@ -100,7 +100,7 @@ function construct_zdd(g::SimpleGraph, k::Int)
                             break
                         end
                     end
-                    if found_copy
+                    if !found_copy
                         push!(N[i+1], n′)
                     end
                 end
