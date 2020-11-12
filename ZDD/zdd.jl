@@ -1,4 +1,5 @@
 using DataStructures
+using LightGraphs
 import Base: isequal
 
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
@@ -25,21 +26,37 @@ mutable struct ZDD
     graph::SimpleGraph
     nodes::Dict{N, Int64} where N <: NodeZDD
     edges::Dict{Tuple{N, N}, Int64} where N <: NodeZDD
+    base_graph::SimpleGraph
 end
 
-function ZDD(root::Node)
+function ZDD(g::SimpleGraph, root::Node)
     graph = SimpleGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = Dict{NodeZDD, Int64}()
     nodes[TerminalNode(0)] = 1
     nodes[TerminalNode(1)] = 2
     nodes[root] = 3
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
-    return ZDD(graph, nodes, edges)
+    base_graph = g
+    return ZDD(graph, nodes, edges, base_graph)
 end
 
-function draw(zdd::ZDD)
+function draw(zdd::ZDD, g)
     """
     """
+    e_colors = edge_colors(zdd)
+    node_labels = label_nodes(zdd)
+    loc_xs, loc_ys = node_locations(zdd)
+
+    node_colors = fill("lightseagreen", nv(zdd.graph))
+    node_colors[[1, 2]] = ["orange", "orange"]
+
+    gplot(zdd.graph, loc_xs, loc_ys,
+          nodefillc=node_colors,
+          nodelabel=node_labels,
+          edgestrokec=e_colors)
+end
+
+function edge_colors(zdd)
     edge_colors = []
     for edge in edges(zdd.graph)
         node₁ = get_corresponding_node(zdd, edge.src)
@@ -59,12 +76,53 @@ function draw(zdd::ZDD)
             push!(colors, "green")
         end
     end
+    return colors
+end
 
-    nodelabel = label_nodes(zdd)
-    nodefillc = fill("lightseagreen", nv(zdd.graph))
-    nodefillc[[1, 2]] = ["orange", "orange"]
+function node_locations(zdd)
+    """
+    """
+    label_occs = label_occurences(zdd)
 
-    gplot(zdd.graph, nodefillc=nodefillc, nodelabel=nodelabel, edgestrokec=colors)
+    tree_depth = length(keys(label_occs)) - 1 # - 1 because the two terminals will be on the same depth
+    tree_width = maximum(values(label_occs))
+    loc_xs = fill(-1., nv(zdd.graph))
+    loc_xs[[1, 2]] = [tree_width/3 , tree_width*2/3]
+    loc_ys = fill(-1., nv(zdd.graph))
+    loc_ys[[1, 2]] = [tree_depth, tree_depth]
+
+    labels_seen = Dict{AbstractEdge, Int}()
+    for node in keys(zdd.nodes)
+        if node isa TerminalNode
+            continue
+        end
+        if node.label in keys(labels_seen)
+            labels_seen[node.label] += 1
+        else
+            labels_seen[node.label] = 1
+        end
+        loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
+        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(g)))
+    end
+
+    loc_xs = Float64.(loc_xs)
+    loc_ys = Float64.(loc_ys)
+
+    return loc_xs, loc_ys
+end
+
+function label_occurences(zdd::ZDD)
+    """
+    """
+    occs = Dict{Union{AbstractEdge, Int}, Int}()
+    for node in keys(zdd.nodes)
+        if node.label in keys(occs)
+            occs[node.label] += 1
+        else
+            occs[node.label] = 1
+        end
+    end
+    return occs
 end
 
 function get_corresponding_node(zdd, node_id)
@@ -104,10 +162,11 @@ function construct_zdd(g::SimpleGraph, k::Int)
     # select root
     g_edges = collect(edges(g))
     root = Node(g_edges[1], Set(), 0, Set())
-    zdd = ZDD(root)
 
+    zdd = ZDD(g, root)
     N = [Set{NodeZDD}() for a in 1:ne(g)+1]
     N[1] = Set([root])
+    g_edges = collect(edges(g))
 
     for i = 1:ne(g)
         # println("i ", i)
