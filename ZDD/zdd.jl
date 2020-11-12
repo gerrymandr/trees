@@ -40,12 +40,39 @@ end
 function draw(zdd::ZDD)
     """
     """
-    # TODO: color the edges -- green if you pick, red if you dont
+    edge_colors = []
+    for edge in edges(zdd.graph)
+        node₁ = get_corresponding_node(zdd, edge.src)
+        node₂ = get_corresponding_node(zdd, edge.dst)
+        try
+            push!(edge_colors, zdd.edges[(node₁, node₂)])
+        catch e
+            push!(edge_colors, zdd.edges[(node₂, node₁)])
+        end
+    end
+
+    colors = []
+    for e in edge_colors
+        if e == 0
+            push!(colors, "red")
+        else
+            push!(colors, "green")
+        end
+    end
+
     nodelabel = label_nodes(zdd)
     nodefillc = fill("lightseagreen", nv(zdd.graph))
     nodefillc[[1, 2]] = ["orange", "orange"]
 
-    gplot(zdd.graph, nodefillc=nodefillc, nodelabel=nodelabel)
+    gplot(zdd.graph, nodefillc=nodefillc, nodelabel=nodelabel, edgestrokec=colors)
+end
+
+function get_corresponding_node(zdd, node_id)
+    for (k , v) in zdd.nodes
+        if v == node_id
+            return k
+        end
+    end
 end
 
 function label_nodes(zdd::ZDD)
@@ -83,30 +110,55 @@ function construct_zdd(g::SimpleGraph, k::Int)
     N[1] = Set([root])
 
     for i = 1:ne(g)
+        # println("i ", i)
         for n in N[i]
+            # println("N[i] ", N[i])
+            # println("n ", n)
             for x in [0, 1]
-                n′ = make_new_node(g_edges, 1:k, n, i, x)
+                # println("x ", x)
+                n′ = make_new_node(g_edges, [k], n, i, x)
+                # println("n′ : ", n′)
 
                 if !(n′ isa TerminalNode)
+                    # println("Not Terminal")
                     # update the label of n′
                     n′.label = g_edges[i+1]
                     found_copy = false
 
                     for n′′ in N[i+1]
                         if isequal(n′′, n′)
-                            n′ = n′′
+                            # n′ = n′′
                             found_copy = true
-                            print("copy!")
+                            # print("copy!")
+                            # add_zdd_node!(zdd, n′′)
+                            add_zdd_edge!(zdd, (n, n′′), x)
                             break
                         end
                     end
                     if !found_copy
+                        # println("Pushing!")
+                        # println("N[i+1] before: ", N[i+1])
                         push!(N[i+1], n′)
+                        add_zdd_node!(zdd, n′)
+                        add_zdd_edge!(zdd, (n, n′), x)
+                        # println("N[i+1] after: ", N[i+1])
                     end
+
+                else
+                    add_zdd_node!(zdd, n′)
+                    add_zdd_edge!(zdd, (n, n′), x)
                 end
 
-                add_zdd_node!(zdd, n′)
-                add_zdd_edge!(zdd, (n, n′), x)
+                # println("Adding ZDD Node!")
+                # println("ZDD before: ", zdd)
+                # add_zdd_node!(zdd, n′)
+                # println("ZDD after: ", zdd)
+
+                # println("Adding ZDD edge")
+                # println("ZDD before: ", zdd)
+                # add_zdd_edge!(zdd, (n, n′), x)
+                # println("ZDD after: ", zdd)
+                # println()
             end
         end
     end
@@ -257,8 +309,8 @@ end
 function isequal(node₁::Node, node₂::Node)::Bool
     """
     """
-    min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
-    max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
+    # min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
+    # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
     issetequal(node₁.comp, node₂.comp) &&
     node₁.cc == node₂.cc &&
     issetequal(node₁.fps, node₂.fps)
