@@ -1,6 +1,6 @@
 using DataStructures
 using LightGraphs
-import Base: isequal
+import Base: isequal, ==
 
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
@@ -38,6 +38,14 @@ function ZDD(g::SimpleGraph, root::Node)
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     base_graph = g
     return ZDD(graph, nodes, edges, base_graph)
+end
+
+function Base.:(==)(node₁::Node, node₂::Node)
+    min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
+    max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
+    issetequal(deepcopy(node₁.comp), deepcopy(node₂.comp)) &&
+    node₁.cc == node₂.cc &&
+    issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
 end
 
 function draw(zdd::ZDD, g)
@@ -169,60 +177,33 @@ function construct_zdd(g::SimpleGraph, k::Int)
     g_edges = collect(edges(g))
 
     for i = 1:ne(g)
-        # println("i ", i)
         for n in N[i]
-            # println("N[i] ", N[i])
-            # println("n ", n)
             for x in [0, 1]
                 println("x ", x)
                 n′ = make_new_node(g_edges, 1:k, n, i, x)
-                # println("n′ : ", n′)
 
                 if !(n′ isa TerminalNode)
-                    # println("Not Terminal")
-                    # update the label of n′
-                    n′.label = g_edges[i+1]
+                    n′.label = g_edges[i+1] # update the label of n′
                     found_copy = false
 
                     for n′′ in N[i+1]
-                        if isequal(n′′, n′)
-                            # n′ = n′′
+                        if n′′ == n′
+                            n′ = n′′
                             found_copy = true
-                            println("copy!")
-                            # add_zdd_node!(zdd, n′′)
-                            add_zdd_edge!(zdd, (n, n′′), x)
                             break
                         end
                     end
                     if !found_copy
-                        println("Pushing!")
-                        # println("N[i+1] before: ", N[i+1])
-                        println(zdd.nodes)
-                        println(N[i+1])
-                        println(n′)
-
                         push!(N[i+1], n′)
-                        add_zdd_node!(zdd, n′)
-                        add_zdd_edge!(zdd, (n, n′), x)
-                        println()
-                        # println("N[i+1] after: ", N[i+1])
                     end
-
                 else
                     add_zdd_node!(zdd, n′)
                     add_zdd_edge!(zdd, (n, n′), x)
                 end
 
-                # println("Adding ZDD Node!")
-                # println("ZDD before: ", zdd)
-                # add_zdd_node!(zdd, n′)
-                # println("ZDD after: ", zdd)
+                add_zdd_node!(zdd, n′)
+                add_zdd_edge!(zdd, (n, n′), x)
 
-                # println("Adding ZDD edge")
-                # println("ZDD before: ", zdd)
-                # add_zdd_edge!(zdd, (n, n′), x)
-                # println("ZDD after: ", zdd)
-                # println()
             end
         end
     end
@@ -370,16 +351,6 @@ function nodes_from_edges(edges)::Set{Int}
     return nodes
 end
 
-function isequal(node₁::Node, node₂::Node)::Bool
-    """
-    """
-    min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
-    max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
-    issetequal(node₁.comp, node₂.comp) &&
-    node₁.cc == node₂.cc &&
-    issetequal(node₁.fps, node₂.fps)
-end
-
 function isequal(edge₁::AbstractEdge, edge₂::AbstractEdge)::Bool
     """ TODO: change this to edge_1 and edge_2
     """
@@ -412,10 +383,28 @@ end
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
+    println("inside zdd nodes")
+    # for key in keys(zdd.nodes)
+    #     if key isa TerminalNode || node isa TerminalNode
+    #         continue
+    #     end
+    #     println(key)
+    #     println(node)
+    #     println(key.label == node.label)
+    #     println(key.cc == node.cc)
+    #     println(deepcopy(key.comp) == deepcopy(node.comp))
+    #     println(deepcopy(key.fps) == deepcopy(node.fps))
+    #     println(issetequal(deepcopy(key.fps), deepcopy(node.fps)))
+    # end
+
+    println(keys(zdd.nodes))
+    println(node)
+    println(node ∉ keys(zdd.nodes))
+    println()
+
     if node ∉ keys(zdd.nodes)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
         println("Added Node : ", node)
-        # println("At vertex ", nv(zdd.graph))
     end
 end
