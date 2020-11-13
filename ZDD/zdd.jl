@@ -102,7 +102,7 @@ function node_locations(zdd)
             labels_seen[node.label] = 1
         end
         loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
-        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(g)))
+        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
     end
 
     loc_xs = Float64.(loc_xs)
@@ -174,8 +174,8 @@ function construct_zdd(g::SimpleGraph, k::Int)
             # println("N[i] ", N[i])
             # println("n ", n)
             for x in [0, 1]
-                # println("x ", x)
-                n′ = make_new_node(g_edges, [k], n, i, x)
+                println("x ", x)
+                n′ = make_new_node(g_edges, 1:k, n, i, x)
                 # println("n′ : ", n′)
 
                 if !(n′ isa TerminalNode)
@@ -188,18 +188,23 @@ function construct_zdd(g::SimpleGraph, k::Int)
                         if isequal(n′′, n′)
                             # n′ = n′′
                             found_copy = true
-                            # print("copy!")
+                            println("copy!")
                             # add_zdd_node!(zdd, n′′)
                             add_zdd_edge!(zdd, (n, n′′), x)
                             break
                         end
                     end
                     if !found_copy
-                        # println("Pushing!")
+                        println("Pushing!")
                         # println("N[i+1] before: ", N[i+1])
+                        println(zdd.nodes)
+                        println(N[i+1])
+                        println(n′)
+
                         push!(N[i+1], n′)
                         add_zdd_node!(zdd, n′)
                         add_zdd_edge!(zdd, (n, n′), x)
+                        println()
                         # println("N[i+1] after: ", N[i+1])
                     end
 
@@ -368,8 +373,8 @@ end
 function isequal(node₁::Node, node₂::Node)::Bool
     """
     """
-    # min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
-    # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
+    min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
+    max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
     issetequal(node₁.comp, node₂.comp) &&
     node₁.cc == node₂.cc &&
     issetequal(node₁.fps, node₂.fps)
@@ -410,5 +415,7 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     if node ∉ keys(zdd.nodes)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
+        println("Added Node : ", node)
+        # println("At vertex ", nv(zdd.graph))
     end
 end
