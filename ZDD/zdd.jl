@@ -23,21 +23,24 @@ end
 
 mutable struct ZDD
     # graph stuff
-    graph::SimpleGraph
-    nodes::Dict{N, Int64} where N <: NodeZDD
+    graph::SimpleDiGraph
+    nodes::OrderedDict{N, Int64} where N <: NodeZDD
     edges::Dict{Tuple{N, N}, Int64} where N <: NodeZDD
+    edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
+    root::Node
 end
 
 function ZDD(g::SimpleGraph, root::Node)
-    graph = SimpleGraph(3) # 2 for terminal nodes and 1 for the root
-    nodes = Dict{NodeZDD, Int64}()
+    graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
+    nodes = OrderedDict{NodeZDD, Int64}()
     nodes[TerminalNode(0)] = 1
     nodes[TerminalNode(1)] = 2
     nodes[root] = 3
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     base_graph = g
-    return ZDD(graph, nodes, edges, base_graph)
+    edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
+    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -100,23 +103,90 @@ function node_locations(zdd)
     loc_ys[[1, 2]] = [tree_depth, tree_depth]
 
     labels_seen = Dict{AbstractEdge, Int}()
-    for node in keys(zdd.nodes)
-        if node isa TerminalNode
-            continue
-        end
-        if node.label in keys(labels_seen)
-            labels_seen[node.label] += 1
-        else
-            labels_seen[node.label] = 1
-        end
-        loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
-        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
-    end
+    add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+    # for node in keys(zdd.nodes)
+    #     if node isa TerminalNode
+    #         continue
+    #     end
+    #     if node.label in keys(labels_seen)
+    #         labels_seen[node.label] += 1
+    #     else
+    #         labels_seen[node.label] = 1
+    #     end
+    #     loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
+    #     loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
+    # end
 
     loc_xs = Float64.(loc_xs)
     loc_ys = Float64.(loc_ys)
 
     return loc_xs, loc_ys
+end
+
+function node_by_idx(zdd::ZDD, idx)
+    for (node, val) in zdd.nodes
+        if val == idx
+            return node
+        end
+    end
+end
+
+function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+    """
+    """
+    if node isa TerminalNode
+        return
+    end
+
+    if loc_xs[zdd.nodes[node]] == -1
+        if node.label in keys(labels_seen)
+            labels_seen[node.label] += 1
+        else
+            labels_seen[node.label] = 1
+        end
+
+        loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
+        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
+    end
+
+    ns = outneighbors(zdd.graph, zdd.nodes[node])
+    neighbors = []
+    for n in ns
+        push!(neighbors, node_by_idx(zdd, n))
+    end
+
+    if length(neighbors) == 1
+        add_locations(zdd, neighbors[1], loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+        return
+
+    elseif length(neighbors) == 2
+        order_1 = (node, neighbors[1])
+        order_2 = (node, neighbors[2])
+
+        try
+            zdd.edges[order_1]
+        catch e
+            order_1 = (neighbors[1], node)
+        end
+
+        try
+            zdd.edges[(node, neighbors[2])]
+        catch e
+            order_1 = (neighbors[2], node)
+        end
+
+        if zdd.edges[order_1] == 0 && zdd.edges[order_2] == 1
+            neighbors = [neighbors[1], neighbors[2]]
+        else
+            neighbors = [neighbors[2], neighbors[1]]
+        end
+
+        for neighbor in neighbors
+            add_locations(zdd, neighbor, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+        end
+    else
+        println("THIS SHOULD NOT HAPPEN")
+    end
 end
 
 function label_occurences(zdd::ZDD)
@@ -156,7 +226,12 @@ function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """
     @assert x in [0, 1]
     node₁, node₂ = zdd_edge
-    zdd.edges[(node₁, node₂)] = x
+
+    if (node₁, node₂) in keys(zdd.edges)
+        push!(zdd.edge_multiplicity, (node₁, node₂))
+    else
+        zdd.edges[(node₁, node₂)] = x
+    end
 
     # get node indexes
     node₁_idx = zdd.nodes[node₁]
@@ -164,6 +239,10 @@ function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
 
     # add to simple graph
     add_edge!(zdd.graph, (node₁_idx, node₂_idx))
+end
+
+function num_edges(zdd::ZDD)
+    length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
 function construct_zdd(g::SimpleGraph, k::Int)
@@ -180,7 +259,7 @@ function construct_zdd(g::SimpleGraph, k::Int)
         for n in N[i]
             for x in [0, 1]
                 println("x ", x)
-                n′ = make_new_node(g_edges, 1:k, n, i, x)
+                n′ = make_new_node(g_edges, k, n, i, x)
 
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
@@ -196,14 +275,10 @@ function construct_zdd(g::SimpleGraph, k::Int)
                     if !found_copy
                         push!(N[i+1], n′)
                     end
-                else
-                    add_zdd_node!(zdd, n′)
-                    add_zdd_edge!(zdd, (n, n′), x)
                 end
 
                 add_zdd_node!(zdd, n′)
                 add_zdd_edge!(zdd, (n, n′), x)
-
             end
         end
     end
@@ -221,7 +296,7 @@ function add_vertex_to_component!(n′::Node, u::Int, v::Int, prev_frontier::Set
     end
 end
 
-function make_new_node(g_edges, K, n, i, x)
+function make_new_node(g_edges, k, n, i, x)
     """
     """
     u = g_edges[i].src
@@ -254,18 +329,17 @@ function make_new_node(g_edges, K, n, i, x)
         if a ∉ curr_frontier
             if Set([a]) in n′.comp
                 n′.cc += 1
-                if n′.cc > maximum(K)
+                if n′.cc > k
                     return TerminalNode(0)
                 end
             end
-
             remove_vertex_from_node_component!(n′, a)
             remove_vertex_from_node_fps!(n′, a)
         end
     end
 
     if i == length(g_edges)
-        if n′.cc in K
+        if n′.cc == k
             return TerminalNode(1)
         else
             return TerminalNode(0)
@@ -279,11 +353,13 @@ function replace_components_with_union!(node::Node, Cᵤ::Set{Int}, Cᵥ::Set{In
     """
     """
     for fp in node.fps
-        for comp in fp
-            if comp == Cᵤ || comp == Cᵥ
-                pop!(fp, comp)
-                push!(fp, Set(union(Cᵤ, Cᵥ)))
-            end
+        if Cᵤ in fp
+            pop!(fp, Cᵤ)
+            push!(fp, Set(union(Cᵤ, Cᵥ)))
+        end
+        if Cᵥ in fp
+            pop!(fp, Cᵥ)
+            push!(fp, Set(union(Cᵤ, Cᵥ)))
         end
     end
 end
@@ -297,7 +373,7 @@ function connect_components!(n::Node, Cᵤ::Set{Int}, Cᵥ::Set{Int})
     if Cᵥ in n.comp
         pop!(n.comp, Cᵥ)
     end
-    n.comp = union(n.comp, Set([union(Cᵤ, Cᵥ)])) # we connect the components
+    n.comp = union(n.comp, Set([union(Cᵤ, Cᵥ)]))
 end
 
 function components(u::Int, v::Int, components::Set{Set{Int}})::Tuple{Set{Int}, Set{Int}}
@@ -383,28 +459,8 @@ end
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
-    println("inside zdd nodes")
-    # for key in keys(zdd.nodes)
-    #     if key isa TerminalNode || node isa TerminalNode
-    #         continue
-    #     end
-    #     println(key)
-    #     println(node)
-    #     println(key.label == node.label)
-    #     println(key.cc == node.cc)
-    #     println(deepcopy(key.comp) == deepcopy(node.comp))
-    #     println(deepcopy(key.fps) == deepcopy(node.fps))
-    #     println(issetequal(deepcopy(key.fps), deepcopy(node.fps)))
-    # end
-
-    println(keys(zdd.nodes))
-    println(node)
-    println(node ∉ keys(zdd.nodes))
-    println()
-
     if node ∉ keys(zdd.nodes)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
-        println("Added Node : ", node)
     end
 end
