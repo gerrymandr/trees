@@ -258,7 +258,6 @@ function construct_zdd(g::SimpleGraph, k::Int)
     for i = 1:ne(g)
         for n in N[i]
             for x in [0, 1]
-                println("x ", x)
                 n′ = make_new_node(g_edges, k, n, i, x)
 
                 if !(n′ isa TerminalNode)
@@ -296,6 +295,14 @@ function add_vertex_to_component!(n′::Node, u::Int, v::Int, prev_frontier::Set
     end
 end
 
+function summary(node::Node)
+    println("Label: ", node.label)
+    println("cc: ",node.cc)
+    println("comp: ",node.comp)
+    println("fps: ",node.fps)
+    println()
+end
+
 function make_new_node(g_edges, k, n, i, x)
     """
     """
@@ -303,7 +310,6 @@ function make_new_node(g_edges, k, n, i, x)
     v = g_edges[i].dst
 
     n′ = deepcopy(n)
-
     prev_frontier, curr_frontier = compute_frontiers(g_edges, i)
 
     add_vertex_to_component!(n′, u, v, prev_frontier)
@@ -327,10 +333,12 @@ function make_new_node(g_edges, k, n, i, x)
 
     for a in [u, v]
         if a ∉ curr_frontier
-            if Set([a]) in n′.comp
-                n′.cc += 1
-                if n′.cc > k
-                    return TerminalNode(0)
+            for elem in n′.comp
+                if elem == Set([a])
+                    n′.cc += 1
+                    if n′.cc > k
+                        return TerminalNode(0)
+                    end
                 end
             end
             remove_vertex_from_node_component!(n′, a)
