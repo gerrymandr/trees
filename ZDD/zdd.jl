@@ -8,17 +8,19 @@ abstract type NodeZDD end
 
 mutable struct Node<:NodeZDD
     label::AbstractEdge
-    comp::Set{Set{Int}}
+    comp::Set{Int}
     cc::Int
-    fps::Set{Set{Set{Int}}}
+    fps::Set{Set{Int}}
+    comp_assign::Array{Int}
 end
 
 struct TerminalNode<:NodeZDD
     label::Int
 end
 
-function Node(root_edge::AbstractEdge)
-    return Node(root_edge, Set{Set{Int}}(), 0, Set{Set{Set{Int}}}())
+function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
+    comp_assign = [i for i in 1:nv(base_graph)]
+    return Node(root_edge, Set{Int}(), 0, Set{Set{Int}}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -38,8 +40,8 @@ function ZDD(g::SimpleGraph, root::Node)
     nodes[TerminalNode(1)] = 2
     nodes[root] = 3
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
-    base_graph = g
     edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
+    base_graph = g
     return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root)
 end
 
@@ -50,6 +52,282 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.cc == node₂.cc &&
     issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
 end
+
+function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
+    """ zdd_edge is represented as (Node, Node)
+    """
+    @assert x in [0, 1]
+    node₁, node₂ = zdd_edge
+
+    if (node₁, node₂) in keys(zdd.edges)
+        push!(zdd.edge_multiplicity, (node₁, node₂))
+    else
+        zdd.edges[(node₁, node₂)] = x
+    end
+
+    # get node indexes
+    node₁_idx = zdd.nodes[node₁]
+    node₂_idx = zdd.nodes[node₂]
+
+    # add to simple graph
+    add_edge!(zdd.graph, (node₁_idx, node₂_idx))
+end
+
+function num_edges(zdd::ZDD)
+    length(zdd.edges) + length(zdd.edge_multiplicity)
+end
+
+function construct_zdd(g::SimpleGraph, k::Int)
+    # select root
+    g_edges = collect(edges(g))
+    root = Node(g_edges[1], g)
+
+    zdd = ZDD(g, root)
+    N = [Set{NodeZDD}() for a in 1:ne(g)+1]
+    N[1] = Set([root])
+    g_edges = collect(edges(g))
+
+    for i = 1:ne(g)
+        for n in N[i]
+            for x in [0, 1]
+                n′ = make_new_node(g_edges, k, n, i, x)
+
+                if !(n′ isa TerminalNode)
+                    n′.label = g_edges[i+1] # update the label of n′
+                    found_copy = false
+
+                    for n′′ in N[i+1]
+                        println(n′′)
+                        println(n′)
+                        println()
+                        if n′′ == n′
+                            n′ = n′′
+                            found_copy = true
+                            break
+                        end
+                    end
+                    if !found_copy
+                        push!(N[i+1], n′)
+                    end
+                end
+
+                add_zdd_node!(zdd, n′)
+                add_zdd_edge!(zdd, (n, n′), x)
+            end
+        end
+    end
+    return zdd
+end
+
+function node_summary(node::Node)
+    println("Label: ", node.label)
+    println("cc: ",node.cc)
+    println("comp: ",node.comp)
+    println("fps: ",node.fps)
+    println()
+end
+
+function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
+    """
+    """
+    u = g_edges[i].src
+    v = g_edges[i].dst
+
+    n′ = deepcopy(n)
+    prev_frontier, curr_frontier = compute_frontiers(g_edges, i)
+
+    add_vertex_as_component!(n′, u, v, prev_frontier)
+    Cᵤ, Cᵥ = components(u, v, n′)
+
+    if x == 1
+        connect_components!(n′, Cᵤ, Cᵥ)
+
+        if Cᵤ != Cᵥ && Set([Cᵤ, Cᵥ]) in n′.fps
+            return TerminalNode(0)
+
+        # I don't need to update fps anymore, because I don't need to replace the component sets with updated sets.
+        # all fps cares about is which comps are forbidden, and that info is already in place because the identifier of the
+        # components has not changed. previously, we needed to actually change the sets.
+        else
+            replace_components_with_union!(n′, Cᵤ, Cᵥ)
+        end
+    else
+        if Cᵤ == Cᵥ
+            return TerminalNode(0)
+        else
+            push!(n′.fps, Set([Cᵤ, Cᵥ]))
+        end
+    end
+
+    for a in [u, v]
+        if a ∉ curr_frontier
+            for elem in n′.comp
+                if elem == a
+                    n′.cc += 1
+                    if n′.cc > k
+                        return TerminalNode(0)
+                    end
+                end
+            end
+            remove_vertex_from_node_component!(n′, a)
+            remove_vertex_from_node_fps!(n′, a)
+        end
+    end
+
+    if i == length(g_edges)
+        if n′.cc == k
+            return TerminalNode(1)
+        else
+            return TerminalNode(0)
+        end
+    end
+
+    return n′
+end
+
+function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set{Int})
+    """ Add `u` or `v` or both to n`.comp if they are not in
+        `prev_frontier`
+    """
+    for vertex in [u, v]
+        if vertex ∉ prev_frontier
+
+            push!(n′.comp, vertex)
+        end
+    end
+end
+
+function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
+    """
+    """
+    assignment = maximum([Cᵤ, Cᵥ])
+    to_change = minimum([Cᵤ, Cᵥ])
+    for fp in node.fps
+        if to_change in fp
+            pop!(fp, to_change)
+            push!(fp, assignment)
+        end
+        # if Cᵥ in fp
+        #     pop!(fp, Cᵥ)
+        #     push!(fp, Set(union(Cᵤ, Cᵥ)))
+        # end
+    end
+end
+
+function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
+    """
+    """
+    assignment = maximum([Cᵤ, Cᵥ])
+    to_change = minimum([Cᵤ, Cᵥ])
+    n.comp_assign = map(val -> val == to_change ? assignment : val, n.comp_assign) # TODO: replace with inplace
+    delete!(n.comp, to_change)
+    # if Cᵤ in n.comp
+    #     pop!(n.comp, Cᵤ)
+    # end
+    # if Cᵥ in n.comp
+    #     pop!(n.comp, Cᵥ)
+    # end
+    # n.comp = union(n.comp, Set([union(Cᵤ, Cᵥ)]))
+end
+
+function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
+    """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
+        vertices `u` and `v` respectively.
+    """
+    return node.comp_assign[u], node.comp_assign[v]
+    # Cᵤ = Set{Int}([])
+    # Cᵥ = Set{Int}([])
+    # for s in components
+    #     if u in s
+    #         Cᵤ = s
+    #     end
+    #     if v in s
+    #         Cᵥ = s
+    #     end
+    # end
+    # return Cᵤ, Cᵥ
+end
+
+function compute_frontiers(edges, i::Int)
+    """
+    """
+    m = length(edges)
+    if i == 1
+        prev_frontier = Set{Int}()
+    else
+        processed_nodes = nodes_from_edges(edges[1:i-1])
+        unprocessed_nodes = nodes_from_edges(edges[i:m])
+        prev_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
+    end
+
+    if i == m
+        curr_frontier = Set{Int}()
+    else
+        processed_nodes = nodes_from_edges(edges[1:i])
+        unprocessed_nodes = nodes_from_edges(edges[i+1:m])
+        curr_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
+    end
+
+    return prev_frontier, curr_frontier
+end
+
+function nodes_from_edges(edges)::Set{Int}
+    """
+    """
+    nodes = Set{Int}()
+    for e in edges
+        push!(nodes, e.src)
+        push!(nodes, e.dst)
+    end
+    return nodes
+end
+
+function isequal(edge₁::AbstractEdge, edge₂::AbstractEdge)::Bool
+    """ TODO: change this to edge_1 and edge_2
+    """
+    min(edge₁.src, edge₁.dst) == min(edge₂.src, edge₂.dst) &&
+    max(edge₁.src, edge₁.dst) == max(edge₂.src, edge₂.dst)
+end
+
+function remove_vertex_from_node_component!(node::Node, vertex::Int)
+    """ Removes all occurences of `vertex` from `node`.comp
+    """
+    delete!(node.comp, vertex)
+    # for comp in node.comp
+    #     delete!(comp, vertex)
+    # end
+end
+
+function remove_vertex_from_node_fps!(node::Node, vertex::Int)
+    """
+    """
+    for fp in node.fps
+        if vertex in fp
+            delete!(node.fps, fp)
+        end
+    end
+    # for comp in node.comp
+    #     delete!(node.fps, Set([Set([vertex]), comp]))
+    # end
+    # for fp in node.fps
+    #     for comp in fp
+    #         delete!(comp, vertex)
+    #     end
+    # end
+end
+
+function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
+    """
+    """
+    if node ∉ keys(zdd.nodes)
+        add_vertex!(zdd.graph)
+        zdd.nodes[node] = nv(zdd.graph)
+    end
+end
+
+"""
+Visualization
+"""
 
 function draw(zdd::ZDD, g)
     """
@@ -104,18 +382,6 @@ function node_locations(zdd)
 
     labels_seen = Dict{AbstractEdge, Int}()
     add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
-    # for node in keys(zdd.nodes)
-    #     if node isa TerminalNode
-    #         continue
-    #     end
-    #     if node.label in keys(labels_seen)
-    #         labels_seen[node.label] += 1
-    #     else
-    #         labels_seen[node.label] = 1
-    #     end
-    #     loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
-    #     loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
-    # end
 
     loc_xs = Float64.(loc_xs)
     loc_ys = Float64.(loc_ys)
@@ -219,256 +485,4 @@ function label_nodes(zdd::ZDD)
         node_labels[zdd.nodes[node]] = node.label
     end
     node_labels
-end
-
-function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
-    """ zdd_edge is represented as (Node, Node)
-    """
-    @assert x in [0, 1]
-    node₁, node₂ = zdd_edge
-
-    if (node₁, node₂) in keys(zdd.edges)
-        push!(zdd.edge_multiplicity, (node₁, node₂))
-    else
-        zdd.edges[(node₁, node₂)] = x
-    end
-
-    # get node indexes
-    node₁_idx = zdd.nodes[node₁]
-    node₂_idx = zdd.nodes[node₂]
-
-    # add to simple graph
-    add_edge!(zdd.graph, (node₁_idx, node₂_idx))
-end
-
-function num_edges(zdd::ZDD)
-    length(zdd.edges) + length(zdd.edge_multiplicity)
-end
-
-function construct_zdd(g::SimpleGraph, k::Int)
-    # select root
-    g_edges = collect(edges(g))
-    root = Node(g_edges[1], Set(), 0, Set())
-
-    zdd = ZDD(g, root)
-    N = [Set{NodeZDD}() for a in 1:ne(g)+1]
-    N[1] = Set([root])
-    g_edges = collect(edges(g))
-
-    for i = 1:ne(g)
-        for n in N[i]
-            for x in [0, 1]
-                n′ = make_new_node(g_edges, k, n, i, x)
-
-                if !(n′ isa TerminalNode)
-                    n′.label = g_edges[i+1] # update the label of n′
-                    found_copy = false
-
-                    for n′′ in N[i+1]
-                        if n′′ == n′
-                            n′ = n′′
-                            found_copy = true
-                            break
-                        end
-                    end
-                    if !found_copy
-                        push!(N[i+1], n′)
-                    end
-                end
-
-                add_zdd_node!(zdd, n′)
-                add_zdd_edge!(zdd, (n, n′), x)
-            end
-        end
-    end
-    return zdd
-end
-
-function add_vertex_to_component!(n′::Node, u::Int, v::Int, prev_frontier::Set{Int})
-    """ Add `u` or `v` or both to n`.comp if they are not in
-        `prev_frontier`
-    """
-    for vertex in [u, v]
-        if vertex ∉ prev_frontier
-            push!(n′.comp, Set([vertex]))
-        end
-    end
-end
-
-function summary(node::Node)
-    println("Label: ", node.label)
-    println("cc: ",node.cc)
-    println("comp: ",node.comp)
-    println("fps: ",node.fps)
-    println()
-end
-
-function make_new_node(g_edges, k, n, i, x)
-    """
-    """
-    u = g_edges[i].src
-    v = g_edges[i].dst
-
-    n′ = deepcopy(n)
-    prev_frontier, curr_frontier = compute_frontiers(g_edges, i)
-
-    add_vertex_to_component!(n′, u, v, prev_frontier)
-    Cᵤ, Cᵥ = components(u, v, n′.comp)
-
-    if x == 1
-        connect_components!(n′, Cᵤ, Cᵥ)
-
-        if Cᵤ != Cᵥ && Set([Cᵤ, Cᵥ]) in n′.fps
-            return TerminalNode(0)
-        else
-            replace_components_with_union!(n′, Cᵤ, Cᵥ)
-        end
-    else
-        if Cᵤ == Cᵥ
-            return TerminalNode(0)
-        else
-            push!(n′.fps, Set([Cᵤ, Cᵥ]))
-        end
-    end
-
-    for a in [u, v]
-        if a ∉ curr_frontier
-            for elem in n′.comp
-                if elem == Set([a])
-                    n′.cc += 1
-                    if n′.cc > k
-                        return TerminalNode(0)
-                    end
-                end
-            end
-            remove_vertex_from_node_component!(n′, a)
-            remove_vertex_from_node_fps!(n′, a)
-        end
-    end
-
-    if i == length(g_edges)
-        if n′.cc == k
-            return TerminalNode(1)
-        else
-            return TerminalNode(0)
-        end
-    end
-
-    return n′
-end
-
-function replace_components_with_union!(node::Node, Cᵤ::Set{Int}, Cᵥ::Set{Int})
-    """
-    """
-    for fp in node.fps
-        if Cᵤ in fp
-            pop!(fp, Cᵤ)
-            push!(fp, Set(union(Cᵤ, Cᵥ)))
-        end
-        if Cᵥ in fp
-            pop!(fp, Cᵥ)
-            push!(fp, Set(union(Cᵤ, Cᵥ)))
-        end
-    end
-end
-
-function connect_components!(n::Node, Cᵤ::Set{Int}, Cᵥ::Set{Int})
-    """
-    """
-    if Cᵤ in n.comp
-        pop!(n.comp, Cᵤ)
-    end
-    if Cᵥ in n.comp
-        pop!(n.comp, Cᵥ)
-    end
-    n.comp = union(n.comp, Set([union(Cᵤ, Cᵥ)]))
-end
-
-function components(u::Int, v::Int, components::Set{Set{Int}})::Tuple{Set{Int}, Set{Int}}
-    """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
-        vertices `u` and `v` respectively.
-    """
-    Cᵤ = Set{Int}([])
-    Cᵥ = Set{Int}([])
-    for s in components
-        if u in s
-            Cᵤ = s
-        end
-        if v in s
-            Cᵥ = s
-        end
-    end
-    return Cᵤ, Cᵥ
-end
-
-function compute_frontiers(edges, i)
-    """
-    """
-    m = length(edges)
-    if i == 1
-        prev_frontier = Set{Int}()
-    else
-        processed_nodes = nodes_from_edges(edges[1:i-1])
-        unprocessed_nodes = nodes_from_edges(edges[i:m])
-        prev_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
-    end
-
-    if i == m
-        curr_frontier = Set{Int}()
-    else
-        processed_nodes = nodes_from_edges(edges[1:i])
-        unprocessed_nodes = nodes_from_edges(edges[i+1:m])
-        curr_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
-    end
-
-    return prev_frontier, curr_frontier
-end
-
-function nodes_from_edges(edges)::Set{Int}
-    """
-    """
-    nodes = Set{Int}()
-    for e in edges
-        push!(nodes, e.src)
-        push!(nodes, e.dst)
-    end
-    return nodes
-end
-
-function isequal(edge₁::AbstractEdge, edge₂::AbstractEdge)::Bool
-    """ TODO: change this to edge_1 and edge_2
-    """
-    min(edge₁.src, edge₁.dst) == min(edge₂.src, edge₂.dst) &&
-    max(edge₁.src, edge₁.dst) == max(edge₂.src, edge₂.dst)
-end
-
-function remove_vertex_from_node_component!(node::Node, vertex::Int)
-    """ Removes all occurences of `vertex` from `node`.comp
-    """
-    delete!(node.comp, Set([vertex]))
-    for comp in node.comp
-        delete!(comp, vertex)
-    end
-end
-
-function remove_vertex_from_node_fps!(node::Node, vertex::Int)
-    """
-    """
-    for comp in node.comp
-        delete!(node.fps, Set([Set([vertex]), comp]))
-    end
-    for fp in node.fps
-        for comp in fp
-            delete!(comp, vertex)
-        end
-    end
-end
-
-function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
-    """
-    """
-    if node ∉ keys(zdd.nodes)
-        add_vertex!(zdd.graph)
-        zdd.nodes[node] = nv(zdd.graph)
-    end
 end
