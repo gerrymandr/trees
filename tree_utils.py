@@ -13,7 +13,7 @@ import time
 
 ##### Visualization functions #####
 
-def draw(graph, delay=0, edge_colors=None, node_colors=None):
+def draw(graph, delay=0, erase=True, edge_colors=None, node_colors=None):
     '''
     A way to visualize a graph.
     Input: Networkx graph.
@@ -36,8 +36,9 @@ def draw(graph, delay=0, edge_colors=None, node_colors=None):
             node_color=node_colors
            )
     plt.show()
-    time.sleep(delay)
-    clear_output(wait=True)
+    if erase:
+        time.sleep(delay)
+        clear_output(wait=True)
     return
 
 def draw_plan(partition, delay=0):
