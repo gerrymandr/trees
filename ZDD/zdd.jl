@@ -75,7 +75,8 @@ end
 function Base.:(==)(node₁::Node, node₂::Node)
     min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
     max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
-    issetequal(deepcopy(node₁.comp), deepcopy(node₂.comp)) &&
+    # node₁.label == node₂.label
+    issetequal(node₁.comp, node₂.comp) &&
     node₁.cc == node₂.cc &&
     issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
 end
@@ -117,7 +118,6 @@ function construct_zdd(g::SimpleGraph, k::Int)
     for i = 1:ne(g)
         for n in N[i]
             for x in [0, 1]
-                # println("x: ", x)
                 n′ = make_new_node(g_edges, k, n, i, x)
 
                 if !(n′ isa TerminalNode)
@@ -165,40 +165,25 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     add_vertex_as_component!(n′, u, v, prev_frontier)
     Cᵤ, Cᵥ = components(u, v, n′)
 
-    # println("Making new node.")
-    # node_summary(n′)
-    # println("Components: ", Cᵤ, Cᵥ)
-
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
-        # println("Connected!")
-        # node_summary(n′)
 
         if Cᵤ != Cᵥ && Set([Cᵤ, Cᵥ]) in n′.fps
-            # println("Terminal 0")
             return TerminalNode(0)
         else
-            # println("replacing components with union")
             replace_components_with_union!(n′, Cᵤ, Cᵥ)
-            # node_summary(n′)
         end
     else
         if Cᵤ == Cᵥ
-            # println("Terminal 0")
             return TerminalNode(0)
         else
-            # println("Pushing to fps")
             push!(n′.fps, Set([Cᵤ, Cᵥ]))
-            # node_summary(n′)
         end
     end
 
     for a in [u, v]
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
-            # println("a: ", a)
-            # println("a_comp: ", a_comp)
-            # node_summary(n′)
 
             if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
                 n′.cc += 1
@@ -330,8 +315,6 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
     if node ∉ keys(zdd.nodes)
-        # println("Adding ZDD node: ")
-        # node_summary(node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
     end
@@ -350,19 +333,6 @@ function draw(zdd::ZDD, g)
 
     node_colors = fill("lightseagreen", nv(zdd.graph))
     node_colors[[1, 2]] = ["orange", "orange"]
-
-    for (node, idx) in zdd.nodes
-        if node == Node(Edge(3, 5), Set([4]), 0, Set(Set{Int64}[Set([4, 3])]), [0, 0, 3, 4, 5, 6])
-            node_colors[idx] = "pink"
-        end
-        if node == Node(Edge(3 => 5), Set([4, 3]), 0, Set(Set{Int64}[Set([4, 3])]), [0, 0, 3, 4, 5, 6])
-            node_colors[idx] = "purple"
-        end
-    end
-
-    println(node_colors)
-
-
 
     gplot(zdd.graph, loc_xs, loc_ys,
           nodefillc=node_colors,
