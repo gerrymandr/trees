@@ -33,6 +33,33 @@ mutable struct ZDD
     root::Node
 end
 
+function get_node_from_seq(zdd::ZDD, seq::Array{Int})
+    curr_node = zdd.root
+    g_edges = collect(edges(g))
+
+    for (i, x) in enumerate(seq)
+        if i == 1
+            for node in keys(zdd.nodes)
+                if (zdd.root, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[zdd.root, node] == x
+                    curr_node = node
+                    break
+                end
+            end
+        else
+            for node in keys(zdd.nodes)
+                if (node, curr_node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[node, curr_node] == x
+                    curr_node = node
+                    break
+                elseif (curr_node, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[curr_node, node] == x
+                    curr_node = node
+                    break
+                end
+            end
+        end
+    end
+    return curr_node
+end
+
 function ZDD(g::SimpleGraph, root::Node)
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = OrderedDict{NodeZDD, Int64}()
@@ -90,6 +117,7 @@ function construct_zdd(g::SimpleGraph, k::Int)
     for i = 1:ne(g)
         for n in N[i]
             for x in [0, 1]
+                # println("x: ", x)
                 n′ = make_new_node(g_edges, k, n, i, x)
 
                 if !(n′ isa TerminalNode)
@@ -97,9 +125,6 @@ function construct_zdd(g::SimpleGraph, k::Int)
                     found_copy = false
 
                     for n′′ in N[i+1]
-                        println(n′′)
-                        println(n′)
-                        println()
                         if n′′ == n′
                             n′ = n′′
                             found_copy = true
@@ -124,6 +149,7 @@ function node_summary(node::Node)
     println("cc: ",node.cc)
     println("comp: ",node.comp)
     println("fps: ",node.fps)
+    println("comp_assign: ", node.comp_assign)
     println()
 end
 
@@ -139,37 +165,48 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     add_vertex_as_component!(n′, u, v, prev_frontier)
     Cᵤ, Cᵥ = components(u, v, n′)
 
+    # println("Making new node.")
+    # node_summary(n′)
+    # println("Components: ", Cᵤ, Cᵥ)
+
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
+        # println("Connected!")
+        # node_summary(n′)
 
         if Cᵤ != Cᵥ && Set([Cᵤ, Cᵥ]) in n′.fps
+            # println("Terminal 0")
             return TerminalNode(0)
-
-        # I don't need to update fps anymore, because I don't need to replace the component sets with updated sets.
-        # all fps cares about is which comps are forbidden, and that info is already in place because the identifier of the
-        # components has not changed. previously, we needed to actually change the sets.
         else
+            # println("replacing components with union")
             replace_components_with_union!(n′, Cᵤ, Cᵥ)
+            # node_summary(n′)
         end
     else
         if Cᵤ == Cᵥ
+            # println("Terminal 0")
             return TerminalNode(0)
         else
+            # println("Pushing to fps")
             push!(n′.fps, Set([Cᵤ, Cᵥ]))
+            # node_summary(n′)
         end
     end
 
     for a in [u, v]
         if a ∉ curr_frontier
-            for elem in n′.comp
-                if elem == a
-                    n′.cc += 1
-                    if n′.cc > k
-                        return TerminalNode(0)
-                    end
+            a_comp = n′.comp_assign[a]
+            # println("a: ", a)
+            # println("a_comp: ", a_comp)
+            # node_summary(n′)
+
+            if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
+                n′.cc += 1
+                if n′.cc > k
+                    return TerminalNode(0)
                 end
             end
-            remove_vertex_from_node_component!(n′, a)
+            # remove_vertex_from_node_component!(n′, a)
             remove_vertex_from_node_fps!(n′, a)
         end
     end
@@ -191,7 +228,6 @@ function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set
     """
     for vertex in [u, v]
         if vertex ∉ prev_frontier
-
             push!(n′.comp, vertex)
         end
     end
@@ -207,10 +243,6 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
             pop!(fp, to_change)
             push!(fp, assignment)
         end
-        # if Cᵥ in fp
-        #     pop!(fp, Cᵥ)
-        #     push!(fp, Set(union(Cᵤ, Cᵥ)))
-        # end
     end
 end
 
@@ -219,15 +251,10 @@ function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     """
     assignment = maximum([Cᵤ, Cᵥ])
     to_change = minimum([Cᵤ, Cᵥ])
-    n.comp_assign = map(val -> val == to_change ? assignment : val, n.comp_assign) # TODO: replace with inplace
-    delete!(n.comp, to_change)
-    # if Cᵤ in n.comp
-    #     pop!(n.comp, Cᵤ)
-    # end
-    # if Cᵥ in n.comp
-    #     pop!(n.comp, Cᵥ)
-    # end
-    # n.comp = union(n.comp, Set([union(Cᵤ, Cᵥ)]))
+    if Cᵤ != Cᵥ
+        n.comp_assign = map(val -> val == to_change ? assignment : val, n.comp_assign) # TODO: replace with inplace
+        delete!(n.comp, to_change)
+    end
 end
 
 function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
@@ -235,17 +262,6 @@ function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
         vertices `u` and `v` respectively.
     """
     return node.comp_assign[u], node.comp_assign[v]
-    # Cᵤ = Set{Int}([])
-    # Cᵥ = Set{Int}([])
-    # for s in components
-    #     if u in s
-    #         Cᵤ = s
-    #     end
-    #     if v in s
-    #         Cᵥ = s
-    #     end
-    # end
-    # return Cᵤ, Cᵥ
 end
 
 function compute_frontiers(edges, i::Int)
@@ -292,34 +308,30 @@ end
 function remove_vertex_from_node_component!(node::Node, vertex::Int)
     """ Removes all occurences of `vertex` from `node`.comp
     """
-    delete!(node.comp, vertex)
-    # for comp in node.comp
-    #     delete!(comp, vertex)
-    # end
+    node.comp_assign[vertex] = 0
 end
 
 function remove_vertex_from_node_fps!(node::Node, vertex::Int)
     """
     """
+    vertex_comp = node.comp_assign[vertex]
+
     for fp in node.fps
-        if vertex in fp
+        if vertex_comp in fp && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
             delete!(node.fps, fp)
+            delete!(node.comp, vertex_comp)
         end
     end
-    # for comp in node.comp
-    #     delete!(node.fps, Set([Set([vertex]), comp]))
-    # end
-    # for fp in node.fps
-    #     for comp in fp
-    #         delete!(comp, vertex)
-    #     end
-    # end
+
+    node.comp_assign[vertex] = 0
 end
 
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
     if node ∉ keys(zdd.nodes)
+        # println("Adding ZDD node: ")
+        # node_summary(node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
     end
@@ -338,6 +350,19 @@ function draw(zdd::ZDD, g)
 
     node_colors = fill("lightseagreen", nv(zdd.graph))
     node_colors[[1, 2]] = ["orange", "orange"]
+
+    for (node, idx) in zdd.nodes
+        if node == Node(Edge(3, 5), Set([4]), 0, Set(Set{Int64}[Set([4, 3])]), [0, 0, 3, 4, 5, 6])
+            node_colors[idx] = "pink"
+        end
+        if node == Node(Edge(3 => 5), Set([4, 3]), 0, Set(Set{Int64}[Set([4, 3])]), [0, 0, 3, 4, 5, 6])
+            node_colors[idx] = "purple"
+        end
+    end
+
+    println(node_colors)
+
+
 
     gplot(zdd.graph, loc_xs, loc_ys,
           nodefillc=node_colors,
