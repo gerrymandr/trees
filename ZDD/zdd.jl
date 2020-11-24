@@ -2,6 +2,11 @@ using DataStructures
 using LightGraphs
 import Base: isequal, ==
 
+struct ForbiddenPair
+    comp₁::Int
+    comp₂::Int
+end
+
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 abstract type NodeZDD end
@@ -26,7 +31,7 @@ end
 mutable struct ZDD
     # graph stuff
     graph::SimpleDiGraph
-    nodes::OrderedDict{N, Int64} where N <: NodeZDD
+    nodes::Dict{N, Int64} where N <: NodeZDD
     edges::Dict{Tuple{N, N}, Int64} where N <: NodeZDD
     edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
@@ -62,7 +67,7 @@ end
 
 function ZDD(g::SimpleGraph, root::Node)
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
-    nodes = OrderedDict{NodeZDD, Int64}()
+    nodes = Dict{NodeZDD, Int64}()
     nodes[TerminalNode(0)] = 1
     nodes[TerminalNode(1)] = 2
     nodes[root] = 3
@@ -73,13 +78,27 @@ function ZDD(g::SimpleGraph, root::Node)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
-    max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
+    node₁.cc == node₂.cc &&
+    node₁.label == node₂.label &&
+    # min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
+    # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
     # node₁.label == node₂.label
     issetequal(node₁.comp, node₂.comp) &&
-    node₁.cc == node₂.cc &&
     issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
+    # node₁.fps == node₂.fps
 end
+
+# function fps_equality(fps₁, fps₂)
+#     counter = 0
+#     for fp in fps₁
+#         if fp in fps₂
+#             counter += 1
+#         else
+#             return false
+#         end
+#     end
+#     return counter == length(fps₂)
+# end
 
 function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """ zdd_edge is represented as (Node, Node)
@@ -125,6 +144,14 @@ function construct_zdd(g::SimpleGraph, k::Int)
                     found_copy = false
 
                     for n′′ in N[i+1]
+                        # println("Check")
+                        # node_summary(n′)
+                        # node_summary(n′′)
+                        # println(n′′ == n′)
+                        # println(n′′.cc == n′.cc)
+                        # println(n′′.label == n′.label)
+                        # println(issetequal(n′′.comp, n′.comp))
+                        # println(issetequal(n′′.fps, n′.fps))
                         if n′′ == n′
                             n′ = n′′
                             found_copy = true
@@ -315,6 +342,8 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
     if node ∉ keys(zdd.nodes)
+        # println("adding vertex")
+        # node_summary(node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
     end
