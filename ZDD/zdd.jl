@@ -2,7 +2,8 @@ using DataStructures
 using LightGraphs
 import Base: isequal, ==
 
-struct ForbiddenPair
+# comp₁ < comp₂ by requirement
+mutable struct ForbiddenPair
     comp₁::Int
     comp₂::Int
 end
@@ -15,7 +16,7 @@ mutable struct Node<:NodeZDD
     label::AbstractEdge
     comp::Set{Int}
     cc::Int
-    fps::Set{Set{Int}}
+    fps::Set{ForbiddenPair}
     comp_assign::Array{Int}
 end
 
@@ -25,7 +26,7 @@ end
 
 function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
     comp_assign = [i for i in 1:nv(base_graph)]
-    return Node(root_edge, Set{Int}(), 0, Set{Set{Int}}(), comp_assign)
+    return Node(root_edge, Set{Int}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -84,21 +85,39 @@ function Base.:(==)(node₁::Node, node₂::Node)
     # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
     # node₁.label == node₂.label
     issetequal(node₁.comp, node₂.comp) &&
-    issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
+    # issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
+    fps_equality(node₁.fps, node₂.fps)
     # node₁.fps == node₂.fps
 end
 
-# function fps_equality(fps₁, fps₂)
-#     counter = 0
-#     for fp in fps₁
-#         if fp in fps₂
-#             counter += 1
-#         else
-#             return false
-#         end
-#     end
-#     return counter == length(fps₂)
-# end
+function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
+    (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
+end
+
+function fps_equality(fps₁, fps₂)
+    if length(fps₁) != length(fps₂)
+        return false
+    end
+
+    counter = 0
+    for fpᵢ in fps₁
+        found = false
+        for fpⱼ in fps₂
+            if fpᵢ == fpⱼ
+                counter += 1
+                found = true
+                break
+            end
+        end
+        if !found
+            return false
+        end
+    end
+
+    # return counter == length(fps₂)
+    true
+end
+
 
 function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """ zdd_edge is represented as (Node, Node)
@@ -195,7 +214,7 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
 
-        if Cᵤ != Cᵥ && Set([Cᵤ, Cᵥ]) in n′.fps
+        if Cᵤ != Cᵥ && fp_in_fps(ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)), n′.fps)
             return TerminalNode(0)
         else
             replace_components_with_union!(n′, Cᵤ, Cᵥ)
@@ -204,7 +223,7 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
         if Cᵤ == Cᵥ
             return TerminalNode(0)
         else
-            push!(n′.fps, Set([Cᵤ, Cᵥ]))
+            add_fp_to_fps!(ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)), n′.fps)
         end
     end
 
@@ -234,6 +253,21 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     return n′
 end
 
+function fp_in_fps(fpair, fps)
+    for fp in fps
+        if fpair == fp
+            return true
+        end
+    end
+    false
+end
+
+function add_fp_to_fps!(fpair, fps)
+    if !fp_in_fps(fpair, fps)
+        push!(fps, fpair)
+    end
+end
+
 function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set{Int})
     """ Add `u` or `v` or both to n`.comp if they are not in
         `prev_frontier`
@@ -251,11 +285,23 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     assignment = maximum([Cᵤ, Cᵥ])
     to_change = minimum([Cᵤ, Cᵥ])
     for fp in node.fps
-        if to_change in fp
-            pop!(fp, to_change)
-            push!(fp, assignment)
+        if to_change == fp.comp₁
+            fp.comp₁ = assignment
+            # pop!(fp, to_change)
+            # push!(fp, assignment)
+        elseif to_change == fp.comp₂
+            fp.comp₂ = assignment
+        end
+        if fp.comp₁ > fp.comp₂
+            flip!(fp)
         end
     end
+end
+
+function flip!(fp::ForbiddenPair)
+    holder = fp.comp₁
+    fp.comp₁ = fp.comp₂
+    fp.comp₂ = holder
 end
 
 function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
@@ -329,7 +375,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::Int)
     vertex_comp = node.comp_assign[vertex]
 
     for fp in node.fps
-        if vertex_comp in fp && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
+        if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
             delete!(node.fps, fp)
             delete!(node.comp, vertex_comp)
         end
