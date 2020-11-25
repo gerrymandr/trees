@@ -190,14 +190,6 @@ function construct_zdd(g::SimpleGraph, k::Int)
                     found_copy = false
 
                     for n′′ in N[i+1]
-                        # println("Check")
-                        # node_summary(n′)
-                        # node_summary(n′′)
-                        # println(n′′ == n′)
-                        # println(n′′.cc == n′.cc)
-                        # println(n′′.label == n′.label)
-                        # println(issetequal(n′′.comp, n′.comp))
-                        # println(issetequal(n′′.fps, n′.fps))
                         if n′′ == n′
                             n′ = n′′
                             found_copy = true
@@ -264,7 +256,6 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
                     return TerminalNode(0)
                 end
             end
-            # remove_vertex_from_node_component!(n′, a)
             remove_vertex_from_node_fps!(n′, a)
         end
     end
@@ -314,8 +305,6 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     for fp in node.fps
         if to_change == fp.comp₁
             fp.comp₁ = assignment
-            # pop!(fp, to_change)
-            # push!(fp, assignment)
         elseif to_change == fp.comp₂
             fp.comp₂ = assignment
         end
@@ -415,8 +404,6 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
     if node ∉ keys(zdd.nodes)
-        # println("adding vertex")
-        # node_summary(node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
     end
