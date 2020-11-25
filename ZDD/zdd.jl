@@ -84,15 +84,36 @@ function Base.:(==)(node₁::Node, node₂::Node)
     # min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
     # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
     # node₁.label == node₂.label
-    issetequal(node₁.comp, node₂.comp) &&
+    node₁.comp == node₂.comp &&
+    # issetequal(node₁.comp, node₂.comp) &&
     # issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
     fps_equality(node₁.fps, node₂.fps)
     # node₁.fps == node₂.fps
 end
 
+# function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
+#     isequal(fp_1.comp₁, fp_2.comp₁) &&
+#     isequal(fp_1.comp₂, fp_2.comp₂) &&
+#     true
+# end
+
 function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
 end
+
+# function isequal(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
+#     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
+# end
+#
+# function isequal(node₁::Node, node₂::Node)
+#     node₁.cc == node₂.cc &&
+#     node₁.label == node₂.label &&
+#     node₁.comp == node₂.comp &&
+#     fps_equality(node₁.fps, node₂.fps)
+# end
+
+Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
+Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:NodeZDD, h)))))
 
 function fps_equality(fps₁, fps₂)
     if length(fps₁) != length(fps₂)
@@ -102,6 +123,12 @@ function fps_equality(fps₁, fps₂)
     counter = 0
     for fpᵢ in fps₁
         found = false
+        # if fpᵢ ∉ fps₂
+        #     return false
+        #     # counter += 1
+        # # else
+        #     # return false
+        # end
         for fpⱼ in fps₂
             if fpᵢ == fpⱼ
                 counter += 1
