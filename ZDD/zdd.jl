@@ -233,7 +233,7 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
 
-        if Cᵤ != Cᵥ && fp_in_fps(ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)), n′.fps)
+        if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
             return TerminalNode(0)
         else
             replace_components_with_union!(n′, Cᵤ, Cᵥ)
@@ -269,15 +269,6 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     end
 
     return n′
-end
-
-function fp_in_fps(fpair, fps)
-    for fp in fps
-        if fpair == fp
-            return true
-        end
-    end
-    false
 end
 
 function add_fp_to_fps!(fpair, fps)
