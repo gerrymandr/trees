@@ -242,7 +242,7 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
         if Cᵤ == Cᵥ
             return TerminalNode(0)
         else
-            add_fp_to_fps!(ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)), n′.fps)
+            push!(n′.fps, ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)))
         end
     end
 
@@ -271,11 +271,6 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
     return n′
 end
 
-function add_fp_to_fps!(fpair, fps)
-    if !fp_in_fps(fpair, fps)
-        push!(fps, fpair)
-    end
-end
 
 function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set{Int})
     """ Add `u` or `v` or both to n`.comp if they are not in
