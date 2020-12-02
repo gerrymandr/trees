@@ -151,12 +151,13 @@ function construct_zdd(g::SimpleGraph, k::Int)
     zdd = ZDD(g, root)
     N = [Set{NodeZDD}() for a in 1:ne(g)+1]
     N[1] = Set([root])
+    frontiers = compute_all_frontiers(g, g_edges)
     g_edges = collect(edges(g))
 
     for i = 1:ne(g)
         for n in N[i]
             for x in [0, 1]
-                n′ = make_new_node(g_edges, k, n, i, x)
+                n′ = make_new_node(g_edges, k, n, i, x, frontiers)
 
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
@@ -199,14 +200,14 @@ function node_summary(node::Node)
     println()
 end
 
-function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int)
+function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int, frontiers::Array{Set{Int}, 1})
     """
     """
     u = g_edges[i].src
     v = g_edges[i].dst
 
     n′ = deepcopy(n)
-    prev_frontier, curr_frontier = compute_frontiers(g_edges, i)
+    prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, v, prev_frontier)
     Cᵤ, Cᵥ = components(u, v, n′)
@@ -322,28 +323,32 @@ function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
     return node.comp_assign[u], node.comp_assign[v]
 end
 
-function compute_frontiers(edges, i::Int)
+function compute_frontier(edges, i::Int)
     """
+    Inputs:
+        - set of edges of the base graph
+        - index of edge being processed
+    Output:
+        - the current frontier
     """
     m = length(edges)
-    if i == 1
-        prev_frontier = Set{Int}()
+    if i == 1 || i == m+1
+        return Set{Int}()
     else
         processed_nodes = nodes_from_edges(edges[1:i-1])
         unprocessed_nodes = nodes_from_edges(edges[i:m])
-        prev_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
+        return intersect(Set(processed_nodes), Set(unprocessed_nodes))
     end
-
-    if i == m
-        curr_frontier = Set{Int}()
-    else
-        processed_nodes = nodes_from_edges(edges[1:i])
-        unprocessed_nodes = nodes_from_edges(edges[i+1:m])
-        curr_frontier = intersect(Set(processed_nodes), Set(unprocessed_nodes))
-    end
-
-    return prev_frontier, curr_frontier
 end
+
+function compute_all_frontiers(g::SimpleGraph, g_edges)
+    frontiers = [Set{Int}() for a in 1:ne(g)+1]
+    for i ∈ 1:ne(g)+1
+        frontiers[i] = compute_frontier(g_edges, i)
+    end
+    return frontiers
+end
+
 
 function nodes_from_edges(edges)::Set{Int}
     """
