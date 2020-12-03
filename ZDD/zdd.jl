@@ -39,33 +39,6 @@ mutable struct ZDD
     root::Node
 end
 
-function get_node_from_seq(zdd::ZDD, seq::Array{Int})
-    curr_node = zdd.root
-    g_edges = collect(edges(g))
-
-    for (i, x) in enumerate(seq)
-        if i == 1
-            for node in keys(zdd.nodes)
-                if (zdd.root, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[zdd.root, node] == x
-                    curr_node = node
-                    break
-                end
-            end
-        else
-            for node in keys(zdd.nodes)
-                if (node, curr_node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[node, curr_node] == x
-                    curr_node = node
-                    break
-                elseif (curr_node, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[curr_node, node] == x
-                    curr_node = node
-                    break
-                end
-            end
-        end
-    end
-    return curr_node
-end
-
 function ZDD(g::SimpleGraph, root::Node)
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = Dict{NodeZDD, Int64}()
@@ -81,39 +54,26 @@ end
 function Base.:(==)(node₁::Node, node₂::Node)
     node₁.cc == node₂.cc &&
     node₁.label == node₂.label &&
-    # min(node₁.label.src, node₁.label.dst) == min(node₂.label.src, node₂.label.dst) &&
-    # max(node₁.label.src, node₁.label.dst) == max(node₂.label.src, node₂.label.dst) &&
-    # node₁.label == node₂.label
     node₁.comp == node₂.comp &&
-    # issetequal(node₁.comp, node₂.comp) &&
-    # issetequal(deepcopy(node₁.fps), deepcopy(node₂.fps))
-    fps_equality(node₁.fps, node₂.fps)
     # node₁.fps == node₂.fps
+    fps_equality(node₁.fps, node₂.fps)
 end
 
-# function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
-#     isequal(fp_1.comp₁, fp_2.comp₁) &&
-#     isequal(fp_1.comp₂, fp_2.comp₂) &&
-#     true
-# end
+function Base.:(==)(node₁::TerminalNode, node₂::Node)
+    false
+end
+
+function Base.:(==)(node₁::Node, node₂::TerminalNode)
+    false
+end
 
 function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
 end
 
-# function isequal(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
-#     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
-# end
-#
-# function isequal(node₁::Node, node₂::Node)
-#     node₁.cc == node₂.cc &&
-#     node₁.label == node₂.label &&
-#     node₁.comp == node₂.comp &&
-#     fps_equality(node₁.fps, node₂.fps)
-# end
-
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
-Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:NodeZDD, h)))))
+Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:Node, h)))))
+Base.hash(n::TerminalNode, h::UInt) = hash(n.label, hash(:TerminalNode, h))
 
 function fps_equality(fps₁, fps₂)
     if length(fps₁) != length(fps₂)
@@ -149,13 +109,13 @@ end
 function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """ zdd_edge is represented as (Node, Node)
     """
-    @assert x in [0, 1]
     node₁, node₂ = zdd_edge
+    # tup = (node₁, node₂)
 
-    if (node₁, node₂) in keys(zdd.edges)
-        push!(zdd.edge_multiplicity, (node₁, node₂))
+    if zdd_edge in keys(zdd.edges)
+        push!(zdd.edge_multiplicity, zdd_edge)
     else
-        zdd.edges[(node₁, node₂)] = x
+        zdd.edges[zdd_edge] = x
     end
 
     # get node indexes
@@ -312,7 +272,7 @@ function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     assignment = maximum([Cᵤ, Cᵥ])
     to_change = minimum([Cᵤ, Cᵥ])
     if Cᵤ != Cᵥ
-        n.comp_assign = map(val -> val == to_change ? assignment : val, n.comp_assign) # TODO: replace with inplace
+        map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         delete!(n.comp, to_change)
     end
 end
@@ -356,13 +316,6 @@ function nodes_from_edges(edges)::Set{Int}
         push!(nodes, e.dst)
     end
     return nodes
-end
-
-function isequal(edge₁::AbstractEdge, edge₂::AbstractEdge)::Bool
-    """ TODO: change this to edge_1 and edge_2
-    """
-    min(edge₁.src, edge₁.dst) == min(edge₂.src, edge₂.dst) &&
-    max(edge₁.src, edge₁.dst) == max(edge₂.src, edge₂.dst)
 end
 
 function remove_vertex_from_node_component!(node::Node, vertex::Int)
@@ -420,10 +373,12 @@ function edge_colors(zdd)
     for edge in edges(zdd.graph)
         node₁ = get_corresponding_node(zdd, edge.src)
         node₂ = get_corresponding_node(zdd, edge.dst)
-        try
+        if haskey(zdd.edges, (node₁, node₂))
             push!(edge_colors, zdd.edges[(node₁, node₂)])
-        catch e
+        elseif haskey(zdd.edges, (node₂, node₁))
             push!(edge_colors, zdd.edges[(node₂, node₁)])
+        # else
+        #     println("whoop")
         end
     end
 
@@ -555,4 +510,31 @@ function label_nodes(zdd::ZDD)
         node_labels[zdd.nodes[node]] = node.label
     end
     node_labels
+end
+
+function get_node_from_seq(zdd::ZDD, seq::Array{Int})
+    curr_node = zdd.root
+    g_edges = collect(edges(g))
+
+    for (i, x) in enumerate(seq)
+        if i == 1
+            for node in keys(zdd.nodes)
+                if (zdd.root, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[zdd.root, node] == x
+                    curr_node = node
+                    break
+                end
+            end
+        else
+            for node in keys(zdd.nodes)
+                if (node, curr_node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[node, curr_node] == x
+                    curr_node = node
+                    break
+                elseif (curr_node, node) in keys(zdd.edges) && node.label == g_edges[i+1] && zdd.edges[curr_node, node] == x
+                    curr_node = node
+                    break
+                end
+            end
+        end
+    end
+    return curr_node
 end
