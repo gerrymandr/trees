@@ -37,6 +37,7 @@ mutable struct ZDD
     edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
     root::Node
+    paths::Dict{N, Int64} where N <: NodeZDD
 end
 
 function ZDD(g::SimpleGraph, root::Node)
@@ -48,7 +49,11 @@ function ZDD(g::SimpleGraph, root::Node)
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
     base_graph = g
-    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root)
+    paths = Dict{NodeZDD, Int64}()
+    paths[TerminalNode(0)] = 0
+    paths[TerminalNode(1)] = 1
+    paths[root] = -1
+    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, paths)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -130,16 +135,15 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
-function construct_zdd(g::SimpleGraph, k::Int)
+function construct_zdd(g::SimpleGraph, k::Int, optimal_ordering::Bool=false, dims::Array{Any, 1}=[])
+    optimal_ordering ? g_edges = optimal_grid_edge_order(g, dims[1],dims[2]) : g_edges = collect(edges(g))
     # select root
-    g_edges = collect(edges(g))
     root = Node(g_edges[1], g)
 
     zdd = ZDD(g, root)
     N = [Set{NodeZDD}() for a in 1:ne(g)+1]
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
-    g_edges = collect(edges(g))
 
     for i = 1:ne(g)
         for n in N[i]
@@ -167,6 +171,7 @@ function construct_zdd(g::SimpleGraph, k::Int)
             end
         end
     end
+    calculate_paths!(zdd)
     return zdd
 end
 
@@ -350,6 +355,7 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     if node ∉ keys(zdd.nodes)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
+        zdd.paths[node] = -1
     end
 end
 
@@ -542,4 +548,87 @@ function get_node_from_seq(zdd::ZDD, seq::Array{Int})
         end
     end
     return curr_node
+end
+
+"""
+Functions on ZDDs
+"""
+function calculate_paths!(zdd::ZDD)
+    """
+    """
+    sorted_nodes = sort(collect(zdd.nodes), rev=true, by=pair->pair[2])
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes)
+    for (n, i) ∈ sorted_nodes
+        if n isa TerminalNode
+            continue
+        end
+        child_nodes = [node_at[j] for j in zdd.graph.fadjlist[i]]
+        paths = 0
+        for child_node ∈ child_nodes
+            zdd.paths[child_node] != -1 ? paths += zdd.paths[child_node] : error("We somehow ordered the nodes wrong...")
+        end
+    zdd.paths[n] = paths
+    end
+    return nothing
+end
+
+"""
+Edge Ordering
+"""
+function optimal_grid_edge_order(g::SimpleGraph, r::Int, c::Int)
+        x_max = c - 1
+        y_max = r - 1
+        python_edge_list = Tuple{Tuple{Int, Int}, Tuple{Int,Int}}[]
+        for y in 0:y_max-1
+                y_ = y+1
+                x_ = 0
+                while(y_ > 0 && x_ < x_max)
+                        push!(python_edge_list,((x_, y_),(x_,y_-1)))
+                        push!(python_edge_list,((x_,y_-1),(x_+1,y_-1)))
+                        y_ -= 1
+                        x_ += 1
+                end
+                if y_ > 0
+                        push!(python_edge_list,((x_,y_),(x_,y_-1)))
+                end
+        end
+        for x in 0:x_max-1
+                y_ = y_max
+                x_ = x
+                while(y_ > 0 && x_ < x_max)
+                        push!(python_edge_list,((x_,y_),(x_+1,y_)))
+                        push!(python_edge_list,((x_+1,y_),(x_+1,y_-1)))
+                        y_ -= 1
+                        x_ += 1
+                end
+                if x_ < x_max
+                        push!(python_edge_list,((x_,y_),(x_+1,y_)))
+                end
+        end
+        julia_edge_list = [convert_python_edges_to_julia(edge, r) for edge in python_edge_list]
+        @assert length(julia_edge_list) == length(edges(g))
+        for e in julia_edge_list
+                @assert e in edges(g)
+        end
+        return julia_edge_list
+end
+
+function convert_python_vertices_to_julia(t::Tuple{Int,Int}, c::Int)
+        x, y = t[1], t[2]
+        return c*x+y+1
+end
+
+function convert_python_edges_to_julia(e::Tuple{Tuple{Int, Int}, Tuple{Int,Int}}, c::Int)
+        vtx_1 = convert_python_vertices_to_julia(e[1], c)
+        vtx_2 = convert_python_vertices_to_julia(e[2], c)
+        return LightGraphs.SimpleGraphs.SimpleEdge(minmax(vtx_1, vtx_2))
+end
+
+function frontier_distribution(g, g_edges)
+    frontiers = compute_all_frontiers(g, g_edges)
+    for i ∈ 0:maximum(length(frontier) for frontier in frontiers)
+        c = count(length(frontier) == i for frontier in frontiers)
+        println("$c frontiers of length $i")
+    end
+    return
 end
