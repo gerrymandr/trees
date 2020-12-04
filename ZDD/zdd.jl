@@ -135,8 +135,9 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
-function construct_zdd(g::SimpleGraph, k::Int, optimal_ordering::Bool=false, dims::Array{Any, 1}=[])
-    optimal_ordering ? g_edges = optimal_grid_edge_order(g, dims[1],dims[2]) : g_edges = collect(edges(g))
+function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})
+    # optimal_ordering ? g_edges = optimal_grid_edge_order(g, dims[1],dims[2]) : g_edges = collect(edges(g))
+    frontier_distribution(g, g_edges)
     # select root
     root = Node(g_edges[1], g)
 
@@ -624,8 +625,16 @@ function convert_python_edges_to_julia(e::Tuple{Tuple{Int, Int}, Tuple{Int,Int}}
         return LightGraphs.SimpleGraphs.SimpleEdge(minmax(vtx_1, vtx_2))
 end
 
-function frontier_distribution(g, g_edges)
+function frontier_distribution(g::SimpleGraph, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int}, 1})
     frontiers = compute_all_frontiers(g, g_edges)
+    for i ∈ 0:maximum(length(frontier) for frontier in frontiers)
+        c = count(length(frontier) == i for frontier in frontiers)
+        println("$c frontiers of length $i")
+    end
+    return
+end
+
+function frontier_distribution(frontiers::Array{Set{Int},1})
     for i ∈ 0:maximum(length(frontier) for frontier in frontiers)
         c = count(length(frontier) == i for frontier in frontiers)
         println("$c frontiers of length $i")
