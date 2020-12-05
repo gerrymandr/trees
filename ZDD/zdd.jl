@@ -3,7 +3,7 @@ using LightGraphs
 import Base: isequal, ==
 
 # comp₁ < comp₂ by requirement
-mutable struct ForbiddenPair
+struct ForbiddenPair
     comp₁::Int
     comp₂::Int
 end
@@ -57,11 +57,12 @@ function ZDD(g::SimpleGraph, root::Node)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.cc == node₂.cc &&
-    node₁.label == node₂.label &&
-    node₁.comp == node₂.comp &&
-    # node₁.fps == node₂.fps
-    fps_equality(node₁.fps, node₂.fps)
+    cc_eq = (node₁.cc == node₂.cc)
+    label_eq = (node₁.label == node₂.label)
+    comp_eq = (node₁.comp == node₂.comp)
+    fps_eq = (node₁.fps == node₂.fps)
+
+    cc_eq && label_eq && comp_eq && fps_eq
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -257,21 +258,17 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     to_change = minimum([Cᵤ, Cᵥ])
     for fp in node.fps
         if to_change == fp.comp₁
-            fp.comp₁ = assignment
+            other = fp.comp₂
+            delete!(node.fps, fp)
+            push!(node.fps, ForbiddenPair(minimum([assignment, other]), maximum([assignment, other])))
         elseif to_change == fp.comp₂
-            fp.comp₂ = assignment
-        end
-        if fp.comp₁ > fp.comp₂
-            flip!(fp)
+            other = fp.comp₁
+            delete!(node.fps, fp)
+            push!(node.fps, ForbiddenPair(minimum([assignment, other]), maximum([assignment, other])))
         end
     end
 end
 
-function flip!(fp::ForbiddenPair)
-    holder = fp.comp₁
-    fp.comp₁ = fp.comp₂
-    fp.comp₂ = holder
-end
 
 function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     """
@@ -389,8 +386,6 @@ function edge_colors(zdd)
             push!(edge_colors, zdd.edges[(node₁, node₂)])
         elseif haskey(zdd.edges, (node₂, node₁))
             push!(edge_colors, zdd.edges[(node₂, node₁)])
-        # else
-        #     println("whoop")
         end
     end
 
@@ -441,6 +436,7 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
         return
     end
 
+    # put in the location of the node
     if loc_xs[zdd.nodes[node]] == -1
         if node.label in keys(labels_seen)
             labels_seen[node.label] += 1
@@ -452,31 +448,27 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
         loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
     end
 
-    ns = outneighbors(zdd.graph, zdd.nodes[node])
-    neighbors = []
-    for n in ns
-        push!(neighbors, node_by_idx(zdd, n))
-    end
+    # recurse on the neighbors of the node
+    neighbors = [node_by_idx(zdd, n) for n in outneighbors(zdd.graph, zdd.nodes[node])]
 
     if length(neighbors) == 1
         add_locations(zdd, neighbors[1], loc_xs, loc_ys, tree_width, label_occs, labels_seen)
-        return
 
     elseif length(neighbors) == 2
         order_1 = (node, neighbors[1])
         order_2 = (node, neighbors[2])
 
-        try
-            zdd.edges[order_1]
-        catch e
-            order_1 = (neighbors[1], node)
-        end
-
-        try
-            zdd.edges[(node, neighbors[2])]
-        catch e
-            order_1 = (neighbors[2], node)
-        end
+        # try
+        #     zdd.edges[order_1]
+        # catch e
+        #     order_1 = (neighbors[1], node)
+        # end
+        #
+        # try
+        #     zdd.edges[order_2]
+        # catch e
+        #     order_2 = (neighbors[2], node)
+        # end
 
         if zdd.edges[order_1] == 0 && zdd.edges[order_2] == 1
             neighbors = [neighbors[1], neighbors[2]]
