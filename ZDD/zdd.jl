@@ -254,17 +254,17 @@ end
 function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     """
     """
-    assignment = maximum([Cᵤ, Cᵥ])
-    to_change = minimum([Cᵤ, Cᵥ])
+    assignment = max(Cᵤ, Cᵥ)
+    to_change = min(Cᵤ, Cᵥ)
     for fp in node.fps
         if to_change == fp.comp₁
             other = fp.comp₂
             delete!(node.fps, fp)
-            push!(node.fps, ForbiddenPair(minimum([assignment, other]), maximum([assignment, other])))
+            push!(node.fps, ForbiddenPair(min(assignment, other), max(assignment, other)))
         elseif to_change == fp.comp₂
             other = fp.comp₁
             delete!(node.fps, fp)
-            push!(node.fps, ForbiddenPair(minimum([assignment, other]), maximum([assignment, other])))
+            push!(node.fps, ForbiddenPair(min(assignment, other), max(assignment, other)))
         end
     end
 end
@@ -273,8 +273,8 @@ end
 function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     """
     """
-    assignment = maximum([Cᵤ, Cᵥ])
-    to_change = minimum([Cᵤ, Cᵥ])
+    assignment = max(Cᵤ, Cᵥ)
+    to_change = min(Cᵤ, Cᵥ)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         delete!(n.comp, to_change)
