@@ -37,7 +37,9 @@ mutable struct ZDD
     edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
     root::Node
-    paths::Dict{N, Int64} where N <: NodeZDD
+    paths_to_terminal::Dict{N, Int64} where N <: NodeZDD
+    paths_to_root::Dict{N, Int} where N <: NodeZDD
+    paths::Dict{N, Int} where N <: NodeZDD
 end
 
 function ZDD(g::SimpleGraph, root::Node)
@@ -49,11 +51,19 @@ function ZDD(g::SimpleGraph, root::Node)
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
     base_graph = g
+    paths_to_terminal = Dict{NodeZDD, Int64}()
+    paths_to_terminal[TerminalNode(0)] = 0
+    paths_to_terminal[TerminalNode(1)] = 1
+    paths_to_terminal[root] = -1
+    paths_to_root = Dict{NodeZDD, Int64}()
+    paths_to_root[TerminalNode(0)] = -1
+    paths_to_root[TerminalNode(1)] = -1
+    paths_to_root[root] = 1
     paths = Dict{NodeZDD, Int64}()
-    paths[TerminalNode(0)] = 0
-    paths[TerminalNode(1)] = 1
-    paths[root] = -1
-    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, paths)
+    paths[TerminalNode(0)] = -1
+    paths[TerminalNode(1)] = -1
+    paths[root] = 1
+    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, paths_to_terminal, paths_to_root, paths)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -139,7 +149,9 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
             end
         end
     end
-    calculate_paths!(zdd)
+    calculate_paths_to_terminal!(zdd)
+    calculate_paths_to_root!(zdd)
+    calculate_enumeration_paths!(zdd)
     return zdd
 end
 
@@ -529,7 +541,7 @@ end
 """
 Functions on ZDDs
 """
-function calculate_paths!(zdd::ZDD)
+function calculate_paths_to_terminal!(zdd::ZDD)
     """
     """
     sorted_nodes = sort(collect(zdd.nodes), rev=true, by=pair->pair[2])
@@ -541,9 +553,50 @@ function calculate_paths!(zdd::ZDD)
         child_nodes = [node_at[j] for j in zdd.graph.fadjlist[i]]
         paths = 0
         for child_node ∈ child_nodes
-            zdd.paths[child_node] != -1 ? paths += zdd.paths[child_node] : error("We somehow ordered the nodes wrong...")
+            zdd.paths_to_terminal[child_node] != -1 ? paths += zdd.paths_to_terminal[child_node] : error("We somehow ordered the nodes wrong...")
         end
-    zdd.paths[n] = paths
+        zdd.paths_to_terminal[n] = paths
+    end
+    return nothing
+end
+
+function calculate_paths_to_root!(zdd::ZDD)
+    """
+    """
+    function calculate_paths!(n::NodeZDD, i::Int, zdd::ZDD)
+        """
+        TODO: Abstract this out so calculate_paths_to_terminal can use it
+        """
+        child_nodes = [node_at[j] for j in reversed_zdd.fadjlist[i]]
+        paths = 0
+        for child_node ∈ child_nodes
+            zdd.paths_to_root[child_node] != -1 ? paths += zdd.paths_to_root[child_node] : error("We somehow ordered the nodes wrong...")
+        end
+        zdd.paths_to_root[n] = paths
+        return nothing
+    end
+
+    sorted_nodes = sort(collect(zdd.nodes), by=pair->pair[2])
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes)
+    reversed_zdd = reverse(zdd.graph)
+    for (n, i) ∈ sorted_nodes
+        if i <= 3
+            continue # do terminal nodes later
+        end
+        calculate_paths!(n, i, zdd)
+    end
+    for (n, i) ∈ sorted_nodes
+        if i <= 2 # just terminal nodes
+            calculate_paths!(n, i, zdd)
+        end
+    end
+    return nothing
+end
+
+function calculate_enumeration_paths!(zdd::ZDD)
+    for node ∈ zdd.nodes
+        n = node[1]
+        zdd.paths[n] = zdd.paths_to_root[n]*zdd.paths_to_terminal[n]
     end
     return nothing
 end
@@ -674,4 +727,63 @@ function frontier_distribution(frontiers::Array{Set{Int},1})
         println("$c frontiers of length $i")
     end
     return
+end
+
+"""
+Enumerating Plans
+"""
+function choose_positive_child!(zdd::ZDD, node::NodeZDD, plan::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int}, 1}, plans::Array{Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},N} where N,1})
+    node_idx = zdd.nodes[node]
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes)
+    if node == zdd.root
+        if zdd.paths[node] == 0
+            return nothing
+        end
+        zdd.paths[node] -= 1
+        zdd.paths_to_terminal[node] -= 1
+    end
+    if !(node isa TerminalNode)  # terminate when we reach the 1-terminal
+        child_nodes = [(node_at[j], zdd.edges[(node, node_at[j])]) for j ∈ zdd.graph.fadjlist[node_idx]]
+        sort!(child_nodes, by=pair->pair[2])
+        for (child_node, i) ∈ child_nodes
+            if zdd.paths[child_node] > 0 # choose a child that has some path to 1-terminal
+                edge_type = zdd.edges[(node, child_node)]
+#                 println("On node $(node.label), its $edge_type-child, $(child_node.label) has $(zdd.paths[child_node]) paths")
+#                 if(zdd.paths_to_terminal[child_node] <= 0 && count(plan == partial_plan for partial_plan ∈ map(x->x[begin:length(plan)], plans)) > 0)
+#                     println("We're aborting this particular path though...")
+#                     continue
+#                 end
+                if !(child_node isa TerminalNode)
+                    zdd.paths[child_node] -= 1
+                    zdd.paths_to_terminal[child_node] -= 1
+                    zdd.paths_to_root[child_node] -= 1
+                end
+                i == 1 && push!(plan, node.label) # retain this edge if 1-arc
+                global next_node = child_node
+                break # if we chose the 0-arc child, don't go on to the 1-arc child this time
+            else
+                continue # if the 0-arc child doesn't have any paths, try the 1-arc child
+            end
+        end
+        return choose_positive_child!(zdd, next_node, plan, plans)
+    else
+        push!(plans, plan)
+#         println("Found a plan:")
+#         println(plan)
+#         println()
+        return nothing
+    end
+end
+
+function enumerate_plans(zdd::ZDD)
+    num_plans = zdd.paths[zdd.root]
+    println("Enumerating all $num_plans plans")
+    plans = Array{LightGraphs.SimpleGraphs.SimpleEdge{Int}}[]
+    root = zdd.root
+
+    while zdd.paths[root] > 0
+        plan = LightGraphs.SimpleGraphs.SimpleEdge{Int}[]
+        choose_positive_child!(zdd, root, plan, plans)
+    end
+    return plans
 end
