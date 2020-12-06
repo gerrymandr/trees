@@ -57,12 +57,10 @@ function ZDD(g::SimpleGraph, root::Node)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    cc_eq = (node₁.cc == node₂.cc)
-    label_eq = (node₁.label == node₂.label)
-    comp_eq = (node₁.comp == node₂.comp)
-    fps_eq = (node₁.fps == node₂.fps)
-
-    cc_eq && label_eq && comp_eq && fps_eq
+    node₁.cc == node₂.cc &&
+    node₁.label == node₂.label &&
+    node₁.comp == node₂.comp &&
+    node₁.fps == node₂.fps
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -81,42 +79,10 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:Node, h)))))
 Base.hash(n::TerminalNode, h::UInt) = hash(n.label, hash(:TerminalNode, h))
 
-function fps_equality(fps₁, fps₂)
-    if length(fps₁) != length(fps₂)
-        return false
-    end
-
-    counter = 0
-    for fpᵢ in fps₁
-        found = false
-        # if fpᵢ ∉ fps₂
-        #     return false
-        #     # counter += 1
-        # # else
-        #     # return false
-        # end
-        for fpⱼ in fps₂
-            if fpᵢ == fpⱼ
-                counter += 1
-                found = true
-                break
-            end
-        end
-        if !found
-            return false
-        end
-    end
-
-    # return counter == length(fps₂)
-    true
-end
-
-
 function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """ zdd_edge is represented as (Node, Node)
     """
     node₁, node₂ = zdd_edge
-    # tup = (node₁, node₂)
 
     if zdd_edge in keys(zdd.edges)
         push!(zdd.edge_multiplicity, zdd_edge)
@@ -326,12 +292,6 @@ function nodes_from_edges(edges)::Set{Int}
     return nodes
 end
 
-function remove_vertex_from_node_component!(node::Node, vertex::Int)
-    """ Removes all occurences of `vertex` from `node`.comp
-    """
-    node.comp_assign[vertex] = 0
-end
-
 function remove_vertex_from_node_fps!(node::Node, vertex::Int)
     """
     """
@@ -457,18 +417,6 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
     elseif length(neighbors) == 2
         order_1 = (node, neighbors[1])
         order_2 = (node, neighbors[2])
-
-        # try
-        #     zdd.edges[order_1]
-        # catch e
-        #     order_1 = (neighbors[1], node)
-        # end
-        #
-        # try
-        #     zdd.edges[order_2]
-        # catch e
-        #     order_2 = (neighbors[2], node)
-        # end
 
         if zdd.edges[order_1] == 0 && zdd.edges[order_2] == 1
             neighbors = [neighbors[1], neighbors[2]]
