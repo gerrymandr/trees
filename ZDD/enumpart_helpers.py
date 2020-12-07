@@ -61,7 +61,7 @@ def count_paths(ZDD, node_labels, edge_labels, pos):
         if type(n) is int:
             continue
         count = 0
-        for edge in edge_labels.keys():
+        for edge in edge_labels.keys(): # this is a waste!
             if edge[0] == n:
                 count += p[edge[1]]
         p[n] = count
