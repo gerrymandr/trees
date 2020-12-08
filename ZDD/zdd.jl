@@ -60,7 +60,8 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.cc == node₂.cc &&
     node₁.label == node₂.label &&
     node₁.comp == node₂.comp &&
-    node₁.fps == node₂.fps
+    node₁.fps == node₂.fps &&
+    node₁.comp_assign == node₂.comp_assign
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -109,32 +110,32 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
     root = Node(g_edges[1], g)
 
     zdd = ZDD(g, root)
-    N = [Set{NodeZDD}() for a in 1:ne(g)+1]
-    N[1] = Set([root])
+    N = [Array{NodeZDD}([]) for a in 1:ne(g)+1]
+    N[1] = Array([root])
     frontiers = compute_all_frontiers(g, g_edges)
 
     for i = 1:ne(g)
+        println("i: ", length(N[i]))
+        if length(N[i]) == 9
+            [node_summary(x) for x in N[i]]
+        end
+        
         for n in N[i]
             for x in [0, 1]
                 n′ = make_new_node(g_edges, k, n, i, x, frontiers)
 
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
-                    found_copy = false
 
-                    for n′′ in N[i+1]
-                        if n′′ == n′
-                            n′ = n′′
-                            found_copy = true
-                            break
-                        end
-                    end
-                    if !found_copy
+                    # node_summary(n′)
+                    if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
+                        add_zdd_node!(zdd, n′)
+                    # else
+                    #     println("paiena")
                     end
-                end
 
-                add_zdd_node!(zdd, n′)
+                end
                 add_zdd_edge!(zdd, (n, n′), x)
             end
         end
