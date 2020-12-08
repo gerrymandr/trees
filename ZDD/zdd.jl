@@ -116,9 +116,9 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
 
     for i = 1:ne(g)
         println("i: ", length(N[i]))
-        if length(N[i]) == 9
-            [node_summary(x) for x in N[i]]
-        end
+        # if length(N[i]) == 128
+        #     [node_summary(x) for x in N[i]]
+        # end
 
         for n in N[i]
             for x in [0, 1]
@@ -127,14 +127,10 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
 
-                    # node_summary(n′)
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
                         add_zdd_node!(zdd, n′)
-                    # else
-                    #     println("paiena")
                     end
-
                 end
                 add_zdd_edge!(zdd, (n, n′), x)
             end
@@ -156,6 +152,7 @@ end
 function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int, frontiers::Array{Set{Int}, 1})
     """
     """
+
     u = g_edges[i].src
     v = g_edges[i].dst
 
@@ -306,6 +303,40 @@ function remove_vertex_from_node_fps!(node::Node, vertex::Int)
     end
 
     node.comp_assign[vertex] = 0
+    adjust_node!(node, vertex_comp)
+end
+
+function adjust_node!(node::Node, vertex_comp::Int)
+    """
+    """
+    if vertex_comp in node.comp_assign
+        # there is atleast one lower vertex number that has the higher comp
+        # number and needs to be adjusted
+        lower_vertices = findall(x->x==vertex_comp, node.comp_assign)
+        new_max = maximum(lower_vertices)
+
+        # change comp.assign
+        for v in lower_vertices
+            node.comp_assign[v] = new_max
+        end
+
+        # change comp
+        delete!(node.comp, vertex_comp)
+        push!(node.comp, new_max)
+
+        # change ForbiddenPair
+        for fp in node.fps
+            if vertex_comp == fp.comp₁
+                other = fp.comp₂
+                delete!(node.fps, fp)
+                push!(node.fps, ForbiddenPair(min(new_max, other), max(new_max, other)))
+            elseif vertex_comp == fp.comp₂
+                other = fp.comp₁
+                delete!(node.fps, fp)
+                push!(node.fps, ForbiddenPair(min(new_max, other), max(new_max, other)))
+            end
+        end
+    end
 end
 
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
