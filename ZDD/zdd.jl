@@ -119,7 +119,7 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
         if length(N[i]) == 9
             [node_summary(x) for x in N[i]]
         end
-        
+
         for n in N[i]
             for x in [0, 1]
                 n′ = make_new_node(g_edges, k, n, i, x, frontiers)
@@ -322,12 +322,12 @@ end
 Visualization
 """
 
-function draw(zdd::ZDD, g)
+function draw(zdd::ZDD, g, g_edges)
     """
     """
     e_colors = edge_colors(zdd)
     node_labels = label_nodes(zdd)
-    loc_xs, loc_ys = node_locations(zdd)
+    loc_xs, loc_ys = node_locations(zdd, g_edges)
 
     node_colors = fill("lightseagreen", nv(zdd.graph))
     node_colors[[1, 2]] = ["orange", "orange"]
@@ -335,7 +335,8 @@ function draw(zdd::ZDD, g)
     gplot(zdd.graph, loc_xs, loc_ys,
           nodefillc=node_colors,
           nodelabel=node_labels,
-          edgestrokec=e_colors)
+          edgestrokec=e_colors,
+          nodelabelsize=0.8)
 end
 
 function edge_colors(zdd)
@@ -361,7 +362,7 @@ function edge_colors(zdd)
     return colors
 end
 
-function node_locations(zdd)
+function node_locations(zdd, g_edges)
     """
     """
     label_occs = label_occurences(zdd)
@@ -374,7 +375,7 @@ function node_locations(zdd)
     loc_ys[[1, 2]] = [tree_depth, tree_depth]
 
     labels_seen = Dict{AbstractEdge, Int}()
-    add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+    add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
 
     loc_xs = Float64.(loc_xs)
     loc_ys = Float64.(loc_ys)
@@ -390,7 +391,7 @@ function node_by_idx(zdd::ZDD, idx)
     end
 end
 
-function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
     """
     """
     if node isa TerminalNode
@@ -406,14 +407,14 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
         end
 
         loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
-        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, collect(edges(zdd.base_graph)))
+        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, g_edges) #collect(edges(zdd.base_graph)))
     end
 
     # recurse on the neighbors of the node
     neighbors = [node_by_idx(zdd, n) for n in outneighbors(zdd.graph, zdd.nodes[node])]
 
     if length(neighbors) == 1
-        add_locations(zdd, neighbors[1], loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+        add_locations(zdd, neighbors[1], loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
 
     elseif length(neighbors) == 2
         order_1 = (node, neighbors[1])
@@ -426,7 +427,7 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
         end
 
         for neighbor in neighbors
-            add_locations(zdd, neighbor, loc_xs, loc_ys, tree_width, label_occs, labels_seen)
+            add_locations(zdd, neighbor, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
         end
     else
         println("THIS SHOULD NOT HAPPEN")
