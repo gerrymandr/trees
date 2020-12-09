@@ -552,7 +552,7 @@ function queen_grid(dims)
             add_edge!(g, n, n-r-1)
         elseif n == r*(c-1)+1
             add_edge!(g, n, n-r+1)
-        elseif n ∈ 1:c
+        elseif n ∈ 1:r
             add_edge!(g, n, n+r-1)
             add_edge!(g, n, n+r+1)
         elseif (n-1) % r == 0
