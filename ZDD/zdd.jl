@@ -126,9 +126,36 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
 
     for i = 1:ne(g)
         println("i: ", length(N[i]))
-        # if length(N[i]) == 128
-        #     [node_summary(x) for x in N[i]]
-        # end
+        if length(N[i]) == 128
+            d = Dict()
+            for n in N[i]
+                if (n.cc == 0 && length(n.comp) == 4 && length(n.fps) == 4)
+                    node_summary(n)
+                    # continue
+                end
+
+
+                # if length(n.fps) in keys(d)
+                #     d[length(n.fps)] += 1
+                # else
+                #     d[length(n.fps)] = 1
+                # end
+            end
+            # println(d)
+
+            # d = Dict()
+            # for n in N[i]
+            #     if n.cc == 0# in keys(d)
+            #         node_summary(n)
+            #     end
+            #     #     d[n.cc] += 1
+            #     # else
+            #     #     d[n.cc] = 1
+            #     # end
+            # end
+            # println(d)
+            # [node_summary(x) for x in N[i]]
+        end
 
         for n in N[i]
             for x in [0, 1]
@@ -232,16 +259,20 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)
+    changed = []
     for fp in node.fps
         if to_change == fp.comp₁
             other = fp.comp₂
             delete!(node.fps, fp)
-            push!(node.fps, ForbiddenPair(min(assignment, other), max(assignment, other)))
+            push!(changed, ForbiddenPair(min(assignment, other), max(assignment, other)))
         elseif to_change == fp.comp₂
             other = fp.comp₁
             delete!(node.fps, fp)
-            push!(node.fps, ForbiddenPair(min(assignment, other), max(assignment, other)))
+            push!(changed, ForbiddenPair(min(assignment, other), max(assignment, other)))
         end
+    end
+    for fp in changed
+        push!(node.fps, fp)
     end
 end
 
@@ -337,16 +368,20 @@ function adjust_node!(node::Node, vertex_comp::Int)
         push!(node.comp, new_max)
 
         # change ForbiddenPair
+        changed = []
         for fp in node.fps
             if vertex_comp == fp.comp₁
                 other = fp.comp₂
                 delete!(node.fps, fp)
-                push!(node.fps, ForbiddenPair(min(new_max, other), max(new_max, other)))
+                push!(changed, ForbiddenPair(min(new_max, other), max(new_max, other)))
             elseif vertex_comp == fp.comp₂
                 other = fp.comp₁
                 delete!(node.fps, fp)
-                push!(node.fps, ForbiddenPair(min(new_max, other), max(new_max, other)))
+                push!(changed, ForbiddenPair(min(new_max, other), max(new_max, other)))
             end
+        end
+        for fp in changed
+            push!(node.fps, fp)
         end
     end
 end
