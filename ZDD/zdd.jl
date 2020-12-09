@@ -120,43 +120,11 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
     root = Node(g_edges[1], g)
 
     zdd = ZDD(g, root)
-    N = [Array{NodeZDD}([]) for a in 1:ne(g)+1]
-    N[1] = Array([root])
+    N = [Set{NodeZDD}([]) for a in 1:ne(g)+1]
+    N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
 
     for i = 1:ne(g)
-        println("i: ", length(N[i]))
-        if length(N[i]) == 128
-            d = Dict()
-            for n in N[i]
-                if (n.cc == 0 && length(n.comp) == 4 && length(n.fps) == 4)
-                    node_summary(n)
-                    # continue
-                end
-
-
-                # if length(n.fps) in keys(d)
-                #     d[length(n.fps)] += 1
-                # else
-                #     d[length(n.fps)] = 1
-                # end
-            end
-            # println(d)
-
-            # d = Dict()
-            # for n in N[i]
-            #     if n.cc == 0# in keys(d)
-            #         node_summary(n)
-            #     end
-            #     #     d[n.cc] += 1
-            #     # else
-            #     #     d[n.cc] = 1
-            #     # end
-            # end
-            # println(d)
-            # [node_summary(x) for x in N[i]]
-        end
-
         for n in N[i]
             for x in [0, 1]
                 n′ = make_new_node(g_edges, k, n, i, x, frontiers)
@@ -389,7 +357,7 @@ end
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
-    if node ∉ keys(zdd.nodes)
+    if !haskey(zdd.nodes, node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
         zdd.paths[node] = -1
