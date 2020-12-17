@@ -15,6 +15,7 @@ abstract type NodeZDD end
 mutable struct Node<:NodeZDD
     label::AbstractEdge
     comp::Set{Int}
+    comp_weights::Dict{Int, Int}
     cc::Int
     fps::Set{ForbiddenPair}
     comp_assign::Array{Int}
@@ -26,7 +27,8 @@ end
 
 function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
     comp_assign = [i for i in 1:nv(base_graph)]
-    return Node(root_edge, Set{Int}(), 0, Set{ForbiddenPair}(), comp_assign)
+    comp_weights = Dict((vtx, 1) for vtx ∈ 1:nv(base_graph))
+    return Node(root_edge, Set{Int}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -37,9 +39,9 @@ mutable struct ZDD
     edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
     root::Node
-    paths_to_terminal::Dict{N, Int64} where N <: NodeZDD
-    paths_to_root::Dict{N, Int} where N <: NodeZDD
-    paths::Dict{N, Int} where N <: NodeZDD
+    # paths_to_terminal::Dict{N, Int64} where N <: NodeZDD
+    # paths_to_root::Dict{N, Int} where N <: NodeZDD
+    # paths::Dict{N, Int} where N <: NodeZDD
 end
 
 function ZDD(g::SimpleGraph, root::Node)
@@ -51,19 +53,19 @@ function ZDD(g::SimpleGraph, root::Node)
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
     base_graph = g
-    paths_to_terminal = Dict{NodeZDD, Int64}()
-    paths_to_terminal[TerminalNode(0)] = 0
-    paths_to_terminal[TerminalNode(1)] = 1
-    paths_to_terminal[root] = -1
-    paths_to_root = Dict{NodeZDD, Int64}()
-    paths_to_root[TerminalNode(0)] = -1
-    paths_to_root[TerminalNode(1)] = -1
-    paths_to_root[root] = 1
-    paths = Dict{NodeZDD, Int64}()
-    paths[TerminalNode(0)] = -1
-    paths[TerminalNode(1)] = -1
-    paths[root] = 1
-    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, paths_to_terminal, paths_to_root, paths)
+    # paths_to_terminal = Dict{NodeZDD, Int64}()
+    # paths_to_terminal[TerminalNode(0)] = 0
+    # paths_to_terminal[TerminalNode(1)] = 1
+    # paths_to_terminal[root] = -1
+    # paths_to_root = Dict{NodeZDD, Int64}()
+    # paths_to_root[TerminalNode(0)] = -1
+    # paths_to_root[TerminalNode(1)] = -1
+    # paths_to_root[root] = 1
+    # paths = Dict{NodeZDD, Int64}()
+    # paths[TerminalNode(0)] = -1
+    # paths[TerminalNode(1)] = -1
+    # paths[root] = 1
+    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -71,7 +73,8 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.label == node₂.label &&
     node₁.comp == node₂.comp &&
     node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign
+    node₁.comp_assign == node₂.comp_assign &&
+    node₁.comp_weights == node₂.comp_weights # TODO: where does this go in the hierarchy
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -113,10 +116,8 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
-function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})
-    # optimal_ordering ? g_edges = optimal_grid_edge_order(g, dims[1],dims[2]) : g_edges = collect(edges(g))
+function construct_zdd(g::SimpleGraph, k::Int, d::Int, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})
     frontier_distribution(g, g_edges)
-    # select root
     root = Node(g_edges[1], g)
 
     zdd = ZDD(g, root)
@@ -127,8 +128,7 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
     for i = 1:ne(g)
         for n in N[i]
             for x in [0, 1]
-                n′ = make_new_node(g_edges, k, n, i, x, frontiers)
-
+                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers)
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
 
@@ -141,9 +141,9 @@ function construct_zdd(g::SimpleGraph, k::Int, g_edges::Array{LightGraphs.Simple
             end
         end
     end
-    calculate_paths_to_terminal!(zdd)
-    calculate_paths_to_root!(zdd)
-    calculate_enumeration_paths!(zdd)
+    # calculate_paths_to_terminal!(zdd)
+    # calculate_paths_to_root!(zdd)
+    # calculate_enumeration_paths!(zdd)
     return zdd
 end
 
@@ -153,10 +153,16 @@ function node_summary(node::Node)
     println("comp: ",node.comp)
     println("fps: ",node.fps)
     println("comp_assign: ", node.comp_assign)
+    println("comp_weights: ", node.comp_weights)
     println()
 end
 
-function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int, frontiers::Array{Set{Int}, 1})
+function node_summary(node::TerminalNode)
+    println("Label: ", node.label)
+    println()
+end
+
+function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::Int, d::Int, frontiers::Array{Set{Int}, 1})
     """
     """
 
@@ -186,10 +192,19 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int, frontiers::A
     end
 
     for a in [u, v]
+        # println("at step $i, curr frontier is $curr_frontier")
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
 
             if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
+                # println("Now in cc incrementing land")
+                # node_summary(n′)
+                lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
+                upper_bound = Int(nv(g)/k + d)
+                # println(lower_bound, upper_bound)
+                if n′.comp_weights[a_comp] ∉ lower_bound:upper_bound
+                    return TerminalNode(0)
+                end
                 n′.cc += 1
                 if n′.cc > k
                     return TerminalNode(0)
@@ -200,7 +215,7 @@ function make_new_node(g_edges, k::Int, n::NodeZDD, i::Int, x::Int, frontiers::A
     end
 
     if i == length(g_edges)
-        if n′.cc == k
+        if n′.cc == k # && every piece is in the bounds
             return TerminalNode(1)
         else
             return TerminalNode(0)
@@ -224,6 +239,8 @@ end
 
 function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
     """
+    update fps to replace the smaller component with the larger component
+    (TODO: rename)
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)
@@ -247,12 +264,16 @@ end
 
 function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     """
+    If the two components are different, remove the smaller component from n.comp, and update n.comp_assign. Adjust n.comp_weights to remove the smaller-indexed component and add its weight into the larger one.
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         delete!(n.comp, to_change)
+        n.comp_weights[assignment] += n.comp_weights[to_change]
+        n.comp_weights[to_change] += n.comp_weights[assignment]
+        # delete!(n.comp_weights, to_change)
     end
 end
 
@@ -360,7 +381,7 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     if !haskey(zdd.nodes, node)
         add_vertex!(zdd.graph)
         zdd.nodes[node] = nv(zdd.graph)
-        zdd.paths[node] = -1
+        # zdd.paths[node] = -1
     end
 end
 
