@@ -69,8 +69,8 @@ function ZDD(g::SimpleGraph, root::Node)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.comp_weights == node₂.comp_weights && # TODO: where does this go in the hierarchy
     node₁.cc == node₂.cc &&
+    node₁.comp_weights == node₂.comp_weights &&
     node₁.label == node₂.label &&
     node₁.comp == node₂.comp &&
     node₁.fps == node₂.fps &&
