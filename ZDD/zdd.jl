@@ -637,6 +637,47 @@ function calculate_enumeration_paths!(zdd::ZDD)
     return nothing
 end
 
+function count_paths(zdd::ZDD)::Int
+    """ Returns the number of paths to the 1 Node in `zdd`
+    """
+    terminal_level = Dict{Int, Int}()
+
+    terminal_level[2] = 1 # the 1 terminal Node is always at node 2
+    depth = 1             # depth at bottom of the ZDD tree is 1
+    return count_paths(zdd, terminal_level, depth)
+end
+
+function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
+    """ Recursively finds the number of paths to a node.
+        This function is called at each depth of the ZDD tree.
+        Arguments:
+            zdd        : ZDD object
+            prev_level : Dict where keys are the nodes in the lower level, and
+                         the values are the paths from that node to the 1 terminal node.
+            curr_depth : depth traversed in the ZDD tree, from the bottom.
+    """
+    if curr_depth == ne(zdd.base_graph) + 1
+        @assert length(prev_level) == 1 # we should be at the root so only 1
+        @assert 3 in keys(prev_level)   # the root is always node 3
+        return prev_level[3]
+    end
+
+    curr_level = Dict{Int, Int}()
+
+    for node in keys(prev_level)
+        for i in inneighbors(zdd.graph, node)
+            if haskey(curr_level, i)
+                curr_level[i] += prev_level[node]
+            else
+                curr_level[i] = prev_level[node]
+            end
+        end
+    end
+
+    return count_paths(zdd, curr_level, curr_depth+1)
+end
+
+
 """
 Edge Ordering
 """
