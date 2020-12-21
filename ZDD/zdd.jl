@@ -19,6 +19,8 @@ mutable struct Node<:NodeZDD
     cc::Int
     fps::Set{ForbiddenPair}
     comp_assign::Array{Int}
+    maxw::Int
+    minw::Int
 end
 
 struct TerminalNode<:NodeZDD
@@ -27,7 +29,7 @@ end
 
 function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
     comp_assign = [i for i in 1:nv(base_graph)]
-    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign)
+    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign, 0, 1000000000)
 end
 
 mutable struct ZDD
@@ -58,7 +60,9 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.label == node₂.label &&
     node₁.comp == node₂.comp &&
     node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign
+    node₁.comp_assign == node₂.comp_assign &&
+    node₁.maxw == node₂.maxw &&
+    node₁.minw == node₂.minw
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -136,6 +140,7 @@ function node_summary(node::Node)
     println("fps: ",node.fps)
     println("comp_assign: ", node.comp_assign)
     println("comp_weights: ", node.comp_weights)
+    println("tracking_weights: ", node.tracking_weights)
     println()
 end
 
@@ -147,9 +152,11 @@ end
 function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::Int, d::Int, frontiers::Array{Set{Int}, 1})
     """
     """
-
     u = g_edges[i].src
     v = g_edges[i].dst
+
+    global lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
+    global upper_bound = Int(nv(g)/k + d)
 
     n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
@@ -159,7 +166,9 @@ function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::I
 
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
-
+        if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
+            return TerminalNode(0)
+        end
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
             return TerminalNode(0)
         else
@@ -176,11 +185,19 @@ function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::I
     for a in [u, v]
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
-
+            state = i == length(g_edges)
             if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
-                lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
-                upper_bound = Int(nv(g)/k + d)
-                if n′.comp_weights[a_comp] ∉ lower_bound:upper_bound
+                if n′.comp_weights[a_comp] < lower_bound
+                    return TerminalNode(0)
+                end
+                if n′.maxw < n′.comp_weights[a_comp]
+                    n′.maxw = n′.comp_weights[a_comp]
+                end
+                if n′.minw > n′.comp_weights[a_comp]
+                    n′.minw = n′.comp_weights[a_comp]
+                end
+                if n′.maxw > upper_bound || n′.minw < lower_bound
+                    println("hey?")
                     return TerminalNode(0)
                 end
                 n′.cc += 1
@@ -655,6 +672,7 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
             curr_depth : depth traversed in the ZDD tree, from the bottom.
     """
     if curr_depth == ne(zdd.base_graph) + 1
+        # println(prev_level)
         @assert length(prev_level) == 1 # we should be at the root so only 1
         @assert 3 in keys(prev_level)   # the root is always node 3
         return prev_level[3]
@@ -662,17 +680,63 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
 
     curr_level = Dict{Int, Int}()
 
-    for node in keys(prev_level)
-        for i in inneighbors(zdd.graph, node)
-            if haskey(curr_level, i)
+    for node in keys(prev_level) # for child node with a path to terminal
+        for i in inneighbors(zdd.graph, node) # do for each parent
+            if haskey(curr_level, i) # if the parent has already been treated, add the paths from this child
                 curr_level[i] += prev_level[node]
-            else
+            else # otherwise, start it of with these paths
                 curr_level[i] = prev_level[node]
             end
         end
     end
 
     return count_paths(zdd, curr_level, curr_depth+1)
+end
+
+function enumerate_paths(zdd::ZDD, g_edges) # think about typecasting the result
+    terminal_level = Dict{Int, Array{Array{Int, 1},1}}()
+    terminal_level[2] = Array{Array{Int,1},1}()
+    push!(terminal_level[2], [])
+    depth = 1
+    return enumerate_paths(zdd, terminal_level, depth, g_edges)
+end
+
+function enumerate_paths(zdd::ZDD, prev_level::Dict{Int, Array{Array{Int, 1},1}}, curr_depth::Int, g_edges)
+    if curr_depth == ne(zdd.base_graph) + 1
+        @assert length(prev_level) == 1
+        @assert 3 in keys(prev_level)
+        @assert length(prev_level[3]) == count_paths(zdd) # not sure about this one
+        result = Array{Array{LightGraphs.SimpleGraphs.SimpleEdge{Int},1},1}()
+        for path in prev_level[3]
+            edge_path = Array{LightGraphs.SimpleGraphs.SimpleEdge{Int},1}()
+            for (i, elem) ∈ enumerate(path)
+                if elem == 1
+                    push!(edge_path, g_edges[i])
+                end
+            end
+            push!(result, edge_path)
+        end
+        return result
+    end
+
+    curr_level = Dict{Int, Array{Array{Int, 1},1}}()
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes)
+
+    for child ∈ keys(prev_level)
+        for parent ∈ inneighbors(zdd.graph, child)
+            edge = zdd.edges[(node_at[parent], node_at[child])]
+            for subpath ∈ prev_level[child]
+                extended_subpath = deepcopy(subpath)
+                prepend!(extended_subpath, edge)
+                if haskey(curr_level, parent)
+                    push!(curr_level[parent], extended_subpath)
+                else
+                    curr_level[parent] = [extended_subpath]
+                end
+            end
+        end
+    end
+    return enumerate_paths(zdd, curr_level, curr_depth+1, g_edges)
 end
 
 
@@ -791,7 +855,6 @@ function frontier_distribution(g::SimpleGraph, g_edges::Array{LightGraphs.Simple
     frontiers = compute_all_frontiers(g, g_edges)
     for i ∈ 0:maximum(length(frontier) for frontier in frontiers)
         c = count(length(frontier) == i for frontier in frontiers)
-        println("$c frontiers of length $i")
     end
     return
 end
@@ -799,7 +862,6 @@ end
 function frontier_distribution(frontiers::Array{Set{Int},1})
     for i ∈ 0:maximum(length(frontier) for frontier in frontiers)
         c = count(length(frontier) == i for frontier in frontiers)
-        println("$c frontiers of length $i")
     end
     return
 end
