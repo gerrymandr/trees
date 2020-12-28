@@ -19,8 +19,6 @@ mutable struct Node<:NodeZDD
     cc::Int
     fps::Set{ForbiddenPair}
     comp_assign::Array{Int}
-    maxw::Int
-    minw::Int
 end
 
 struct TerminalNode<:NodeZDD
@@ -29,7 +27,7 @@ end
 
 function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
     comp_assign = [i for i in 1:nv(base_graph)]
-    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign, 0, 1000000000)
+    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -60,9 +58,7 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.label == node₂.label &&
     node₁.comp == node₂.comp &&
     node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign &&
-    node₁.maxw == node₂.maxw &&
-    node₁.minw == node₂.minw
+    node₁.comp_assign == node₂.comp_assign
 end
 
 function Base.:(==)(node₁::TerminalNode, node₂::Node)
@@ -182,30 +178,19 @@ function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::I
         end
     end
 
-    for a in [u, v]
+    for a in prev_frontier
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
-            state = i == length(g_edges)
             if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
                 if n′.comp_weights[a_comp] < lower_bound
                     return TerminalNode(0)
                 end
-                if n′.maxw < n′.comp_weights[a_comp]
-                    n′.maxw = n′.comp_weights[a_comp]
-                end
-                if n′.minw > n′.comp_weights[a_comp]
-                    n′.minw = n′.comp_weights[a_comp]
-                end
-                if n′.maxw > upper_bound || n′.minw < lower_bound
-                    println("hey?")
-                    return TerminalNode(0)
-                end
+                delete!(n′.comp_weights, a_comp)
                 n′.cc += 1
                 if n′.cc > k
                     return TerminalNode(0)
                 end
             end
-            delete!(n′.comp_weights, a)
             remove_vertex_from_node_fps!(n′, a)
         end
     end
@@ -228,6 +213,7 @@ function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set
     for vertex in [u, v]
         if vertex ∉ prev_frontier
             push!(n′.comp, vertex)
+#             @assert vertex ∉ keys(n′.comp_weights)
             n′.comp_weights[vertex] = 1 # equal population
         end
     end
@@ -268,7 +254,7 @@ function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         delete!(n.comp, to_change)
         n.comp_weights[assignment] += n.comp_weights[to_change]
-        n.comp_weights[to_change] = n.comp_weights[assignment]
+        delete!(n.comp_weights, to_change)
     end
 end
 
@@ -351,6 +337,10 @@ function adjust_node!(node::Node, vertex_comp::Int)
         delete!(node.comp, vertex_comp)
         push!(node.comp, new_max)
 
+        if new_max != vertex_comp
+            node.comp_weights[new_max] = node.comp_weights[vertex_comp]
+            delete!(node.comp_weights, vertex_comp)
+        end
         # change ForbiddenPair
         changed = []
         for fp in node.fps
