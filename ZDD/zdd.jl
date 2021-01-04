@@ -370,10 +370,8 @@ end
 function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     """
-    if !haskey(zdd.nodes, node)
-        add_vertex!(zdd.graph)
-        zdd.nodes[node] = nv(zdd.graph)
-    end
+    add_vertex!(zdd.graph)
+    zdd.nodes[node] = nv(zdd.graph)
 end
 
 """
