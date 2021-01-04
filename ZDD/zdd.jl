@@ -143,7 +143,6 @@ function node_summary(node::Node)
     println("fps: ",node.fps)
     println("comp_assign: ", node.comp_assign)
     println("comp_weights: ", node.comp_weights)
-    println("tracking_weights: ", node.tracking_weights)
     println()
 end
 
