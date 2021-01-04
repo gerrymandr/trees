@@ -41,7 +41,6 @@ mutable struct ZDD
     viz::Bool
 end
 
-# function ZDD(g::SimpleGraph, root::Node)
 function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = Dict{NodeZDD, Int64}()
@@ -104,7 +103,6 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
-# function construct_zdd(g::SimpleGraph, k::Int, d::Int, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})
 function construct_zdd(g::SimpleGraph,
                        k::Int,
                        d::Int,
