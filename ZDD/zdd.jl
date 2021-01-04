@@ -38,9 +38,10 @@ mutable struct ZDD
     edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
     base_graph::SimpleGraph
     root::Node
+    viz::Bool
 end
 
-function ZDD(g::SimpleGraph, root::Node)
+function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = Dict{NodeZDD, Int64}()
     nodes[TerminalNode(0)] = 1
@@ -49,7 +50,7 @@ function ZDD(g::SimpleGraph, root::Node)
     edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
     edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
     base_graph = g
-    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root)
+    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, viz)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -82,10 +83,12 @@ function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     """
     node₁, node₂ = zdd_edge
 
-    if zdd_edge in keys(zdd.edges)
-        push!(zdd.edge_multiplicity, zdd_edge)
-    else
-        zdd.edges[zdd_edge] = x
+    if zdd.viz
+        if zdd_edge in keys(zdd.edges)
+            push!(zdd.edge_multiplicity, zdd_edge)
+        else
+            zdd.edges[zdd_edge] = x
+        end
     end
 
     # get node indexes
@@ -100,11 +103,15 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
-function construct_zdd(g::SimpleGraph, k::Int, d::Int, g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})
+function construct_zdd(g::SimpleGraph,
+                       k::Int,
+                       d::Int,
+                       g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1};
+                       viz::Bool=false)
     frontier_distribution(g, g_edges)
     root = Node(g_edges[1], g)
 
-    zdd = ZDD(g, root)
+    zdd = ZDD(g, root, viz=viz)
     N = [Set{NodeZDD}([]) for a in 1:ne(g)+1]
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
@@ -376,6 +383,11 @@ Visualization
 function draw(zdd::ZDD, g, g_edges)
     """
     """
+    if zdd.viz == false
+        println("Cannot draw ZDD, viz option is turned off.")
+        return nothing
+    end
+
     e_colors = edge_colors(zdd)
     node_labels = label_nodes(zdd)
     loc_xs, loc_ys = node_locations(zdd, g_edges)
