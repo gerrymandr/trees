@@ -12,20 +12,20 @@ end
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::LightGraphs.SimpleGraphs.SimpleEdge{Int64}
-    comp::Set{Int}
-    comp_weights::Dict{Int, Int}
-    cc::Int
+    comp::Set{Int8}
+    comp_weights::Dict{Int8, Int8}
+    cc::Int8
     fps::Set{ForbiddenPair}
-    comp_assign::Vector{Int}
+    comp_assign::Vector{Int8}
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(Edge(i, i), Set{Int}(),Dict{Int, Int}(), 0, Set{ForbiddenPair}(), Vector{Int}([]))
+    return Node(Edge(i, i), Set{Int8}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{Int8}([]))
 end
 
 function Node(root_edge::LightGraphs.SimpleGraphs.SimpleEdge{Int64}, base_graph::SimpleGraph)::Node
-    comp_assign = Vector{Int}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign)
+    comp_assign = Vector{Int8}([i for i in 1:nv(base_graph)])
+    return Node(root_edge, Set{Int8}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -70,8 +70,8 @@ Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, 
 function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
                        node₂::Node,
-                       node₁_idx::Int,
-                       x::Int)
+                       node₁_idx::Int64,
+                       x::Int8)
     """ zdd_edge is represented as (Node, Node)
     """
     if zdd.viz
@@ -101,14 +101,14 @@ function construct_zdd(g::SimpleGraph,
                        viz::Bool=false)::ZDD
     root = Node(g_edges[1], g)
 
-    lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
-    upper_bound = Int(nv(g)/k + d)
+    lower_bound = Int8(nv(g)/k - d) # TODO: extend to non-nice ratios
+    upper_bound = Int8(nv(g)/k + d)
 
     zdd = ZDD(g, root, viz=viz)
     N = Vector{Set{Node}}([Set{Node}([]) for a in 1:ne(g)+1])
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
-    xs = Vector{Int}([0, 1])
+    xs = Vector{Int8}([0, 1])
     zero_terminal = Node(0)
     one_terminal = Node(1)
     fp_container = Vector{ForbiddenPair}([]) # reusable container
@@ -117,9 +117,12 @@ function construct_zdd(g::SimpleGraph,
         for n in N[i]
             n_idx = zdd.nodes[n]
             for x in xs
-                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers, lower_bound, upper_bound, zero_terminal, one_terminal, fp_container)
+                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
+                                   lower_bound, upper_bound,
+                                   zero_terminal, one_terminal,
+                                   fp_container)
 
-                if !(n′.label == Edge(0, 0) || n′.label == Edge(1, 1))
+                if !(n′.label == Edge(0, 0) || n′.label == Edge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
 
                     if n′ ∉ N[i+1]
@@ -151,11 +154,11 @@ function make_new_node(g::SimpleGraph,
                        k::Int,
                        n::Node,
                        i::Int,
-                       x::Int,
+                       x::Int8,
                        d::Int,
-                       frontiers::Array{Set{Int}, 1},
-                       lower_bound::Int,
-                       upper_bound::Int,
+                       frontiers::Array{Set{Int8}, 1},
+                       lower_bound::Int8,
+                       upper_bound::Int8,
                        zero_terminal::Node,
                        one_terminal::Node,
                        fp_container::Vector{ForbiddenPair})
@@ -169,6 +172,7 @@ function make_new_node(g::SimpleGraph,
 
     add_vertex_as_component!(n′, u, prev_frontier)
     add_vertex_as_component!(n′, v, prev_frontier)
+
     Cᵤ, Cᵥ = components(u, v, n′)
 
     if x == 1
@@ -217,7 +221,7 @@ function make_new_node(g::SimpleGraph,
 end
 
 
-function add_vertex_as_component!(n′::Node, vertex::Int, prev_frontier::Set{Int})
+function add_vertex_as_component!(n′::Node, vertex::Int64, prev_frontier::Set{Int8})
     """ Add `u` or `v` or both to n`.comp if they are not in
         `prev_frontier`
     """
@@ -228,7 +232,7 @@ function add_vertex_as_component!(n′::Node, vertex::Int, prev_frontier::Set{In
     nothing
 end
 
-function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int, fp_container::Vector{ForbiddenPair})
+function replace_components_with_union!(node::Node, Cᵤ::Int8, Cᵥ::Int8, fp_container::Vector{ForbiddenPair})
     """
     update fps to replace the smaller component with the larger component
     (TODO: rename)
@@ -254,7 +258,7 @@ function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int, fp_con
 end
 
 
-function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
+function connect_components!(n::Node, Cᵤ::Int8, Cᵥ::Int8)
     """
     If the two components are different, remove the smaller component from n.comp, and update n.comp_assign. Adjust n.comp_weights to remove the smaller-indexed component and add its weight into the larger one.
     """
@@ -268,7 +272,7 @@ function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     end
 end
 
-function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
+function components(u::Int64, v::Int64, node::Node)::Tuple{Int8, Int8}
     """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
         vertices `u` and `v` respectively.
     """
@@ -293,8 +297,8 @@ function compute_frontier(edges, i::Int)
     end
 end
 
-function compute_all_frontiers(g::SimpleGraph, g_edges)::Vector{Set{Int}}
-    frontiers = Vector{Set{Int}}([Set{Int}() for a in 1:ne(g)+1])
+function compute_all_frontiers(g::SimpleGraph, g_edges)::Vector{Set{Int8}}
+    frontiers = Vector{Set{Int8}}([Set{Int8}() for a in 1:ne(g)+1])
     for i ∈ 1:ne(g)+1
         frontiers[i] = compute_frontier(g_edges, i)
     end
@@ -302,10 +306,10 @@ function compute_all_frontiers(g::SimpleGraph, g_edges)::Vector{Set{Int}}
 end
 
 
-function nodes_from_edges(edges)::Set{Int}
+function nodes_from_edges(edges)::Set{Int8}
     """
     """
-    nodes = Set{Int}()
+    nodes = Set{Int8}()
     for e in edges
         push!(nodes, e.src)
         push!(nodes, e.dst)
@@ -313,7 +317,7 @@ function nodes_from_edges(edges)::Set{Int}
     return nodes
 end
 
-function remove_vertex_from_node_fps!(node::Node, vertex::Int, fp_container::Vector{ForbiddenPair})
+function remove_vertex_from_node_fps!(node::Node, vertex::Int8, fp_container::Vector{ForbiddenPair})
     """
     """
     vertex_comp = node.comp_assign[vertex]
@@ -329,7 +333,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::Int, fp_container::Vec
     adjust_node!(node, vertex_comp, fp_container)
 end
 
-function adjust_node!(node::Node, vertex_comp::Int, fp_container::Vector{ForbiddenPair})
+function adjust_node!(node::Node, vertex_comp::Int8, fp_container::Vector{ForbiddenPair})
     """
     """
     if vertex_comp in node.comp_assign
@@ -371,7 +375,7 @@ function adjust_node!(node::Node, vertex_comp::Int, fp_container::Vector{Forbidd
     empty!(fp_container)
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int)
+function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
     """
     """
     add_vertex!(zdd.graph)
