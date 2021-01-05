@@ -13,7 +13,7 @@ end
 abstract type NodeZDD end
 
 mutable struct Node<:NodeZDD
-    label::AbstractEdge
+    label::LightGraphs.SimpleGraphs.SimpleEdge{Int64}
     comp::Set{Int}
     comp_weights::Dict{Int, Int}
     cc::Int
@@ -25,7 +25,7 @@ struct TerminalNode<:NodeZDD
     label::Int
 end
 
-function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
+function Node(root_edge::LightGraphs.SimpleGraphs.SimpleEdge{Int64}, base_graph::SimpleGraph)
     comp_assign = [i for i in 1:nv(base_graph)]
     return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
@@ -80,11 +80,11 @@ Base.hash(n::TerminalNode, h::UInt) = hash(n.label, hash(:TerminalNode, h))
 
 function add_zdd_edge!(zdd::ZDD,
                        zdd_edge::Tuple{NodeZDD, NodeZDD},
-                       idx_tup::Tuple{Int, Int},
+                       node₁_idx::Int,
                        x::Int)
     """ zdd_edge is represented as (Node, Node)
     """
-    # node₁, node₂ = zdd_edge
+    _, node₂ = zdd_edge
 
     if zdd.viz
         if zdd_edge in keys(zdd.edges)
@@ -94,13 +94,10 @@ function add_zdd_edge!(zdd::ZDD,
         end
     end
 
-    # get node indexes
-    # node₁_idx = zdd.nodes[node₁]
-    # node₂_idx = zdd.nodes[node₂]
+    node₂_idx = zdd.nodes[node₂]
 
     # add to simple graph
-    # add_edge!(zdd.graph, (node₁_idx, node₂_idx))
-    add_edge!(zdd.graph, idx_tup)
+    add_edge!(zdd.graph, (node₁_idx, node₂_idx))
 end
 
 function num_edges(zdd::ZDD)
@@ -123,9 +120,6 @@ function construct_zdd(g::SimpleGraph,
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
 
-    # node₁_idx = zdd.nodes[node₁]
-    # node₂_idx = zdd.nodes[node₂]
-
     for i = 1:ne(g)
         for n in N[i]
             n_idx = zdd.nodes[n]
@@ -138,12 +132,10 @@ function construct_zdd(g::SimpleGraph,
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
                         add_zdd_node_and_edge!(zdd, n′, n, n_idx)
-                    else
-                        add_zdd_edge!(zdd, (n, n′), x)
+                        continue
                     end
-                else
-                    add_zdd_edge!(zdd, (n, n′), x)
                 end
+                add_zdd_edge!(zdd, (n, n′), n_idx, x)
             end
         end
     end
@@ -230,7 +222,6 @@ function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set
     for vertex in [u, v]
         if vertex ∉ prev_frontier
             push!(n′.comp, vertex)
-#             @assert vertex ∉ keys(n′.comp_weights)
             n′.comp_weights[vertex] = 1 # equal population
         end
     end
@@ -464,7 +455,7 @@ function node_locations(zdd, g_edges)
     loc_ys = fill(-1., nv(zdd.graph))
     loc_ys[[1, 2]] = [tree_depth, tree_depth]
 
-    labels_seen = Dict{AbstractEdge, Int}()
+    labels_seen = Dict{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}()
     add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
 
     loc_xs = Float64.(loc_xs)
@@ -527,7 +518,7 @@ end
 function label_occurences(zdd::ZDD)
     """
     """
-    occs = Dict{Union{AbstractEdge, Int}, Int}()
+    occs = Dict{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, Int}()
     for node in keys(zdd.nodes)
         if node.label in keys(occs)
             occs[node.label] += 1
@@ -549,7 +540,7 @@ end
 function label_nodes(zdd::ZDD)
     """
     """
-    node_labels = Array{Union{AbstractEdge, Int}, 1}(undef, nv(zdd.graph))
+    node_labels = Array{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, 1}(undef, nv(zdd.graph))
     for node in keys(zdd.nodes)
         node_labels[zdd.nodes[node]] = node.label
     end
