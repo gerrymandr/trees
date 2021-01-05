@@ -78,10 +78,13 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:Node, h)))))
 Base.hash(n::TerminalNode, h::UInt) = hash(n.label, hash(:TerminalNode, h))
 
-function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
+function add_zdd_edge!(zdd::ZDD,
+                       zdd_edge::Tuple{NodeZDD, NodeZDD},
+                       idx_tup::Tuple{Int, Int},
+                       x::Int)
     """ zdd_edge is represented as (Node, Node)
     """
-    node₁, node₂ = zdd_edge
+    # node₁, node₂ = zdd_edge
 
     if zdd.viz
         if zdd_edge in keys(zdd.edges)
@@ -92,11 +95,12 @@ function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
     end
 
     # get node indexes
-    node₁_idx = zdd.nodes[node₁]
-    node₂_idx = zdd.nodes[node₂]
+    # node₁_idx = zdd.nodes[node₁]
+    # node₂_idx = zdd.nodes[node₂]
 
     # add to simple graph
-    add_edge!(zdd.graph, (node₁_idx, node₂_idx))
+    # add_edge!(zdd.graph, (node₁_idx, node₂_idx))
+    add_edge!(zdd.graph, idx_tup)
 end
 
 function num_edges(zdd::ZDD)
@@ -111,25 +115,35 @@ function construct_zdd(g::SimpleGraph,
     frontier_distribution(g, g_edges)
     root = Node(g_edges[1], g)
 
+    lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
+    upper_bound = Int(nv(g)/k + d)
+
     zdd = ZDD(g, root, viz=viz)
     N = [Set{NodeZDD}([]) for a in 1:ne(g)+1]
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
 
+    # node₁_idx = zdd.nodes[node₁]
+    # node₂_idx = zdd.nodes[node₂]
+
     for i = 1:ne(g)
         for n in N[i]
+            n_idx = zdd.nodes[n]
             for x in [0, 1]
-                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers)
+                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers, lower_bound, upper_bound)
 
                 if !(n′ isa TerminalNode)
                     n′.label = g_edges[i+1] # update the label of n′
 
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
-                        add_zdd_node!(zdd, n′)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx)
+                    else
+                        add_zdd_edge!(zdd, (n, n′), x)
                     end
+                else
+                    add_zdd_edge!(zdd, (n, n′), x)
                 end
-                add_zdd_edge!(zdd, (n, n′), x)
             end
         end
     end
@@ -151,14 +165,11 @@ function node_summary(node::TerminalNode)
     println()
 end
 
-function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::Int, d::Int, frontiers::Array{Set{Int}, 1})
+function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::Int, d::Int, frontiers::Array{Set{Int}, 1}, lower_bound::Int, upper_bound::Int)
     """
     """
     u = g_edges[i].src
     v = g_edges[i].dst
-
-    global lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
-    global upper_bound = Int(nv(g)/k + d)
 
     n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
@@ -371,6 +382,25 @@ function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
     """
     add_vertex!(zdd.graph)
     zdd.nodes[node] = nv(zdd.graph)
+end
+
+function add_zdd_node_and_edge!(zdd::ZDD, n′::N, n::N, n_idx::Int) where N <: NodeZDD
+    """
+    """
+    add_vertex!(zdd.graph)
+    n′_idx = nv(zdd.graph)
+    zdd.nodes[n′] = n′_idx
+
+    if zdd.viz
+        if (n, n′) in keys(zdd.edges)
+            push!(zdd.edge_multiplicity, (n, n′))
+        else
+            zdd.edges[(n, n′)] = x
+        end
+    end
+
+    # add to simple graph
+    add_edge!(zdd.graph, (n_idx, n′_idx))
 end
 
 """
