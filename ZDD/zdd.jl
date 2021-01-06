@@ -31,7 +31,7 @@ end
 mutable struct ZDD
     # graph stuff
     graph::SimpleDiGraph
-    nodes::Dict{Node, Int64}
+    nodes::Dict{UInt64, Int64}
     edges::Dict{Tuple{Node, Node}, Int64}
     edge_multiplicity::Set{Tuple{Node, Node}}
     base_graph::SimpleGraph
@@ -41,10 +41,10 @@ end
 
 function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
-    nodes = Dict{Node, Int64}()
-    nodes[Node(0)] = 1
-    nodes[Node(1)] = 2
-    nodes[root] = 3
+    nodes = Dict{UInt64, Int64}()
+    nodes[hash(Node(0))] = 1
+    nodes[hash(Node(1))] = 2
+    nodes[hash(root)] = 3
     edges = Dict{Tuple{Node,Node},Int64}()
     edge_multiplicity = Set{Tuple{Node,Node}}()
     base_graph = g
@@ -65,7 +65,7 @@ function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
 end
 
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
-Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:Node, h)))))
+Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(n.comp_weights, hash(n.comp_assign, hash(:Node, h)))))))
 
 function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
@@ -82,7 +82,7 @@ function add_zdd_edge!(zdd::ZDD,
         end
     end
 
-    node₂_idx = zdd.nodes[node₂]
+    node₂_idx = zdd.nodes[hash(node₂)]
 
     # add to simple graph
     add_edge!(zdd.graph, node₁_idx, node₂_idx)
@@ -95,8 +95,8 @@ function num_edges(zdd::ZDD)
 end
 
 function construct_zdd(g::SimpleGraph,
-                       k::Int,
-                       d::Int,
+                       k::Int64,
+                       d::Int64,
                        g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1};
                        viz::Bool=false)::ZDD
     root = Node(g_edges[1], g)
@@ -115,7 +115,7 @@ function construct_zdd(g::SimpleGraph,
 
     for i = 1:ne(g)
         for n in N[i]
-            n_idx = zdd.nodes[n]
+            n_idx = zdd.nodes[hash(n)]
             for x in xs
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
@@ -380,7 +380,7 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
     """
     add_vertex!(zdd.graph)
     n′_idx = nv(zdd.graph)
-    zdd.nodes[n′] = n′_idx
+    zdd.nodes[hash(n′)] = n′_idx
 
     if zdd.viz
         if (n, n′) in keys(zdd.edges)
