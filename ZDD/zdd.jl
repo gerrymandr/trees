@@ -10,45 +10,43 @@ end
 
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
-abstract type NodeZDD end
-
-mutable struct Node<:NodeZDD
-    label::AbstractEdge
-    comp::Set{Int}
-    comp_weights::Dict{Int, Int}
-    cc::Int
+mutable struct Node
+    label::LightGraphs.SimpleGraphs.SimpleEdge{Int64}
+    comp::Set{Int8}
+    comp_weights::Dict{Int8, Int8}
+    cc::Int8
     fps::Set{ForbiddenPair}
-    comp_assign::Array{Int}
+    comp_assign::Vector{Int8}
 end
 
-struct TerminalNode<:NodeZDD
-    label::Int
+function Node(i::Int)::Node # for Terminal Nodes
+    return Node(Edge(i, i), Set{Int8}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{Int8}([]))
 end
 
-function Node(root_edge::AbstractEdge, base_graph::SimpleGraph)
-    comp_assign = [i for i in 1:nv(base_graph)]
-    return Node(root_edge, Set{Int}(), Dict{Int, Int}(), 0, Set{ForbiddenPair}(), comp_assign)
+function Node(root_edge::LightGraphs.SimpleGraphs.SimpleEdge{Int64}, base_graph::SimpleGraph)::Node
+    comp_assign = Vector{Int8}([i for i in 1:nv(base_graph)])
+    return Node(root_edge, Set{Int8}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
     # graph stuff
     graph::SimpleDiGraph
-    nodes::Dict{N, Int64} where N <: NodeZDD
-    edges::Dict{Tuple{N, N}, Int64} where N <: NodeZDD
-    edge_multiplicity::Set{Tuple{N, N}} where N <: NodeZDD
+    nodes::Dict{Node, Int64}
+    edges::Dict{Tuple{Node, Node}, Int64}
+    edge_multiplicity::Set{Tuple{Node, Node}}
     base_graph::SimpleGraph
     root::Node
     viz::Bool
 end
 
-function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)
+function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
-    nodes = Dict{NodeZDD, Int64}()
-    nodes[TerminalNode(0)] = 1
-    nodes[TerminalNode(1)] = 2
+    nodes = Dict{Node, Int64}()
+    nodes[Node(0)] = 1
+    nodes[Node(1)] = 2
     nodes[root] = 3
-    edges = Dict{Tuple{NodeZDD,NodeZDD},Int64}()
-    edge_multiplicity = Set{Tuple{NodeZDD,NodeZDD}}()
+    edges = Dict{Tuple{Node,Node},Int64}()
+    edge_multiplicity = Set{Tuple{Node,Node}}()
     base_graph = g
     return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, viz)
 end
@@ -62,41 +60,34 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.comp_assign == node₂.comp_assign
 end
 
-function Base.:(==)(node₁::TerminalNode, node₂::Node)
-    false
-end
-
-function Base.:(==)(node₁::Node, node₂::TerminalNode)
-    false
-end
-
 function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
 end
 
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
 Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(:Node, h)))))
-Base.hash(n::TerminalNode, h::UInt) = hash(n.label, hash(:TerminalNode, h))
 
-function add_zdd_edge!(zdd::ZDD, zdd_edge::Tuple{NodeZDD, NodeZDD}, x::Int)
+function add_zdd_edge!(zdd::ZDD,
+                       node₁::Node,
+                       node₂::Node,
+                       node₁_idx::Int64,
+                       x::Int8)
     """ zdd_edge is represented as (Node, Node)
     """
-    node₁, node₂ = zdd_edge
-
     if zdd.viz
-        if zdd_edge in keys(zdd.edges)
-            push!(zdd.edge_multiplicity, zdd_edge)
+        if (node₁, node₂) in keys(zdd.edges)
+            push!(zdd.edge_multiplicity, (node₁, node₂))
         else
-            zdd.edges[zdd_edge] = x
+            zdd.edges[(node₁, node₂)] = x
         end
     end
 
-    # get node indexes
-    node₁_idx = zdd.nodes[node₁]
     node₂_idx = zdd.nodes[node₂]
 
     # add to simple graph
-    add_edge!(zdd.graph, (node₁_idx, node₂_idx))
+    add_edge!(zdd.graph, node₁_idx, node₂_idx)
+
+    nothing
 end
 
 function num_edges(zdd::ZDD)
@@ -107,32 +98,44 @@ function construct_zdd(g::SimpleGraph,
                        k::Int,
                        d::Int,
                        g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1};
-                       viz::Bool=false)
-    frontier_distribution(g, g_edges)
+                       viz::Bool=false)::ZDD
     root = Node(g_edges[1], g)
 
+    lower_bound = Int8(nv(g)/k - d) # TODO: extend to non-nice ratios
+    upper_bound = Int8(nv(g)/k + d)
+
     zdd = ZDD(g, root, viz=viz)
-    N = [Set{NodeZDD}([]) for a in 1:ne(g)+1]
+    N = Vector{Set{Node}}([Set{Node}([]) for a in 1:ne(g)+1])
     N[1] = Set([root])
     frontiers = compute_all_frontiers(g, g_edges)
+    xs = Vector{Int8}([0, 1])
+    zero_terminal = Node(0)
+    one_terminal = Node(1)
+    fp_container = Vector{ForbiddenPair}([]) # reusable container
 
     for i = 1:ne(g)
         for n in N[i]
-            for x in [0, 1]
-                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers)
+            n_idx = zdd.nodes[n]
+            for x in xs
+                n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
+                                   lower_bound, upper_bound,
+                                   zero_terminal, one_terminal,
+                                   fp_container)
 
-                if !(n′ isa TerminalNode)
+                if !(n′.label == Edge(0, 0) || n′.label == Edge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
 
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
-                        add_zdd_node!(zdd, n′)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx)
+                        continue
                     end
                 end
-                add_zdd_edge!(zdd, (n, n′), x)
+                add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
     end
+
     return zdd
 end
 
@@ -143,43 +146,48 @@ function node_summary(node::Node)
     println("fps: ",node.fps)
     println("comp_assign: ", node.comp_assign)
     println("comp_weights: ", node.comp_weights)
-    println("tracking_weights: ", node.tracking_weights)
     println()
 end
 
-function node_summary(node::TerminalNode)
-    println("Label: ", node.label)
-    println()
-end
-
-function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::Int, d::Int, frontiers::Array{Set{Int}, 1})
+function make_new_node(g::SimpleGraph,
+                       g_edges,
+                       k::Int,
+                       n::Node,
+                       i::Int,
+                       x::Int8,
+                       d::Int,
+                       frontiers::Array{Set{Int8}, 1},
+                       lower_bound::Int8,
+                       upper_bound::Int8,
+                       zero_terminal::Node,
+                       one_terminal::Node,
+                       fp_container::Vector{ForbiddenPair})
     """
     """
     u = g_edges[i].src
     v = g_edges[i].dst
 
-    global lower_bound = Int(nv(g)/k - d) # TODO: extend to non-nice ratios
-    global upper_bound = Int(nv(g)/k + d)
-
     n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
-    add_vertex_as_component!(n′, u, v, prev_frontier)
+    add_vertex_as_component!(n′, u, prev_frontier)
+    add_vertex_as_component!(n′, v, prev_frontier)
+
     Cᵤ, Cᵥ = components(u, v, n′)
 
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
         if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
-            return TerminalNode(0)
+            return zero_terminal
         end
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
-            return TerminalNode(0)
+            return zero_terminal
         else
-            replace_components_with_union!(n′, Cᵤ, Cᵥ)
+            replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container)
         end
     else
         if Cᵤ == Cᵥ
-            return TerminalNode(0)
+            return zero_terminal
         else
             push!(n′.fps, ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)))
         end
@@ -190,68 +198,67 @@ function make_new_node(g::SimpleGraph, g_edges, k::Int, n::NodeZDD, i::Int, x::I
             a_comp = n′.comp_assign[a]
             if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
                 if n′.comp_weights[a_comp] < lower_bound
-                    return TerminalNode(0)
+                    return zero_terminal
                 end
                 delete!(n′.comp_weights, a_comp)
                 n′.cc += 1
                 if n′.cc > k
-                    return TerminalNode(0)
+                    return zero_terminal
                 end
             end
-            remove_vertex_from_node_fps!(n′, a)
+            remove_vertex_from_node_fps!(n′, a, fp_container)
         end
     end
 
     if i == length(g_edges)
         if n′.cc == k
-            return TerminalNode(1)
+            return one_terminal
         else
-            return TerminalNode(0)
+            return zero_terminal
         end
     end
     return n′
 end
 
 
-function add_vertex_as_component!(n′::Node, u::Int, v::Int, prev_frontier::Set{Int})
+function add_vertex_as_component!(n′::Node, vertex::Int64, prev_frontier::Set{Int8})
     """ Add `u` or `v` or both to n`.comp if they are not in
         `prev_frontier`
     """
-    for vertex in [u, v]
-        if vertex ∉ prev_frontier
-            push!(n′.comp, vertex)
-#             @assert vertex ∉ keys(n′.comp_weights)
-            n′.comp_weights[vertex] = 1 # equal population
-        end
+    if vertex ∉ prev_frontier
+        push!(n′.comp, vertex)
+        n′.comp_weights[vertex] = 1 # equal population
     end
+    nothing
 end
 
-function replace_components_with_union!(node::Node, Cᵤ::Int, Cᵥ::Int)
+function replace_components_with_union!(node::Node, Cᵤ::Int8, Cᵥ::Int8, fp_container::Vector{ForbiddenPair})
     """
     update fps to replace the smaller component with the larger component
     (TODO: rename)
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)
-    changed = []
+
     for fp in node.fps
         if to_change == fp.comp₁
             other = fp.comp₂
             delete!(node.fps, fp)
-            push!(changed, ForbiddenPair(min(assignment, other), max(assignment, other)))
+            push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         elseif to_change == fp.comp₂
             other = fp.comp₁
             delete!(node.fps, fp)
-            push!(changed, ForbiddenPair(min(assignment, other), max(assignment, other)))
+            push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         end
     end
-    for fp in changed
+    for fp in fp_container
         push!(node.fps, fp)
     end
+    empty!(fp_container)
 end
 
 
-function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
+function connect_components!(n::Node, Cᵤ::Int8, Cᵥ::Int8)
     """
     If the two components are different, remove the smaller component from n.comp, and update n.comp_assign. Adjust n.comp_weights to remove the smaller-indexed component and add its weight into the larger one.
     """
@@ -265,7 +272,7 @@ function connect_components!(n::Node, Cᵤ::Int, Cᵥ::Int)
     end
 end
 
-function components(u::Int, v::Int, node::Node)::Tuple{Int, Int}
+function components(u::Int64, v::Int64, node::Node)::Tuple{Int8, Int8}
     """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
         vertices `u` and `v` respectively.
     """
@@ -290,8 +297,8 @@ function compute_frontier(edges, i::Int)
     end
 end
 
-function compute_all_frontiers(g::SimpleGraph, g_edges)
-    frontiers = [Set{Int}() for a in 1:ne(g)+1]
+function compute_all_frontiers(g::SimpleGraph, g_edges)::Vector{Set{Int8}}
+    frontiers = Vector{Set{Int8}}([Set{Int8}() for a in 1:ne(g)+1])
     for i ∈ 1:ne(g)+1
         frontiers[i] = compute_frontier(g_edges, i)
     end
@@ -299,10 +306,10 @@ function compute_all_frontiers(g::SimpleGraph, g_edges)
 end
 
 
-function nodes_from_edges(edges)::Set{Int}
+function nodes_from_edges(edges)::Set{Int8}
     """
     """
-    nodes = Set{Int}()
+    nodes = Set{Int8}()
     for e in edges
         push!(nodes, e.src)
         push!(nodes, e.dst)
@@ -310,7 +317,7 @@ function nodes_from_edges(edges)::Set{Int}
     return nodes
 end
 
-function remove_vertex_from_node_fps!(node::Node, vertex::Int)
+function remove_vertex_from_node_fps!(node::Node, vertex::Int8, fp_container::Vector{ForbiddenPair})
     """
     """
     vertex_comp = node.comp_assign[vertex]
@@ -323,10 +330,10 @@ function remove_vertex_from_node_fps!(node::Node, vertex::Int)
     end
 
     node.comp_assign[vertex] = 0
-    adjust_node!(node, vertex_comp)
+    adjust_node!(node, vertex_comp, fp_container)
 end
 
-function adjust_node!(node::Node, vertex_comp::Int)
+function adjust_node!(node::Node, vertex_comp::Int8, fp_container::Vector{ForbiddenPair})
     """
     """
     if vertex_comp in node.comp_assign
@@ -348,32 +355,43 @@ function adjust_node!(node::Node, vertex_comp::Int)
             node.comp_weights[new_max] = node.comp_weights[vertex_comp]
             delete!(node.comp_weights, vertex_comp)
         end
+
         # change ForbiddenPair
-        changed = []
         for fp in node.fps
             if vertex_comp == fp.comp₁
                 other = fp.comp₂
                 delete!(node.fps, fp)
-                push!(changed, ForbiddenPair(min(new_max, other), max(new_max, other)))
+                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
             elseif vertex_comp == fp.comp₂
                 other = fp.comp₁
                 delete!(node.fps, fp)
-                push!(changed, ForbiddenPair(min(new_max, other), max(new_max, other)))
+                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
             end
         end
-        for fp in changed
+        for fp in fp_container
             push!(node.fps, fp)
         end
     end
+    empty!(fp_container)
 end
 
-function add_zdd_node!(zdd::ZDD, node::N) where N <: NodeZDD
+function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
     """
     """
-    if !haskey(zdd.nodes, node)
-        add_vertex!(zdd.graph)
-        zdd.nodes[node] = nv(zdd.graph)
+    add_vertex!(zdd.graph)
+    n′_idx = nv(zdd.graph)
+    zdd.nodes[n′] = n′_idx
+
+    if zdd.viz
+        if (n, n′) in keys(zdd.edges)
+            push!(zdd.edge_multiplicity, (n, n′))
+        else
+            zdd.edges[(n, n′)] = x
+        end
     end
+
+    # add to simple graph
+    add_edge!(zdd.graph, n_idx, n′_idx)
 end
 
 """
@@ -437,7 +455,7 @@ function node_locations(zdd, g_edges)
     loc_ys = fill(-1., nv(zdd.graph))
     loc_ys[[1, 2]] = [tree_depth, tree_depth]
 
-    labels_seen = Dict{AbstractEdge, Int}()
+    labels_seen = Dict{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}()
     add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
 
     loc_xs = Float64.(loc_xs)
@@ -500,7 +518,7 @@ end
 function label_occurences(zdd::ZDD)
     """
     """
-    occs = Dict{Union{AbstractEdge, Int}, Int}()
+    occs = Dict{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, Int}()
     for node in keys(zdd.nodes)
         if node.label in keys(occs)
             occs[node.label] += 1
@@ -522,7 +540,7 @@ end
 function label_nodes(zdd::ZDD)
     """
     """
-    node_labels = Array{Union{AbstractEdge, Int}, 1}(undef, nv(zdd.graph))
+    node_labels = Array{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, 1}(undef, nv(zdd.graph))
     for node in keys(zdd.nodes)
         node_labels[zdd.nodes[node]] = node.label
     end
@@ -616,7 +634,7 @@ end
 function calculate_paths_to_root!(zdd::ZDD)
     """
     """
-    function calculate_paths!(n::NodeZDD, i::Int, zdd::ZDD)
+    function calculate_paths!(n::Node, i::Int, zdd::ZDD)
         """
         TODO: Abstract this out so calculate_paths_to_terminal can use it
         """
@@ -871,7 +889,7 @@ end
 """
 Enumerating Plans
 """
-function choose_positive_child!(zdd::ZDD, node::NodeZDD, plan::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int}, 1}, plans::Array{Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},N} where N,1})
+function choose_positive_child!(zdd::ZDD, node::Node, plan::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int}, 1}, plans::Array{Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},N} where N,1})
     node_idx = zdd.nodes[node]
     node_at = Dict(int => node for (node, int) ∈ zdd.nodes)
     if node == zdd.root
