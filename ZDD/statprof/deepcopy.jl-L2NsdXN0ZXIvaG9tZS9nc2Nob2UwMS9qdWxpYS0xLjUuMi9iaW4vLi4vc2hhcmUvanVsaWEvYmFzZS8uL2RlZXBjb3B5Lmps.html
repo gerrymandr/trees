@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'></meta>
+    <link rel='stylesheet' type='text/css' href='statprofiler.css'></link>
+    <title>StatProfilerHTML - /cluster/home/gschoe01/julia-1.5.2/bin/../share/julia/base/./deepcopy.jl</title>
+  </head>
+  <body>
+    <div class='report-header'>
+      <div class='backlink'>
+        <a href='index.html'>Report index</a>
+      </div>
+      <div class='report-title'>
+        StatProfilerHTML.jl report
+      </div>
+      <div class='generated-on'>
+        Generated on Thu, 07 Jan 2021 17:03:26
+      </div>
+    </div>
+    <table>
+      <caption>File source code</caption>
+      <thead>
+        <tr>
+          <th>Line</th>
+          <th>Exclusive</th>
+          <th>Inclusive</th>
+          <th>Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id='L1'>
+          <td class='lineno'>1</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># This file is a part of Julia. License is MIT: https://julialang.org/license</span>
+          </td>
+        </tr>
+        <tr id='L2'>
+          <td class='lineno'>2</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L3'>
+          <td class='lineno'>3</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># deep copying</span>
+          </td>
+        </tr>
+        <tr id='L4'>
+          <td class='lineno'>4</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L5'>
+          <td class='lineno'>5</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Note: deepcopy_internal&#40;::Any, ::IdDict&#41; is</span>
+          </td>
+        </tr>
+        <tr id='L6'>
+          <td class='lineno'>6</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>#       only exposed for specialization by libraries</span>
+          </td>
+        </tr>
+        <tr id='L7'>
+          <td class='lineno'>7</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L8'>
+          <td class='lineno'>8</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L9'>
+          <td class='lineno'>9</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    deepcopy&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L10'>
+          <td class='lineno'>10</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L11'>
+          <td class='lineno'>11</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Create a deep copy of &#96;x&#96;: everything is copied recursively, resulting in a fully</span>
+          </td>
+        </tr>
+        <tr id='L12'>
+          <td class='lineno'>12</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>independent object. For example, deep-copying an array produces a new array whose elements</span>
+          </td>
+        </tr>
+        <tr id='L13'>
+          <td class='lineno'>13</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>are deep copies of the original elements. Calling &#96;deepcopy&#96; on an object should generally</span>
+          </td>
+        </tr>
+        <tr id='L14'>
+          <td class='lineno'>14</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>have the same effect as serializing and then deserializing it.</span>
+          </td>
+        </tr>
+        <tr id='L15'>
+          <td class='lineno'>15</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L16'>
+          <td class='lineno'>16</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>While it isn&#39;t normally necessary, user-defined types can override the default &#96;deepcopy&#96;</span>
+          </td>
+        </tr>
+        <tr id='L17'>
+          <td class='lineno'>17</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>behavior by defining a specialized version of the function</span>
+          </td>
+        </tr>
+        <tr id='L18'>
+          <td class='lineno'>18</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;deepcopy_internal&#40;x::T, dict::IdDict&#41;&#96; &#40;which shouldn&#39;t otherwise be used&#41;,</span>
+          </td>
+        </tr>
+        <tr id='L19'>
+          <td class='lineno'>19</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>where &#96;T&#96; is the type to be specialized for, and &#96;dict&#96; keeps track of objects copied</span>
+          </td>
+        </tr>
+        <tr id='L20'>
+          <td class='lineno'>20</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>so far within the recursion. Within the definition, &#96;deepcopy_internal&#96; should be used</span>
+          </td>
+        </tr>
+        <tr id='L21'>
+          <td class='lineno'>21</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>in place of &#96;deepcopy&#96;, and the &#96;dict&#96; variable should be</span>
+          </td>
+        </tr>
+        <tr id='L22'>
+          <td class='lineno'>22</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>updated as appropriate before returning.</span>
+          </td>
+        </tr>
+        <tr id='L23'>
+          <td class='lineno'>23</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L24'>
+          <td class='lineno'>24</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L25'>
+          <td class='lineno'>25</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    isbitstype&#40;typeof&#40;x&#41;&#41; &amp;&amp; return x</span>
+          </td>
+        </tr>
+        <tr id='L26'>
+          <td class='lineno'>26</td>
+          <td class='tracecount excl'>148 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>15255 &#40;41 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              15255 &#40;41 &#37;&#41;
+              samples spent in deepcopy
+              <br />
+              148 &#40;1 &#37;&#41; &#40;ex.&#41;,
+              15255 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from make_new_node
+              <a href='zdd.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9aREQvemRkLmps.html#L170'>line 170</a>
+              <br />
+            </div>
+            <div class='callees'>
+              14229 &#40;94 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L52'>deepcopy_internal</a>
+              <br />
+              4 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='essentials.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Vzc2VudGlhbHMuamw&#61;.html#L52'>deepcopy_internal</a>
+              <br />
+              852 &#40;6 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L33'>IdDict</a>
+              <br />
+              22 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    return deepcopy_internal&#40;x, IdDict&#40;&#41;&#41;::typeof&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L27'>
+          <td class='lineno'>27</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L28'>
+          <td class='lineno'>28</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L29'>
+          <td class='lineno'>29</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>deepcopy_internal&#40;x::Union&#123;Symbol,Core.MethodInstance,Method,GlobalRef,DataType,Union,UnionAll,Task,Regex&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L30'>
+          <td class='lineno'>30</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                  stackdict::IdDict&#41; &#61; x</span>
+          </td>
+        </tr>
+        <tr id='L31'>
+          <td class='lineno'>31</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>deepcopy_internal&#40;x::Tuple, stackdict::IdDict&#41; &#61;</span>
+          </td>
+        </tr>
+        <tr id='L32'>
+          <td class='lineno'>32</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    ntuple&#40;i-&gt;deepcopy_internal&#40;x&#91;i&#93;, stackdict&#41;, length&#40;x&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L33'>
+          <td class='lineno'>33</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>deepcopy_internal&#40;x::Module, stackdict::IdDict&#41; &#61; error&#40;&quot;deepcopy of Modules not supported&quot;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L34'>
+          <td class='lineno'>34</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L35'>
+          <td class='lineno'>35</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy_internal&#40;x::SimpleVector, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L36'>
+          <td class='lineno'>36</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if haskey&#40;stackdict, x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L37'>
+          <td class='lineno'>37</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return stackdict&#91;x&#93;</span>
+          </td>
+        </tr>
+        <tr id='L38'>
+          <td class='lineno'>38</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L39'>
+          <td class='lineno'>39</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    y &#61; Core.svec&#40;Any&#91;deepcopy_internal&#40;x&#91;i&#93;, stackdict&#41; for i &#61; 1:length&#40;x&#41;&#93;...&#41;</span>
+          </td>
+        </tr>
+        <tr id='L40'>
+          <td class='lineno'>40</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    stackdict&#91;x&#93; &#61; y</span>
+          </td>
+        </tr>
+        <tr id='L41'>
+          <td class='lineno'>41</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return y</span>
+          </td>
+        </tr>
+        <tr id='L42'>
+          <td class='lineno'>42</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L43'>
+          <td class='lineno'>43</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L44'>
+          <td class='lineno'>44</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy_internal&#40;x::String, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L45'>
+          <td class='lineno'>45</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if haskey&#40;stackdict, x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L46'>
+          <td class='lineno'>46</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return stackdict&#91;x&#93;</span>
+          </td>
+        </tr>
+        <tr id='L47'>
+          <td class='lineno'>47</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L48'>
+          <td class='lineno'>48</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    y &#61; GC.@preserve x unsafe_string&#40;pointer&#40;x&#41;, sizeof&#40;x&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L49'>
+          <td class='lineno'>49</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    stackdict&#91;x&#93; &#61; y</span>
+          </td>
+        </tr>
+        <tr id='L50'>
+          <td class='lineno'>50</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return y</span>
+          </td>
+        </tr>
+        <tr id='L51'>
+          <td class='lineno'>51</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L52'>
+          <td class='lineno'>52</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            <div class='call-sites'>
+              18291 &#40;49 &#37;&#41;
+              samples spent in deepcopy_internal
+              <br />
+              7846 &#40;43 &#37;&#41; &#40;ex.&#41;,
+              14229 &#40;78 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L26'>line 26</a>
+              <br />
+              794 &#40;4 &#37;&#41; &#40;ex.&#41;,
+              4062 &#40;22 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy_internal
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L65'>line 65</a>
+              <br />
+            </div>
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L53'>
+          <td class='lineno'>53</td>
+          <td class='tracecount excl'>69 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>69 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy_internal&#40;@nospecialize&#40;x&#41;, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L54'>
+          <td class='lineno'>54</td>
+          <td class='tracecount excl'>6 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>6 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>    T &#61; typeof&#40;x&#41;::DataType</span>
+          </td>
+        </tr>
+        <tr id='L55'>
+          <td class='lineno'>55</td>
+          <td class='tracecount excl'>107 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>107 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>    nf &#61; nfields&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L56'>
+          <td class='lineno'>56</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='Base.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL0Jhc2Uuamw&#61;.html#L28'>getproperty</a>
+              <br />
+            </div>
+            <span class='code'>    if T.mutable</span>
+          </td>
+        </tr>
+        <tr id='L57'>
+          <td class='lineno'>57</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>91 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              91 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='abstractdict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Fic3RyYWN0ZGljdC5qbA&#61;&#61;.html#L17'>haskey</a>
+              <br />
+            </div>
+            <span class='code'>        if haskey&#40;stackdict, x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L58'>
+          <td class='lineno'>58</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            return stackdict&#91;x&#93;</span>
+          </td>
+        </tr>
+        <tr id='L59'>
+          <td class='lineno'>59</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L60'>
+          <td class='lineno'>60</td>
+          <td class='tracecount excl'>86 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>86 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>        y &#61; ccall&#40;:jl_new_struct_uninit, Any, &#40;Any,&#41;, T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L61'>
+          <td class='lineno'>61</td>
+          <td class='tracecount excl'>4 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>146 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              142 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>        stackdict&#91;x&#93; &#61; y</span>
+          </td>
+        </tr>
+        <tr id='L62'>
+          <td class='lineno'>62</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>16 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              16 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='range.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3JhbmdlLmps.html#L5'>Colon</a>
+              <br />
+            </div>
+            <span class='code'>        for i in 1:nf</span>
+          </td>
+        </tr>
+        <tr id='L63'>
+          <td class='lineno'>63</td>
+          <td class='tracecount excl'>325 &#40;1 &#37;&#41;</td>
+          <td class='tracecount incl'>325 &#40;1 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>            if isdefined&#40;x, i&#41;</span>
+          </td>
+        </tr>
+        <tr id='L64'>
+          <td class='lineno'>64</td>
+          <td class='tracecount excl'>386 &#40;1 &#37;&#41;</td>
+          <td class='tracecount incl'>386 &#40;1 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>                xi &#61; getfield&#40;x, i&#41;</span>
+          </td>
+        </tr>
+        <tr id='L65'>
+          <td class='lineno'>65</td>
+          <td class='tracecount excl'>6751 &#40;18 &#37;&#41;</td>
+          <td class='tracecount incl'>12885 &#40;35 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              3 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='dict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RpY3Quamw&#61;.html#L125'>Dict</a>
+              <br />
+              4062 &#40;66 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L52'>deepcopy_internal</a>
+              <br />
+              1 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='int.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2ludC5qbA&#61;&#61;.html#L52'>deepcopy_internal</a>
+              <br />
+              1653 &#40;27 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L112'>deepcopy_internal</a>
+              <br />
+              365 &#40;6 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L87'>deepcopy_internal</a>
+              <br />
+              50 &#40;1 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>                xi &#61; deepcopy_internal&#40;xi, stackdict&#41;::typeof&#40;xi&#41;</span>
+          </td>
+        </tr>
+        <tr id='L66'>
+          <td class='lineno'>66</td>
+          <td class='tracecount excl'>177 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>177 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>                ccall&#40;:jl_set_nth_field, Cvoid, &#40;Any, Csize_t, Any&#41;, y, i-1, xi&#41;</span>
+          </td>
+        </tr>
+        <tr id='L67'>
+          <td class='lineno'>67</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L68'>
+          <td class='lineno'>68</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L69'>
+          <td class='lineno'>69</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>39 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              39 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='promotion.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3Byb21vdGlvbi5qbA&#61;&#61;.html#L398'>&#61;&#61;</a>
+              <br />
+            </div>
+            <span class='code'>    elseif nf &#61;&#61; 0 || isbitstype&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L70'>
+          <td class='lineno'>70</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        y &#61; x</span>
+          </td>
+        </tr>
+        <tr id='L71'>
+          <td class='lineno'>71</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    else</span>
+          </td>
+        </tr>
+        <tr id='L72'>
+          <td class='lineno'>72</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>404 &#40;1 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              404 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='boot.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Jvb3Quamw&#61;.html#L406'>Array</a>
+              <br />
+            </div>
+            <span class='code'>        flds &#61; Vector&#123;Any&#125;&#40;undef, nf&#41;</span>
+          </td>
+        </tr>
+        <tr id='L73'>
+          <td class='lineno'>73</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='range.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3JhbmdlLmps.html#L5'>Colon</a>
+              <br />
+            </div>
+            <span class='code'>        for i in 1:nf</span>
+          </td>
+        </tr>
+        <tr id='L74'>
+          <td class='lineno'>74</td>
+          <td class='tracecount excl'>55 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>55 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>            if isdefined&#40;x, i&#41;</span>
+          </td>
+        </tr>
+        <tr id='L75'>
+          <td class='lineno'>75</td>
+          <td class='tracecount excl'>76 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>76 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>                xi &#61; getfield&#40;x, i&#41;</span>
+          </td>
+        </tr>
+        <tr id='L76'>
+          <td class='lineno'>76</td>
+          <td class='tracecount excl'>230 &#40;1 &#37;&#41;</td>
+          <td class='tracecount incl'>3017 &#40;8 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              6 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='dict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RpY3Quamw&#61;.html#L125'>Dict</a>
+              <br />
+              2735 &#40;98 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L112'>deepcopy_internal</a>
+              <br />
+              46 &#40;2 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>                xi &#61; deepcopy_internal&#40;xi, stackdict&#41;::typeof&#40;xi&#41;</span>
+          </td>
+        </tr>
+        <tr id='L77'>
+          <td class='lineno'>77</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>26 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              20 &#40;77 &#37;&#41;
+              samples spent calling
+              <a href='essentials.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Vzc2VudGlhbHMuamw&#61;.html#L452'>setindex&#33;</a>
+              <br />
+              6 &#40;23 &#37;&#41;
+              samples spent calling
+              <a href='essentials.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Vzc2VudGlhbHMuamw&#61;.html#L0'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>                flds&#91;i&#93; &#61; xi</span>
+          </td>
+        </tr>
+        <tr id='L78'>
+          <td class='lineno'>78</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            else</span>
+          </td>
+        </tr>
+        <tr id='L79'>
+          <td class='lineno'>79</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                nf &#61; i - 1 # rest of tail must be undefined values</span>
+          </td>
+        </tr>
+        <tr id='L80'>
+          <td class='lineno'>80</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>8 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              8 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='range.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3JhbmdlLmps.html#L624'>iterate</a>
+              <br />
+            </div>
+            <span class='code'>                break</span>
+          </td>
+        </tr>
+        <tr id='L81'>
+          <td class='lineno'>81</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L82'>
+          <td class='lineno'>82</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L83'>
+          <td class='lineno'>83</td>
+          <td class='tracecount excl'>258 &#40;1 &#37;&#41;</td>
+          <td class='tracecount incl'>260 &#40;1 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              2 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='essentials.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Vzc2VudGlhbHMuamw&#61;.html#L388'>cconvert</a>
+              <br />
+            </div>
+            <span class='code'>        y &#61; ccall&#40;:jl_new_structv, Any, &#40;Any, Ptr&#123;Any&#125;, UInt32&#41;, T, flds, nf&#41;</span>
+          </td>
+        </tr>
+        <tr id='L84'>
+          <td class='lineno'>84</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L85'>
+          <td class='lineno'>85</td>
+          <td class='tracecount excl'>83 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>83 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>    return y::T</span>
+          </td>
+        </tr>
+        <tr id='L86'>
+          <td class='lineno'>86</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L87'>
+          <td class='lineno'>87</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            <div class='call-sites'>
+              365 &#40;1 &#37;&#41;
+              samples spent in deepcopy_internal
+              <br />
+              7 &#40;2 &#37;&#41; &#40;ex.&#41;,
+              365 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy_internal
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L65'>line 65</a>
+              <br />
+            </div>
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L88'>
+          <td class='lineno'>88</td>
+          <td class='tracecount excl'>3 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>3 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy_internal&#40;x::Array, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L89'>
+          <td class='lineno'>89</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>42 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              42 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='abstractdict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Fic3RyYWN0ZGljdC5qbA&#61;&#61;.html#L17'>haskey</a>
+              <br />
+            </div>
+            <span class='code'>    if haskey&#40;stackdict, x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L90'>
+          <td class='lineno'>90</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return stackdict&#91;x&#93;</span>
+          </td>
+        </tr>
+        <tr id='L91'>
+          <td class='lineno'>91</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L92'>
+          <td class='lineno'>92</td>
+          <td class='tracecount excl'>4 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>320 &#40;1 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              316 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L97'>_deepcopy_array_t</a>
+              <br />
+            </div>
+            <span class='code'>    _deepcopy_array_t&#40;x, eltype&#40;x&#41;, stackdict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L93'>
+          <td class='lineno'>93</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L94'>
+          <td class='lineno'>94</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L95'>
+          <td class='lineno'>95</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function _deepcopy_array_t&#40;@nospecialize&#40;x&#41;, T, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L96'>
+          <td class='lineno'>96</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if isbitstype&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L97'>
+          <td class='lineno'>97</td>
+          <td class='tracecount excl'>1 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>316 &#40;1 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              316 &#40;1 &#37;&#41;
+              samples spent in _deepcopy_array_t
+              <br />
+              1 &#40;0 &#37;&#41; &#40;ex.&#41;,
+              316 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy_internal
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L92'>line 92</a>
+              <br />
+            </div>
+            <div class='callees'>
+              226 &#40;72 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L371'>copy</a>
+              <br />
+              89 &#40;28 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>        return &#40;stackdict&#91;x&#93;&#61;copy&#40;x&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L98'>
+          <td class='lineno'>98</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L99'>
+          <td class='lineno'>99</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dest &#61; similar&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L100'>
+          <td class='lineno'>100</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    stackdict&#91;x&#93; &#61; dest</span>
+          </td>
+        </tr>
+        <tr id='L101'>
+          <td class='lineno'>101</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for i &#61; 1:&#40;length&#40;x&#41;::Int&#41;</span>
+          </td>
+        </tr>
+        <tr id='L102'>
+          <td class='lineno'>102</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if ccall&#40;:jl_array_isassigned, Cint, &#40;Any, Csize_t&#41;, x, i-1&#41; &#33;&#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L103'>
+          <td class='lineno'>103</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            xi &#61; ccall&#40;:jl_arrayref, Any, &#40;Any, Csize_t&#41;, x, i-1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L104'>
+          <td class='lineno'>104</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if &#33;isbits&#40;xi&#41;</span>
+          </td>
+        </tr>
+        <tr id='L105'>
+          <td class='lineno'>105</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                xi &#61; deepcopy_internal&#40;xi, stackdict&#41;::typeof&#40;xi&#41;</span>
+          </td>
+        </tr>
+        <tr id='L106'>
+          <td class='lineno'>106</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L107'>
+          <td class='lineno'>107</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            ccall&#40;:jl_arrayset, Cvoid, &#40;Any, Any, Csize_t&#41;, dest, xi, i-1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L108'>
+          <td class='lineno'>108</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L109'>
+          <td class='lineno'>109</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L110'>
+          <td class='lineno'>110</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return dest</span>
+          </td>
+        </tr>
+        <tr id='L111'>
+          <td class='lineno'>111</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L112'>
+          <td class='lineno'>112</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            <div class='call-sites'>
+              4388 &#40;12 &#37;&#41;
+              samples spent in deepcopy_internal
+              <br />
+              11 &#40;0 &#37;&#41; &#40;ex.&#41;,
+              1653 &#40;38 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy_internal
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L65'>line 65</a>
+              <br />
+              51 &#40;1 &#37;&#41; &#40;ex.&#41;,
+              2735 &#40;62 &#37;&#41; &#40;incl.&#41;
+              when called from deepcopy_internal
+              <a href='deepcopy.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RlZXBjb3B5Lmps.html#L76'>line 76</a>
+              <br />
+            </div>
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L113'>
+          <td class='lineno'>113</td>
+          <td class='tracecount excl'>21 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>21 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>function deepcopy_internal&#40;x::Union&#123;Dict,IdDict&#125;, stackdict::IdDict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L114'>
+          <td class='lineno'>114</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>174 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              174 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='abstractdict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Fic3RyYWN0ZGljdC5qbA&#61;&#61;.html#L17'>haskey</a>
+              <br />
+            </div>
+            <span class='code'>    if haskey&#40;stackdict, x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L115'>
+          <td class='lineno'>115</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return stackdict&#91;x&#93;::typeof&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L116'>
+          <td class='lineno'>116</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L117'>
+          <td class='lineno'>117</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L118'>
+          <td class='lineno'>118</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if isbitstype&#40;eltype&#40;x&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L119'>
+          <td class='lineno'>119</td>
+          <td class='tracecount excl'>41 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>4193 &#40;11 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              3792 &#40;91 &#37;&#41;
+              samples spent calling
+              <a href='dict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2RpY3Quamw&#61;.html#L119'>copy</a>
+              <br />
+              360 &#40;9 &#37;&#41;
+              samples spent calling
+              <a href='iddict.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2lkZGljdC5qbA&#61;&#61;.html#L70'>setindex&#33;</a>
+              <br />
+            </div>
+            <span class='code'>        return &#40;stackdict&#91;x&#93; &#61; copy&#40;x&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L120'>
+          <td class='lineno'>120</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L121'>
+          <td class='lineno'>121</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L122'>
+          <td class='lineno'>122</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dest &#61; empty&#40;x&#41;</span>
+          </td>
+        </tr>
+        <tr id='L123'>
+          <td class='lineno'>123</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    stackdict&#91;x&#93; &#61; dest</span>
+          </td>
+        </tr>
+        <tr id='L124'>
+          <td class='lineno'>124</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for &#40;k, v&#41; in x</span>
+          </td>
+        </tr>
+        <tr id='L125'>
+          <td class='lineno'>125</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        dest&#91;deepcopy_internal&#40;k, stackdict&#41;&#93; &#61; deepcopy_internal&#40;v, stackdict&#41;</span>
+          </td>
+        </tr>
+        <tr id='L126'>
+          <td class='lineno'>126</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L127'>
+          <td class='lineno'>127</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dest</span>
+          </td>
+        </tr>
+        <tr id='L128'>
+          <td class='lineno'>128</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+

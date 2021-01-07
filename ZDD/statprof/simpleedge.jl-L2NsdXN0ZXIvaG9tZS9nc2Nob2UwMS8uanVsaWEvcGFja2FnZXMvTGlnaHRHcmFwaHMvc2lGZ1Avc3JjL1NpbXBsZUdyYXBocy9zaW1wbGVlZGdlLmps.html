@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'></meta>
+    <link rel='stylesheet' type='text/css' href='statprofiler.css'></link>
+    <title>StatProfilerHTML - /cluster/home/gschoe01/.julia/packages/LightGraphs/siFgP/src/SimpleGraphs/simpleedge.jl</title>
+  </head>
+  <body>
+    <div class='report-header'>
+      <div class='backlink'>
+        <a href='index.html'>Report index</a>
+      </div>
+      <div class='report-title'>
+        StatProfilerHTML.jl report
+      </div>
+      <div class='generated-on'>
+        Generated on Thu, 07 Jan 2021 17:03:26
+      </div>
+    </div>
+    <table>
+      <caption>File source code</caption>
+      <thead>
+        <tr>
+          <th>Line</th>
+          <th>Exclusive</th>
+          <th>Inclusive</th>
+          <th>Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id='L1'>
+          <td class='lineno'>1</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>import Base: Pair, Tuple, show, &#61;&#61;</span>
+          </td>
+        </tr>
+        <tr id='L2'>
+          <td class='lineno'>2</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>import LightGraphs: AbstractEdge, src, dst, reverse</span>
+          </td>
+        </tr>
+        <tr id='L3'>
+          <td class='lineno'>3</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L4'>
+          <td class='lineno'>4</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>abstract type AbstractSimpleEdge&#123;T&lt;:Integer&#125; &lt;: AbstractEdge&#123;T&#125; end</span>
+          </td>
+        </tr>
+        <tr id='L5'>
+          <td class='lineno'>5</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L6'>
+          <td class='lineno'>6</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>struct SimpleEdge&#123;T&lt;:Integer&#125; &lt;: AbstractSimpleEdge&#123;T&#125;</span>
+          </td>
+        </tr>
+        <tr id='L7'>
+          <td class='lineno'>7</td>
+          <td class='tracecount excl'>5 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>5 &#40;0 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              5 &#40;0 &#37;&#41;
+              samples spent in SimpleEdge
+              <br />
+              5 &#40;100 &#37;&#41; &#40;ex.&#41;,
+              5 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from add_edge&#33;
+              <a href='SimpleGraphs.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9TaW1wbGVHcmFwaHMuamw&#61;.html#L90'>line 90</a>
+              <br />
+            </div>
+            
+            <span class='code'>    src::T</span>
+          </td>
+        </tr>
+        <tr id='L8'>
+          <td class='lineno'>8</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dst::T</span>
+          </td>
+        </tr>
+        <tr id='L9'>
+          <td class='lineno'>9</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L10'>
+          <td class='lineno'>10</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L11'>
+          <td class='lineno'>11</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleEdge&#40;t::Tuple&#41; &#61; SimpleEdge&#40;t&#91;1&#93;, t&#91;2&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L12'>
+          <td class='lineno'>12</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleEdge&#40;p::Pair&#41; &#61; SimpleEdge&#40;p.first, p.second&#41;</span>
+          </td>
+        </tr>
+        <tr id='L13'>
+          <td class='lineno'>13</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleEdge&#123;T&#125;&#40;p::Pair&#41; where T&lt;:Integer &#61; SimpleEdge&#40;T&#40;p.first&#41;, T&#40;p.second&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L14'>
+          <td class='lineno'>14</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleEdge&#123;T&#125;&#40;t::Tuple&#41; where T&lt;:Integer &#61; SimpleEdge&#40;T&#40;t&#91;1&#93;&#41;, T&#40;t&#91;2&#93;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L15'>
+          <td class='lineno'>15</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L16'>
+          <td class='lineno'>16</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>eltype&#40;::Type&#123;&lt;:ET&#125;&#41; where ET&lt;:AbstractSimpleEdge&#123;T&#125; where T &#61; T</span>
+          </td>
+        </tr>
+        <tr id='L17'>
+          <td class='lineno'>17</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L18'>
+          <td class='lineno'>18</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Accessors</span>
+          </td>
+        </tr>
+        <tr id='L19'>
+          <td class='lineno'>19</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              1 &#40;0 &#37;&#41;
+              samples spent in src
+              <br />
+              
+              1 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from Tuple
+              <a href='simpleedge.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9zaW1wbGVlZGdlLmps.html#L27'>line 27</a>
+              <br />
+            </div>
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='Base.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL0Jhc2Uuamw&#61;.html#L33'>getproperty</a>
+              <br />
+            </div>
+            <span class='code'>src&#40;e::AbstractSimpleEdge&#41; &#61; e.src</span>
+          </td>
+        </tr>
+        <tr id='L20'>
+          <td class='lineno'>20</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>dst&#40;e::AbstractSimpleEdge&#41; &#61; e.dst</span>
+          </td>
+        </tr>
+        <tr id='L21'>
+          <td class='lineno'>21</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L22'>
+          <td class='lineno'>22</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># I/O</span>
+          </td>
+        </tr>
+        <tr id='L23'>
+          <td class='lineno'>23</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>show&#40;io::IO, e::AbstractSimpleEdge&#41; &#61; print&#40;io, &quot;Edge &#36;&#40;e.src&#41; &#61;&gt; &#36;&#40;e.dst&#41;&quot;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L24'>
+          <td class='lineno'>24</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L25'>
+          <td class='lineno'>25</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Conversions</span>
+          </td>
+        </tr>
+        <tr id='L26'>
+          <td class='lineno'>26</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Pair&#40;e::AbstractSimpleEdge&#41; &#61; Pair&#40;src&#40;e&#41;, dst&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L27'>
+          <td class='lineno'>27</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              1 &#40;0 &#37;&#41;
+              samples spent in Tuple
+              <br />
+              
+              1 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from add_edge&#33;
+              <a href='simpledigraph.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9zaW1wbGVkaWdyYXBoLmps.html#L415'>line 415</a>
+              <br />
+            </div>
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='simpleedge.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9zaW1wbGVlZGdlLmps.html#L19'>src</a>
+              <br />
+            </div>
+            <span class='code'>Tuple&#40;e::AbstractSimpleEdge&#41; &#61; &#40;src&#40;e&#41;, dst&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L28'>
+          <td class='lineno'>28</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L29'>
+          <td class='lineno'>29</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleEdge&#123;T&#125;&#40;e::AbstractSimpleEdge&#41; where T &lt;: Integer &#61; SimpleEdge&#123;T&#125;&#40;T&#40;e.src&#41;, T&#40;e.dst&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L30'>
+          <td class='lineno'>30</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L31'>
+          <td class='lineno'>31</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Convenience functions</span>
+          </td>
+        </tr>
+        <tr id='L32'>
+          <td class='lineno'>32</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>reverse&#40;e::T&#41; where T&lt;:AbstractSimpleEdge &#61; T&#40;dst&#40;e&#41;, src&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L33'>
+          <td class='lineno'>33</td>
+          <td class='tracecount excl'>6 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>6 &#40;0 &#37;&#41;</td>
+          <td>
+            <div class='call-sites'>
+              6 &#40;0 &#37;&#41;
+              samples spent in &#61;&#61;
+              <br />
+              6 &#40;100 &#37;&#41; &#40;ex.&#41;,
+              6 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from #construct_zdd#2
+              <a href='zdd.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9aREQvemRkLmps.html#L125'>line 125</a>
+              <br />
+            </div>
+            
+            <span class='code'>&#61;&#61;&#40;e1::AbstractSimpleEdge, e2::AbstractSimpleEdge&#41; &#61; &#40;src&#40;e1&#41; &#61;&#61; src&#40;e2&#41; &amp;&amp; dst&#40;e1&#41; &#61;&#61; dst&#40;e2&#41;&#41;</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+
