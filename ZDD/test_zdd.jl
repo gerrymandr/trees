@@ -10,6 +10,7 @@ construct_zdd(grid([2,2]), 2, 0, optimal_grid_edge_order(grid([2,2]), 2, 2)); no
 ###
 
 solutions = Dict(
+  # (contiguity, n, k, d) => partitions,
     ("rook", 2, 2, 0) => 2,
     ("rook", 2, 2, 3) => 6,
     ("rook", 3, 3, 0) => 10,
@@ -37,9 +38,9 @@ global tests, correct = 0, 0
 for contiguity ∈ contiguities
     for n ∈ ns
         for d ∈ ds
-            if contiguity == "queen" && d == 3
-                continue
-            end
+            # don't check queen 5 5 3 for time purposes
+            if contiguity == "queen" && n == 5 && d == 3 continue end
+
             global tests += 1
             if contiguity == "rook"
                 g = grid([n,n])
@@ -48,15 +49,14 @@ for contiguity ∈ contiguities
                 g = queen_grid([n,n])
                 g_edges = optimal_queen_grid_edge_order(g, n, n)
             end
-            k = n
-            if contiguity == "rook"
-                print(" ")
-            end
-            print("$contiguity $(n)x$(n) grid -> $k districts (d = $d): ")
-            ret = @timed zdd = construct_zdd(g, k, d, g_edges); nothing
+
+            if contiguity == "rook" print(" ") end # for lining up test results
+
+            print("$contiguity $(n)x$(n) grid -> $n districts (d = $d): ")
+            ret = @timed zdd = construct_zdd(g, n, d, g_edges); nothing
             time = ret[2]
             sols = count_paths(zdd)
-            if sols == solutions[(contiguity, n, k, d)]
+            if sols == solutions[(contiguity, n, n, d)]
                 print("*** CORRECT :) ***\n")
                 println(" - partitions: $(sols)")
                 println(" - time: $(time) secs.")
