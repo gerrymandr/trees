@@ -12,7 +12,7 @@ end
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::LightGraphs.SimpleGraphs.SimpleEdge{Int64}
-    comp::Set{Int8}
+    comp::Array{Int8, 1}
     comp_weights::Dict{Int8, Int8}
     cc::Int8
     fps::Set{ForbiddenPair}
@@ -20,12 +20,12 @@ mutable struct Node
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(Edge(i, i), Set{Int8}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{Int8}([]))
+    return Node(Edge(i, i), Array{Int8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{Int8}([]))
 end
 
 function Node(root_edge::LightGraphs.SimpleGraphs.SimpleEdge{Int64}, base_graph::SimpleGraph)::Node
     comp_assign = Vector{Int8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Set{Int8}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
+    return Node(root_edge, Array{Int8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -266,7 +266,7 @@ function connect_components!(n::Node, Cᵤ::Int8, Cᵥ::Int8)
     to_change = min(Cᵤ, Cᵥ)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
-        delete!(n.comp, to_change)
+        filter!(x -> x != to_change, n.comp)
         n.comp_weights[assignment] += n.comp_weights[to_change]
         delete!(n.comp_weights, to_change)
     end
@@ -325,7 +325,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::Int8, fp_container::Ve
     for fp in node.fps
         if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
             delete!(node.fps, fp)
-            delete!(node.comp, vertex_comp)
+            filter!(x -> x != vertex_comp, node.comp)
         end
     end
 
@@ -348,7 +348,7 @@ function adjust_node!(node::Node, vertex_comp::Int8, fp_container::Vector{Forbid
         end
 
         # change comp
-        delete!(node.comp, vertex_comp)
+        filter!(x -> x != vertex_comp, node.comp)
         push!(node.comp, new_max)
 
         if new_max != vertex_comp
