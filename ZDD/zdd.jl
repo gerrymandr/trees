@@ -33,14 +33,14 @@ function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
     return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
-mutable struct ZDD
+mutable struct ZDD{G<:SimpleDiGraph, S<:SimpleGraph, N<:Node}
     # graph stuff
-    graph::SimpleDiGraph
+    graph::G
     nodes::Dict{UInt64, Int64}
-    edges::Dict{Tuple{Node, Node}, Int64}
-    edge_multiplicity::Set{Tuple{Node, Node}}
-    base_graph::SimpleGraph
-    root::Node
+    edges::Dict{Tuple{N, N}, Int64}
+    edge_multiplicity::Set{Tuple{N, N}}
+    base_graph::S
+    root::N
     viz::Bool
 end
 
