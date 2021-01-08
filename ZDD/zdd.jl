@@ -8,22 +8,27 @@ struct ForbiddenPair
     comp₂::UInt8
 end
 
+struct NodeEdge
+    edge₁::UInt8
+    edge₂::UInt8
+end
+
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
-    label::LightGraphs.SimpleGraphs.SimpleEdge{Int64}
-    comp::Array{UInt8, 1} # can hold 256 possible values if TODO: make UInt8
+    label::NodeEdge
+    comp::Array{UInt8, 1} # can hold 256 possible values
     comp_weights::Dict{Int8, Int8}
-    cc::UInt8 # can hold only 256 possible values if TODO: make UInt8
+    cc::UInt8 # can hold only 256 possible values
     fps::Set{ForbiddenPair}
-    comp_assign::Vector{UInt8} # only 256 possible values if TODO: make UInt8
+    comp_assign::Vector{UInt8} # only 256 possible values
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(Edge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+    return Node(NodeEdge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
 end
 
-function Node(root_edge::LightGraphs.SimpleGraphs.SimpleEdge{Int64}, base_graph::SimpleGraph)::Node
+function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
     comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
     return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
@@ -94,10 +99,18 @@ function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
 end
 
+function convert_lightgraphs_edges_to_node_edges(g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})::Array{NodeEdge, 1}
+    node_edges = Array{NodeEdge, 1}([])
+    for edge in g_edges
+        push!(node_edges, NodeEdge(edge.src, edge.dst))
+    end
+    return node_edges
+end
+
 function construct_zdd(g::SimpleGraph,
                        k::Int64,
                        d::Int64,
-                       g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1};
+                       g_edges::Array{NodeEdge,1};
                        viz::Bool=false)::ZDD
     root = Node(g_edges[1], g)
 
@@ -122,7 +135,7 @@ function construct_zdd(g::SimpleGraph,
                                    zero_terminal, one_terminal,
                                    fp_container)
 
-                if !(n′.label == Edge(0, 0) || n′.label == Edge(1, 1)) # if not a Terminal Node
+                if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
 
                     if n′ ∉ N[i+1]
@@ -150,7 +163,7 @@ function node_summary(node::Node)
 end
 
 function make_new_node(g::SimpleGraph,
-                       g_edges,
+                       g_edges::Array{NodeEdge,1},
                        k::Int,
                        n::Node,
                        i::Int,
@@ -164,8 +177,8 @@ function make_new_node(g::SimpleGraph,
                        fp_container::Vector{ForbiddenPair})
     """
     """
-    u = g_edges[i].src
-    v = g_edges[i].dst
+    u = g_edges[i].edge₁
+    v = g_edges[i].edge₂
 
     n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
@@ -221,7 +234,7 @@ function make_new_node(g::SimpleGraph,
 end
 
 
-function add_vertex_as_component!(n′::Node, vertex::Int64, prev_frontier::Set{UInt8})
+function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{UInt8})
     """ Add `u` or `v` or both to n`.comp if they are not in
         `prev_frontier`
     """
@@ -272,7 +285,7 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     end
 end
 
-function components(u::Int64, v::Int64, node::Node)::Tuple{UInt8, UInt8}
+function components(u::UInt8, v::UInt8, node::Node)::Tuple{UInt8, UInt8}
     """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
         vertices `u` and `v` respectively.
     """
@@ -311,8 +324,8 @@ function nodes_from_edges(edges)::Set{UInt8}
     """
     nodes = Set{UInt8}()
     for e in edges
-        push!(nodes, e.src)
-        push!(nodes, e.dst)
+        push!(nodes, e.edge₁)
+        push!(nodes, e.edge₂)
     end
     return nodes
 end
