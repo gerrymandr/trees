@@ -20,17 +20,17 @@ mutable struct Node
     comp::Array{UInt8, 1} # can hold 256 possible values
     comp_weights::Dict{Int8, Int8}
     cc::UInt8 # can hold only 256 possible values
-    fps::Vector{ForbiddenPair}
+    fps::Set{ForbiddenPair}
     comp_assign::Vector{UInt8} # only 256 possible values
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]))
+    return Node(NodeEdge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
 end
 
 function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
     comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Vector{ForbiddenPair}(), comp_assign)
+    return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 mutable struct ZDD
@@ -125,7 +125,6 @@ function construct_zdd(g::SimpleGraph,
     zero_terminal = Node(0)
     one_terminal = Node(1)
     fp_container = Vector{ForbiddenPair}([]) # reusable container
-    remove_container = Vector{ForbiddenPair}([]) # reusable container
 
     for i = 1:ne(g)
         for n in N[i]
@@ -134,7 +133,7 @@ function construct_zdd(g::SimpleGraph,
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
                                    zero_terminal, one_terminal,
-                                   fp_container, remove_container)
+                                   fp_container)
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
@@ -175,8 +174,7 @@ function make_new_node(g::SimpleGraph,
                        upper_bound::Int8,
                        zero_terminal::Node,
                        one_terminal::Node,
-                       fp_container::Vector{ForbiddenPair},
-                       remove_container::Vector{ForbiddenPair})
+                       fp_container::Vector{ForbiddenPair})
     """
     """
     u = g_edges[i].edge₁
@@ -198,7 +196,7 @@ function make_new_node(g::SimpleGraph,
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
             return zero_terminal
         else
-            replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container, remove_container)
+            replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container)
         end
     else
         if Cᵤ == Cᵥ
@@ -221,7 +219,7 @@ function make_new_node(g::SimpleGraph,
                     return zero_terminal
                 end
             end
-            remove_vertex_from_node_fps!(n′, a, fp_container, remove_container)
+            remove_vertex_from_node_fps!(n′, a, fp_container)
         end
     end
 
@@ -247,7 +245,7 @@ function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{
     nothing
 end
 
-function replace_components_with_union!(node::Node, Cᵤ::UInt8, Cᵥ::UInt8, fp_container::Vector{ForbiddenPair}, remove_container::Vector{ForbiddenPair})
+function replace_components_with_union!(node::Node, Cᵤ::UInt8, Cᵥ::UInt8, fp_container::Vector{ForbiddenPair})
     """
     update fps to replace the smaller component with the larger component
     (TODO: rename)
@@ -258,24 +256,18 @@ function replace_components_with_union!(node::Node, Cᵤ::UInt8, Cᵥ::UInt8, fp
     for fp in node.fps
         if to_change == fp.comp₁
             other = fp.comp₂
-            # delete!(node.fps, fp)
-            # filter!(x -> x != fp, node.fps)
-            push!(remove_container, fp)
+            delete!(node.fps, fp)
             push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         elseif to_change == fp.comp₂
             other = fp.comp₁
-            # delete!(node.fps, fp)
-            # filter!(x -> x != fp, node.fps)
-            push!(remove_container, fp)
+            delete!(node.fps, fp)
             push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         end
     end
-    filter!(x -> x ∉ remove_container, node.fps)
     for fp in fp_container
         push!(node.fps, fp)
     end
     empty!(fp_container)
-    empty!(remove_container)
 end
 
 
@@ -338,26 +330,23 @@ function nodes_from_edges(edges)::Set{UInt8}
     return nodes
 end
 
-function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair}, remove_container::Vector{ForbiddenPair})
+function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair})
     """
     """
     vertex_comp = node.comp_assign[vertex]
 
     for fp in node.fps
         if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
-            # delete!(node.fps, fp)
-            # filter!(x -> x != fp, node.fps)
-            push!(remove_container, fp)
+            delete!(node.fps, fp)
             filter!(x -> x != vertex_comp, node.comp)
         end
     end
-    filter!(x -> x ∉ remove_container, node.fps)
-    empty!(remove_container)
+
     node.comp_assign[vertex] = 0
-    adjust_node!(node, vertex_comp, fp_container, remove_container)
+    adjust_node!(node, vertex_comp, fp_container)
 end
 
-function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{ForbiddenPair}, remove_container::Vector{ForbiddenPair})
+function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{ForbiddenPair})
     """
     """
     if vertex_comp in node.comp_assign
@@ -384,26 +373,19 @@ function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{Forbi
         for fp in node.fps
             if vertex_comp == fp.comp₁
                 other = fp.comp₂
-                # delete!(node.fps, fp)
-                # filter!(x -> x != fp, node.fps)
-                push!(remove_container, fp)
+                delete!(node.fps, fp)
                 push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
             elseif vertex_comp == fp.comp₂
                 other = fp.comp₁
-                # delete!(node.fps, fp)
-                # filter!(x -> x != fp, node.fps)
-                push!(remove_container, fp)
+                delete!(node.fps, fp)
                 push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
             end
         end
-        filter!(x -> x ∉ remove_container, node.fps)
-
         for fp in fp_container
             push!(node.fps, fp)
         end
     end
     empty!(fp_container)
-    empty!(remove_container)
 end
 
 function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
