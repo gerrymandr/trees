@@ -1,0 +1,5814 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'></meta>
+    <link rel='stylesheet' type='text/css' href='statprofiler.css'></link>
+    <title>StatProfilerHTML - /cluster/home/gschoe01/.julia/packages/LightGraphs/siFgP/src/SimpleGraphs/simpledigraph.jl</title>
+  </head>
+  <body>
+    <div class='report-header'>
+      <div class='backlink'>
+        <a href='index.html'>Report index</a>
+      </div>
+      <div class='report-title'>
+        StatProfilerHTML.jl report
+      </div>
+      <div class='generated-on'>
+        Generated on Thu, 07 Jan 2021 17:03:26
+      </div>
+    </div>
+    <table>
+      <caption>File source code</caption>
+      <thead>
+        <tr>
+          <th>Line</th>
+          <th>Exclusive</th>
+          <th>Inclusive</th>
+          <th>Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id='L1'>
+          <td class='lineno'>1</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>const SimpleDiGraphEdge &#61; SimpleEdge</span>
+          </td>
+        </tr>
+        <tr id='L2'>
+          <td class='lineno'>2</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L3'>
+          <td class='lineno'>3</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L4'>
+          <td class='lineno'>4</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#123;T&#125;</span>
+          </td>
+        </tr>
+        <tr id='L5'>
+          <td class='lineno'>5</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L6'>
+          <td class='lineno'>6</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>A type representing a directed graph.</span>
+          </td>
+        </tr>
+        <tr id='L7'>
+          <td class='lineno'>7</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L8'>
+          <td class='lineno'>8</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>mutable struct SimpleDiGraph&#123;T &lt;: Integer&#125; &lt;: AbstractSimpleGraph&#123;T&#125;</span>
+          </td>
+        </tr>
+        <tr id='L9'>
+          <td class='lineno'>9</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    ne::Int</span>
+          </td>
+        </tr>
+        <tr id='L10'>
+          <td class='lineno'>10</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist::Vector&#123;Vector&#123;T&#125;&#125; # &#91;src&#93;: &#40;dst, dst, dst&#41;</span>
+          </td>
+        </tr>
+        <tr id='L11'>
+          <td class='lineno'>11</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist::Vector&#123;Vector&#123;T&#125;&#125; # &#91;dst&#93;: &#40;src, src, src&#41;</span>
+          </td>
+        </tr>
+        <tr id='L12'>
+          <td class='lineno'>12</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L13'>
+          <td class='lineno'>13</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    function SimpleDiGraph&#123;T&#125;&#40;</span>
+          </td>
+        </tr>
+        <tr id='L14'>
+          <td class='lineno'>14</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            ne::Int,</span>
+          </td>
+        </tr>
+        <tr id='L15'>
+          <td class='lineno'>15</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            fadjlist::Vector&#123;Vector&#123;T&#125;&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L16'>
+          <td class='lineno'>16</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            badjlist::Vector&#123;Vector&#123;T&#125;&#125;</span>
+          </td>
+        </tr>
+        <tr id='L17'>
+          <td class='lineno'>17</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    &#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L18'>
+          <td class='lineno'>18</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L19'>
+          <td class='lineno'>19</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        throw_if_invalid_eltype&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L20'>
+          <td class='lineno'>20</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return new&#40;ne, fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L21'>
+          <td class='lineno'>21</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L22'>
+          <td class='lineno'>22</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L23'>
+          <td class='lineno'>23</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L24'>
+          <td class='lineno'>24</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#40;</span>
+          </td>
+        </tr>
+        <tr id='L25'>
+          <td class='lineno'>25</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        ne::Int,</span>
+          </td>
+        </tr>
+        <tr id='L26'>
+          <td class='lineno'>26</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        fadjlist::Vector&#123;Vector&#123;T&#125;&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L27'>
+          <td class='lineno'>27</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        badjlist::Vector&#123;Vector&#123;T&#125;&#125;</span>
+          </td>
+        </tr>
+        <tr id='L28'>
+          <td class='lineno'>28</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L29'>
+          <td class='lineno'>29</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L30'>
+          <td class='lineno'>30</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return SimpleDiGraph&#123;T&#125;&#40;ne, fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L31'>
+          <td class='lineno'>31</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L32'>
+          <td class='lineno'>32</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L33'>
+          <td class='lineno'>33</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L34'>
+          <td class='lineno'>34</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>eltype&#40;x::SimpleDiGraph&#123;T&#125;&#41; where T &#61; T</span>
+          </td>
+        </tr>
+        <tr id='L35'>
+          <td class='lineno'>35</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L36'>
+          <td class='lineno'>36</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># DiGraph&#123;UInt8&#125;&#40;6&#41;, DiGraph&#123;Int16&#125;&#40;7&#41;, DiGraph&#123;Int8&#125;&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L37'>
+          <td class='lineno'>37</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L38'>
+          <td class='lineno'>38</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#123;T&#125;&#40;n&#61;0&#41;</span>
+          </td>
+        </tr>
+        <tr id='L39'>
+          <td class='lineno'>39</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L40'>
+          <td class='lineno'>40</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct a &#96;SimpleDiGraph&#123;T&#125;&#96; with &#96;n&#96; vertices and 0 edges.</span>
+          </td>
+        </tr>
+        <tr id='L41'>
+          <td class='lineno'>41</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>If not specified, the element type &#96;T&#96; is the type of &#96;n&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L42'>
+          <td class='lineno'>42</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L43'>
+          <td class='lineno'>43</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L44'>
+          <td class='lineno'>44</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L45'>
+          <td class='lineno'>45</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#40;UInt8&#40;10&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L46'>
+          <td class='lineno'>46</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;10, 0&#125; directed simple UInt8 graph</span>
+          </td>
+        </tr>
+        <tr id='L47'>
+          <td class='lineno'>47</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L48'>
+          <td class='lineno'>48</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L49'>
+          <td class='lineno'>49</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#123;T&#125;&#40;n::Integer&#61;0&#41; where T &lt;: Integer</span>
+          </td>
+        </tr>
+        <tr id='L50'>
+          <td class='lineno'>50</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist &#61; &#91;Vector&#123;T&#125;&#40;&#41; for _ &#61; one&#40;T&#41;:n&#93;</span>
+          </td>
+        </tr>
+        <tr id='L51'>
+          <td class='lineno'>51</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist &#61; &#91;Vector&#123;T&#125;&#40;&#41; for _ &#61; one&#40;T&#41;:n&#93;</span>
+          </td>
+        </tr>
+        <tr id='L52'>
+          <td class='lineno'>52</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return SimpleDiGraph&#40;0, fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L53'>
+          <td class='lineno'>53</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L54'>
+          <td class='lineno'>54</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L55'>
+          <td class='lineno'>55</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># SimpleDiGraph&#40;6&#41;, SimpleDiGraph&#40;0x5&#41;</span>
+          </td>
+        </tr>
+        <tr id='L56'>
+          <td class='lineno'>56</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#40;n::T&#41; where T &lt;: Integer &#61; SimpleDiGraph&#123;T&#125;&#40;n&#41;</span>
+          </td>
+        </tr>
+        <tr id='L57'>
+          <td class='lineno'>57</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L58'>
+          <td class='lineno'>58</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># SimpleDiGraph&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L59'>
+          <td class='lineno'>59</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#40;&#41; &#61; SimpleDiGraph&#123;Int&#125;&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L60'>
+          <td class='lineno'>60</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L61'>
+          <td class='lineno'>61</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># SimpleDiGraph&#40;UInt8&#41;</span>
+          </td>
+        </tr>
+        <tr id='L62'>
+          <td class='lineno'>62</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L63'>
+          <td class='lineno'>63</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#40;::Type&#123;T&#125;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L64'>
+          <td class='lineno'>64</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L65'>
+          <td class='lineno'>65</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct an empty &#96;SimpleDiGraph&#123;T&#125;&#96; with 0 vertices and 0 edges.</span>
+          </td>
+        </tr>
+        <tr id='L66'>
+          <td class='lineno'>66</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L67'>
+          <td class='lineno'>67</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L68'>
+          <td class='lineno'>68</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L69'>
+          <td class='lineno'>69</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#40;UInt8&#41;</span>
+          </td>
+        </tr>
+        <tr id='L70'>
+          <td class='lineno'>70</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;0, 0&#125; directed simple UInt8 graph</span>
+          </td>
+        </tr>
+        <tr id='L71'>
+          <td class='lineno'>71</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L72'>
+          <td class='lineno'>72</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L73'>
+          <td class='lineno'>73</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#40;::Type&#123;T&#125;&#41; where T &lt;: Integer &#61; SimpleDiGraph&#123;T&#125;&#40;zero&#40;T&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L74'>
+          <td class='lineno'>74</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L75'>
+          <td class='lineno'>75</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L76'>
+          <td class='lineno'>76</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># SimpleDiGraph&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L77'>
+          <td class='lineno'>77</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L78'>
+          <td class='lineno'>78</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#123;T&#125;&#40;adjm::AbstractMatrix&#41;</span>
+          </td>
+        </tr>
+        <tr id='L79'>
+          <td class='lineno'>79</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L80'>
+          <td class='lineno'>80</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct a &#96;SimpleDiGraph&#123;T&#125;&#96; from the adjacency matrix &#96;adjm&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L81'>
+          <td class='lineno'>81</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>If &#96;adjm&#91;i&#93;&#91;j&#93; &#33;&#61; 0&#96;, an edge &#96;&#40;i, j&#41;&#96; is inserted. &#96;adjm&#96; must be a square matrix.</span>
+          </td>
+        </tr>
+        <tr id='L82'>
+          <td class='lineno'>82</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>The element type &#96;T&#96; can be omitted.</span>
+          </td>
+        </tr>
+        <tr id='L83'>
+          <td class='lineno'>83</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L84'>
+          <td class='lineno'>84</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L85'>
+          <td class='lineno'>85</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L86'>
+          <td class='lineno'>86</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; A1 &#61; &#91;false true; false false&#93;</span>
+          </td>
+        </tr>
+        <tr id='L87'>
+          <td class='lineno'>87</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#40;A1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L88'>
+          <td class='lineno'>88</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;2, 1&#125; directed simple Int64 graph</span>
+          </td>
+        </tr>
+        <tr id='L89'>
+          <td class='lineno'>89</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L90'>
+          <td class='lineno'>90</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; A2 &#61; &#91;2 7; 5 0&#93;</span>
+          </td>
+        </tr>
+        <tr id='L91'>
+          <td class='lineno'>91</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#123;Int16&#125;&#40;A2&#41;</span>
+          </td>
+        </tr>
+        <tr id='L92'>
+          <td class='lineno'>92</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;2, 3&#125; directed simple Int16 graph</span>
+          </td>
+        </tr>
+        <tr id='L93'>
+          <td class='lineno'>93</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L94'>
+          <td class='lineno'>94</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L95'>
+          <td class='lineno'>95</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#40;adjmx::AbstractMatrix&#41; &#61; SimpleDiGraph&#123;Int&#125;&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L96'>
+          <td class='lineno'>96</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L97'>
+          <td class='lineno'>97</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># sparse adjacency matrix constructor: SimpleDiGraph&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L98'>
+          <td class='lineno'>98</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#123;T&#125;&#40;adjmx::SparseMatrixCSC&#123;U&#125;&#41; where T &lt;: Integer where U &lt;: Real</span>
+          </td>
+        </tr>
+        <tr id='L99'>
+          <td class='lineno'>99</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dima, dimb &#61; size&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L100'>
+          <td class='lineno'>100</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    isequal&#40;dima, dimb&#41; || throw&#40;ArgumentError&#40;&quot;Adjacency / distance matrices must be square&quot;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L101'>
+          <td class='lineno'>101</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L102'>
+          <td class='lineno'>102</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g &#61; SimpleDiGraph&#40;T&#40;dima&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L103'>
+          <td class='lineno'>103</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    maxc &#61; length&#40;adjmx.colptr&#41;</span>
+          </td>
+        </tr>
+        <tr id='L104'>
+          <td class='lineno'>104</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for c &#61; 1:&#40;maxc - 1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L105'>
+          <td class='lineno'>105</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        for rind &#61; adjmx.colptr&#91;c&#93;:&#40;adjmx.colptr&#91;c &#43; 1&#93; - 1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L106'>
+          <td class='lineno'>106</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            isnz &#61; &#40;adjmx.nzval&#91;rind&#93; &#33;&#61; zero&#40;U&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L107'>
+          <td class='lineno'>107</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if isnz</span>
+          </td>
+        </tr>
+        <tr id='L108'>
+          <td class='lineno'>108</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                r &#61; adjmx.rowval&#91;rind&#93;</span>
+          </td>
+        </tr>
+        <tr id='L109'>
+          <td class='lineno'>109</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                add_edge&#33;&#40;g, r, c&#41;</span>
+          </td>
+        </tr>
+        <tr id='L110'>
+          <td class='lineno'>110</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L111'>
+          <td class='lineno'>111</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L112'>
+          <td class='lineno'>112</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L113'>
+          <td class='lineno'>113</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return g</span>
+          </td>
+        </tr>
+        <tr id='L114'>
+          <td class='lineno'>114</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L115'>
+          <td class='lineno'>115</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L116'>
+          <td class='lineno'>116</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># dense adjacency matrix constructor: DiGraph&#123;UInt8&#125;&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L117'>
+          <td class='lineno'>117</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#123;T&#125;&#40;adjmx::AbstractMatrix&#123;U&#125;&#41; where T &lt;: Integer where U &lt;: Real</span>
+          </td>
+        </tr>
+        <tr id='L118'>
+          <td class='lineno'>118</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    dima, dimb &#61; size&#40;adjmx&#41;</span>
+          </td>
+        </tr>
+        <tr id='L119'>
+          <td class='lineno'>119</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    isequal&#40;dima, dimb&#41; || throw&#40;ArgumentError&#40;&quot;Adjacency / distance matrices must be square&quot;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L120'>
+          <td class='lineno'>120</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L121'>
+          <td class='lineno'>121</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g &#61; SimpleDiGraph&#40;T&#40;dima&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L122'>
+          <td class='lineno'>122</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for i in findall&#40;adjmx .&#33;&#61; zero&#40;U&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L123'>
+          <td class='lineno'>123</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        add_edge&#33;&#40;g, i&#91;1&#93;, i&#91;2&#93;&#41;    </span>
+          </td>
+        </tr>
+        <tr id='L124'>
+          <td class='lineno'>124</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L125'>
+          <td class='lineno'>125</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return g</span>
+          </td>
+        </tr>
+        <tr id='L126'>
+          <td class='lineno'>126</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L127'>
+          <td class='lineno'>127</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L128'>
+          <td class='lineno'>128</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># converts DiGraph&#123;Int&#125; to DiGraph&#123;Int32&#125;</span>
+          </td>
+        </tr>
+        <tr id='L129'>
+          <td class='lineno'>129</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L130'>
+          <td class='lineno'>130</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#123;T&#125;&#40;g::SimpleDiGraph&#41;</span>
+          </td>
+        </tr>
+        <tr id='L131'>
+          <td class='lineno'>131</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L132'>
+          <td class='lineno'>132</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct a copy of g.</span>
+          </td>
+        </tr>
+        <tr id='L133'>
+          <td class='lineno'>133</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>If the element type &#96;T&#96; is specified, the vertices of &#96;g&#96; are converted to this type.</span>
+          </td>
+        </tr>
+        <tr id='L134'>
+          <td class='lineno'>134</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Otherwise the element type is the same as for &#96;g&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L135'>
+          <td class='lineno'>135</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L136'>
+          <td class='lineno'>136</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L137'>
+          <td class='lineno'>137</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L138'>
+          <td class='lineno'>138</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; g &#61; complete_digraph&#40;5&#41;</span>
+          </td>
+        </tr>
+        <tr id='L139'>
+          <td class='lineno'>139</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#123;UInt8&#125;&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L140'>
+          <td class='lineno'>140</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;5, 20&#125; directed simple UInt8 graph</span>
+          </td>
+        </tr>
+        <tr id='L141'>
+          <td class='lineno'>141</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L142'>
+          <td class='lineno'>142</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L143'>
+          <td class='lineno'>143</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#123;T&#125;&#40;g::SimpleDiGraph&#41; where T &lt;: Integer</span>
+          </td>
+        </tr>
+        <tr id='L144'>
+          <td class='lineno'>144</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h_fadj &#61; &#91;Vector&#123;T&#125;&#40;x&#41; for x in fadj&#40;g&#41;&#93;</span>
+          </td>
+        </tr>
+        <tr id='L145'>
+          <td class='lineno'>145</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h_badj &#61; &#91;Vector&#123;T&#125;&#40;x&#41; for x in badj&#40;g&#41;&#93;</span>
+          </td>
+        </tr>
+        <tr id='L146'>
+          <td class='lineno'>146</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return SimpleDiGraph&#40;ne&#40;g&#41;, h_fadj, h_badj&#41;</span>
+          </td>
+        </tr>
+        <tr id='L147'>
+          <td class='lineno'>147</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L148'>
+          <td class='lineno'>148</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L149'>
+          <td class='lineno'>149</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#40;g::SimpleDiGraph&#41; &#61; copy&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L150'>
+          <td class='lineno'>150</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L151'>
+          <td class='lineno'>151</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># constructor from abstract graph: SimpleDiGraph&#40;graph&#41;</span>
+          </td>
+        </tr>
+        <tr id='L152'>
+          <td class='lineno'>152</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L153'>
+          <td class='lineno'>153</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#40;g::AbstractSimpleGraph&#41;</span>
+          </td>
+        </tr>
+        <tr id='L154'>
+          <td class='lineno'>154</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L155'>
+          <td class='lineno'>155</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct an directed &#96;SimpleDiGraph&#96; from a graph &#96;g&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L156'>
+          <td class='lineno'>156</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>The element type is the same as for &#96;g&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L157'>
+          <td class='lineno'>157</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L158'>
+          <td class='lineno'>158</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L159'>
+          <td class='lineno'>159</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L160'>
+          <td class='lineno'>160</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; g &#61; path_graph&#40;Int8&#40;5&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L161'>
+          <td class='lineno'>161</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L162'>
+          <td class='lineno'>162</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;5, 8&#125; directed simple Int8 graph</span>
+          </td>
+        </tr>
+        <tr id='L163'>
+          <td class='lineno'>163</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L164'>
+          <td class='lineno'>164</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L165'>
+          <td class='lineno'>165</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#40;g::AbstractSimpleGraph&#41;</span>
+          </td>
+        </tr>
+        <tr id='L166'>
+          <td class='lineno'>166</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h &#61; SimpleDiGraph&#40;nv&#40;g&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L167'>
+          <td class='lineno'>167</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h.ne &#61; ne&#40;g&#41; * 2 - num_self_loops&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L168'>
+          <td class='lineno'>168</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h.fadjlist &#61; deepcopy_adjlist&#40;fadj&#40;g&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L169'>
+          <td class='lineno'>169</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    h.badjlist &#61; deepcopy_adjlist&#40;badj&#40;g&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L170'>
+          <td class='lineno'>170</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return h</span>
+          </td>
+        </tr>
+        <tr id='L171'>
+          <td class='lineno'>171</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L172'>
+          <td class='lineno'>172</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L173'>
+          <td class='lineno'>173</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L174'>
+          <td class='lineno'>174</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>@inbounds function cleanupedges&#33;&#40;fadjlist::Vector&#123;Vector&#123;T&#125;&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L175'>
+          <td class='lineno'>175</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                                 badjlist::Vector&#123;Vector&#123;T&#125;&#125;&#41; where T &lt;: Integer</span>
+          </td>
+        </tr>
+        <tr id='L176'>
+          <td class='lineno'>176</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    neg &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L177'>
+          <td class='lineno'>177</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for v in 1:length&#40;fadjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L178'>
+          <td class='lineno'>178</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if &#33;issorted&#40;fadjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L179'>
+          <td class='lineno'>179</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            sort&#33;&#40;fadjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L180'>
+          <td class='lineno'>180</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L181'>
+          <td class='lineno'>181</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if &#33;issorted&#40;badjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L182'>
+          <td class='lineno'>182</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            sort&#33;&#40;badjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L183'>
+          <td class='lineno'>183</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L184'>
+          <td class='lineno'>184</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        unique&#33;&#40;fadjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L185'>
+          <td class='lineno'>185</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        unique&#33;&#40;badjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L186'>
+          <td class='lineno'>186</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        neg &#43;&#61; length&#40;fadjlist&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L187'>
+          <td class='lineno'>187</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L188'>
+          <td class='lineno'>188</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return neg</span>
+          </td>
+        </tr>
+        <tr id='L189'>
+          <td class='lineno'>189</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L190'>
+          <td class='lineno'>190</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L191'>
+          <td class='lineno'>191</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L192'>
+          <td class='lineno'>192</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraph&#40;edge_list::Vector&#41;</span>
+          </td>
+        </tr>
+        <tr id='L193'>
+          <td class='lineno'>193</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L194'>
+          <td class='lineno'>194</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Construct a &#96;SimpleDiGraph&#96; from a vector of edges.</span>
+          </td>
+        </tr>
+        <tr id='L195'>
+          <td class='lineno'>195</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>The element type is taken from the edges in &#96;edge_list&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L196'>
+          <td class='lineno'>196</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>The number of vertices is the highest that is used in an edge in &#96;edge_list&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L197'>
+          <td class='lineno'>197</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L198'>
+          <td class='lineno'>198</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>### Implementation Notes</span>
+          </td>
+        </tr>
+        <tr id='L199'>
+          <td class='lineno'>199</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>This constructor works the fastest when &#96;edge_list&#96; is sorted</span>
+          </td>
+        </tr>
+        <tr id='L200'>
+          <td class='lineno'>200</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>by the lexical ordering and does not contain any duplicates.</span>
+          </td>
+        </tr>
+        <tr id='L201'>
+          <td class='lineno'>201</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L202'>
+          <td class='lineno'>202</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>### See also</span>
+          </td>
+        </tr>
+        <tr id='L203'>
+          <td class='lineno'>203</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#91;&#96;SimpleDiGraphFromIterator&#96;&#93;&#40;@ref&#41;</span>
+          </td>
+        </tr>
+        <tr id='L204'>
+          <td class='lineno'>204</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L205'>
+          <td class='lineno'>205</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>## Examples</span>
+          </td>
+        </tr>
+        <tr id='L206'>
+          <td class='lineno'>206</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L207'>
+          <td class='lineno'>207</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L208'>
+          <td class='lineno'>208</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; el &#61; Edge.&#40;&#91; &#40;1, 3&#41;, &#40;1, 5&#41;, &#40;3, 1&#41; &#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L209'>
+          <td class='lineno'>209</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; SimpleDiGraph&#40;el&#41;</span>
+          </td>
+        </tr>
+        <tr id='L210'>
+          <td class='lineno'>210</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;5, 3&#125; directed simple Int64 graph</span>
+          </td>
+        </tr>
+        <tr id='L211'>
+          <td class='lineno'>211</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L212'>
+          <td class='lineno'>212</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L213'>
+          <td class='lineno'>213</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraph&#40;edge_list::Vector&#123;SimpleDiGraphEdge&#123;T&#125;&#125;&#41; where T &lt;: Integer</span>
+          </td>
+        </tr>
+        <tr id='L214'>
+          <td class='lineno'>214</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    nvg &#61; zero&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L215'>
+          <td class='lineno'>215</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds&#40;</span>
+          </td>
+        </tr>
+        <tr id='L216'>
+          <td class='lineno'>216</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for e in edge_list</span>
+          </td>
+        </tr>
+        <tr id='L217'>
+          <td class='lineno'>217</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        nvg &#61; max&#40;nvg, src&#40;e&#41;, dst&#40;e&#41;&#41; </span>
+          </td>
+        </tr>
+        <tr id='L218'>
+          <td class='lineno'>218</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end&#41;</span>
+          </td>
+        </tr>
+        <tr id='L219'>
+          <td class='lineno'>219</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>   </span>
+          </td>
+        </tr>
+        <tr id='L220'>
+          <td class='lineno'>220</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    list_sizes_out &#61; ones&#40;Int, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L221'>
+          <td class='lineno'>221</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    list_sizes_in &#61; ones&#40;Int, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L222'>
+          <td class='lineno'>222</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    degs_out &#61; zeros&#40;Int, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L223'>
+          <td class='lineno'>223</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    degs_in &#61; zeros&#40;Int, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L224'>
+          <td class='lineno'>224</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds&#40;</span>
+          </td>
+        </tr>
+        <tr id='L225'>
+          <td class='lineno'>225</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for e in edge_list</span>
+          </td>
+        </tr>
+        <tr id='L226'>
+          <td class='lineno'>226</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        s, d &#61; src&#40;e&#41;, dst&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L227'>
+          <td class='lineno'>227</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        &#40;s &gt;&#61; 1 &amp;&amp; d &gt;&#61; 1&#41; || continue</span>
+          </td>
+        </tr>
+        <tr id='L228'>
+          <td class='lineno'>228</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        degs_out&#91;s&#93; &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L229'>
+          <td class='lineno'>229</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        degs_in&#91;d&#93; &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L230'>
+          <td class='lineno'>230</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end&#41;</span>
+          </td>
+        </tr>
+        <tr id='L231'>
+          <td class='lineno'>231</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    </span>
+          </td>
+        </tr>
+        <tr id='L232'>
+          <td class='lineno'>232</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;undef, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L233'>
+          <td class='lineno'>233</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;undef, nvg&#41;</span>
+          </td>
+        </tr>
+        <tr id='L234'>
+          <td class='lineno'>234</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds&#40;</span>
+          </td>
+        </tr>
+        <tr id='L235'>
+          <td class='lineno'>235</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for v in 1:nvg</span>
+          </td>
+        </tr>
+        <tr id='L236'>
+          <td class='lineno'>236</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        fadjlist&#91;v&#93; &#61; Vector&#123;T&#125;&#40;undef, degs_out&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L237'>
+          <td class='lineno'>237</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        badjlist&#91;v&#93; &#61; Vector&#123;T&#125;&#40;undef, degs_in&#91;v&#93;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L238'>
+          <td class='lineno'>238</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end&#41;</span>
+          </td>
+        </tr>
+        <tr id='L239'>
+          <td class='lineno'>239</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L240'>
+          <td class='lineno'>240</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds&#40;</span>
+          </td>
+        </tr>
+        <tr id='L241'>
+          <td class='lineno'>241</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for e in edge_list</span>
+          </td>
+        </tr>
+        <tr id='L242'>
+          <td class='lineno'>242</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        s, d &#61; src&#40;e&#41;, dst&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L243'>
+          <td class='lineno'>243</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        &#40;s &gt;&#61; 1 &amp;&amp; d &gt;&#61; 1&#41; || continue</span>
+          </td>
+        </tr>
+        <tr id='L244'>
+          <td class='lineno'>244</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        fadjlist&#91;s&#93;&#91;list_sizes_out&#91;s&#93;&#93; &#61; d </span>
+          </td>
+        </tr>
+        <tr id='L245'>
+          <td class='lineno'>245</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        list_sizes_out&#91;s&#93; &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L246'>
+          <td class='lineno'>246</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        badjlist&#91;d&#93;&#91;list_sizes_in&#91;d&#93;&#93; &#61; s </span>
+          </td>
+        </tr>
+        <tr id='L247'>
+          <td class='lineno'>247</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        list_sizes_in&#91;d&#93; &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L248'>
+          <td class='lineno'>248</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end&#41;</span>
+          </td>
+        </tr>
+        <tr id='L249'>
+          <td class='lineno'>249</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L250'>
+          <td class='lineno'>250</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    neg &#61; cleanupedges&#33;&#40;fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L251'>
+          <td class='lineno'>251</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g &#61; SimpleDiGraph&#123;T&#125;&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L252'>
+          <td class='lineno'>252</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.fadjlist &#61; fadjlist</span>
+          </td>
+        </tr>
+        <tr id='L253'>
+          <td class='lineno'>253</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.badjlist &#61; badjlist</span>
+          </td>
+        </tr>
+        <tr id='L254'>
+          <td class='lineno'>254</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.ne &#61; neg</span>
+          </td>
+        </tr>
+        <tr id='L255'>
+          <td class='lineno'>255</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L256'>
+          <td class='lineno'>256</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return g</span>
+          </td>
+        </tr>
+        <tr id='L257'>
+          <td class='lineno'>257</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L258'>
+          <td class='lineno'>258</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L259'>
+          <td class='lineno'>259</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L260'>
+          <td class='lineno'>260</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>@inbounds function add_to_lists&#33;&#40;fadjlist::Vector&#123;Vector&#123;T&#125;&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L261'>
+          <td class='lineno'>261</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                                 badjlist::Vector&#123;Vector&#123;T&#125;&#125;, s::T, d::T&#41; where T &lt;: Integer</span>
+          </td>
+        </tr>
+        <tr id='L262'>
+          <td class='lineno'>262</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    nvg &#61; length&#40;fadjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L263'>
+          <td class='lineno'>263</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    nvg_new &#61; max&#40;nvg, s, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L264'>
+          <td class='lineno'>264</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for v &#61; &#40;nvg &#43; 1&#41;:nvg_new</span>
+          </td>
+        </tr>
+        <tr id='L265'>
+          <td class='lineno'>265</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        push&#33;&#40;fadjlist, Vector&#123;T&#125;&#40;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L266'>
+          <td class='lineno'>266</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        push&#33;&#40;badjlist, Vector&#123;T&#125;&#40;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L267'>
+          <td class='lineno'>267</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L268'>
+          <td class='lineno'>268</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L269'>
+          <td class='lineno'>269</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    push&#33;&#40;fadjlist&#91;s&#93;, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L270'>
+          <td class='lineno'>270</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    push&#33;&#40;badjlist&#91;d&#93;, s&#41;</span>
+          </td>
+        </tr>
+        <tr id='L271'>
+          <td class='lineno'>271</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L272'>
+          <td class='lineno'>272</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L273'>
+          <td class='lineno'>273</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Try to get the eltype from the first element</span>
+          </td>
+        </tr>
+        <tr id='L274'>
+          <td class='lineno'>274</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function _SimpleDiGraphFromIterator&#40;iter&#41;::SimpleDiGraph</span>
+          </td>
+        </tr>
+        <tr id='L275'>
+          <td class='lineno'>275</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L276'>
+          <td class='lineno'>276</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    next &#61; iterate&#40;iter&#41;</span>
+          </td>
+        </tr>
+        <tr id='L277'>
+          <td class='lineno'>277</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if &#40;next &#61;&#61;&#61; nothing&#41;</span>
+          </td>
+        </tr>
+        <tr id='L278'>
+          <td class='lineno'>278</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        return SimpleDiGraph&#40;0&#41;</span>
+          </td>
+        </tr>
+        <tr id='L279'>
+          <td class='lineno'>279</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L280'>
+          <td class='lineno'>280</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L281'>
+          <td class='lineno'>281</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    e &#61; first&#40;next&#41;</span>
+          </td>
+        </tr>
+        <tr id='L282'>
+          <td class='lineno'>282</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    E &#61; typeof&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L283'>
+          <td class='lineno'>283</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if &#33;&#40;E &lt;: SimpleGraphEdge&#123;&lt;: Integer&#125;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L284'>
+          <td class='lineno'>284</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        throw&#40;DomainError&#40;iter, &quot;Edges must be of type SimpleEdge&#123;T &lt;: Integer&#125;&quot;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L285'>
+          <td class='lineno'>285</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L286'>
+          <td class='lineno'>286</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L287'>
+          <td class='lineno'>287</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    T &#61; eltype&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L288'>
+          <td class='lineno'>288</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g &#61; SimpleDiGraph&#123;T&#125;&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L289'>
+          <td class='lineno'>289</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;&#41; </span>
+          </td>
+        </tr>
+        <tr id='L290'>
+          <td class='lineno'>290</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;&#41; </span>
+          </td>
+        </tr>
+        <tr id='L291'>
+          <td class='lineno'>291</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L292'>
+          <td class='lineno'>292</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    while next &#33;&#61; nothing</span>
+          </td>
+        </tr>
+        <tr id='L293'>
+          <td class='lineno'>293</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        &#40;e, state&#41; &#61; next</span>
+          </td>
+        </tr>
+        <tr id='L294'>
+          <td class='lineno'>294</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L295'>
+          <td class='lineno'>295</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if &#33;&#40;e isa E&#41;</span>
+          </td>
+        </tr>
+        <tr id='L296'>
+          <td class='lineno'>296</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            throw&#40;DomainError&#40;iter, &quot;Edges must all have the same type.&quot;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L297'>
+          <td class='lineno'>297</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L298'>
+          <td class='lineno'>298</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        s, d &#61; src&#40;e&#41;, dst&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L299'>
+          <td class='lineno'>299</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if &#40;&#40;s &gt;&#61; 1&#41; &amp; &#40;d &gt;&#61; 1&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L300'>
+          <td class='lineno'>300</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            add_to_lists&#33;&#40;fadjlist, badjlist, s, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L301'>
+          <td class='lineno'>301</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L302'>
+          <td class='lineno'>302</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L303'>
+          <td class='lineno'>303</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        next &#61; iterate&#40;iter, state&#41;</span>
+          </td>
+        </tr>
+        <tr id='L304'>
+          <td class='lineno'>304</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L305'>
+          <td class='lineno'>305</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L306'>
+          <td class='lineno'>306</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    neg  &#61; cleanupedges&#33;&#40;fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L307'>
+          <td class='lineno'>307</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.fadjlist &#61; fadjlist</span>
+          </td>
+        </tr>
+        <tr id='L308'>
+          <td class='lineno'>308</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.badjlist &#61; badjlist</span>
+          </td>
+        </tr>
+        <tr id='L309'>
+          <td class='lineno'>309</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.ne &#61; neg</span>
+          </td>
+        </tr>
+        <tr id='L310'>
+          <td class='lineno'>310</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L311'>
+          <td class='lineno'>311</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return g</span>
+          </td>
+        </tr>
+        <tr id='L312'>
+          <td class='lineno'>312</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L313'>
+          <td class='lineno'>313</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L314'>
+          <td class='lineno'>314</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function _SimpleDiGraphFromIterator&#40;iter, ::Type&#123;T&#125;&#41; where &#123;T &lt;: Integer&#125;</span>
+          </td>
+        </tr>
+        <tr id='L315'>
+          <td class='lineno'>315</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L316'>
+          <td class='lineno'>316</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g &#61; SimpleDiGraph&#123;T&#125;&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L317'>
+          <td class='lineno'>317</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;&#41; </span>
+          </td>
+        </tr>
+        <tr id='L318'>
+          <td class='lineno'>318</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist &#61; Vector&#123;Vector&#123;T&#125;&#125;&#40;&#41; </span>
+          </td>
+        </tr>
+        <tr id='L319'>
+          <td class='lineno'>319</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L320'>
+          <td class='lineno'>320</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds&#40;</span>
+          </td>
+        </tr>
+        <tr id='L321'>
+          <td class='lineno'>321</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    for e in iter</span>
+          </td>
+        </tr>
+        <tr id='L322'>
+          <td class='lineno'>322</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        s, d &#61; src&#40;e&#41;, dst&#40;e&#41;</span>
+          </td>
+        </tr>
+        <tr id='L323'>
+          <td class='lineno'>323</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        &#40;s &gt;&#61; 1 &amp;&amp; d &gt;&#61; 1&#41; || continue</span>
+          </td>
+        </tr>
+        <tr id='L324'>
+          <td class='lineno'>324</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        add_to_lists&#33;&#40;fadjlist, badjlist, s, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L325'>
+          <td class='lineno'>325</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L326'>
+          <td class='lineno'>326</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end&#41;</span>
+          </td>
+        </tr>
+        <tr id='L327'>
+          <td class='lineno'>327</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L328'>
+          <td class='lineno'>328</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    neg  &#61; cleanupedges&#33;&#40;fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L329'>
+          <td class='lineno'>329</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.fadjlist &#61; fadjlist</span>
+          </td>
+        </tr>
+        <tr id='L330'>
+          <td class='lineno'>330</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.badjlist &#61; badjlist</span>
+          </td>
+        </tr>
+        <tr id='L331'>
+          <td class='lineno'>331</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.ne &#61; neg</span>
+          </td>
+        </tr>
+        <tr id='L332'>
+          <td class='lineno'>332</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L333'>
+          <td class='lineno'>333</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return g</span>
+          </td>
+        </tr>
+        <tr id='L334'>
+          <td class='lineno'>334</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L335'>
+          <td class='lineno'>335</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L336'>
+          <td class='lineno'>336</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L337'>
+          <td class='lineno'>337</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    SimpleDiGraphFromIterator&#40;iter&#41;</span>
+          </td>
+        </tr>
+        <tr id='L338'>
+          <td class='lineno'>338</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L339'>
+          <td class='lineno'>339</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>Create a &#96;SimpleDiGraph&#96; from an iterator &#96;iter&#96;. The elements in &#96;iter&#96; must</span>
+          </td>
+        </tr>
+        <tr id='L340'>
+          <td class='lineno'>340</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>be of &#96;type &lt;: SimpleEdge&#96;.</span>
+          </td>
+        </tr>
+        <tr id='L341'>
+          <td class='lineno'>341</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L342'>
+          <td class='lineno'>342</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'># Examples</span>
+          </td>
+        </tr>
+        <tr id='L343'>
+          <td class='lineno'>343</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;jldoctest</span>
+          </td>
+        </tr>
+        <tr id='L344'>
+          <td class='lineno'>344</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; using LightGraphs</span>
+          </td>
+        </tr>
+        <tr id='L345'>
+          <td class='lineno'>345</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L346'>
+          <td class='lineno'>346</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; g &#61; SimpleDiGraph&#40;2&#41;;</span>
+          </td>
+        </tr>
+        <tr id='L347'>
+          <td class='lineno'>347</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L348'>
+          <td class='lineno'>348</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; add_edge&#33;&#40;g, 1, 2&#41;;</span>
+          </td>
+        </tr>
+        <tr id='L349'>
+          <td class='lineno'>349</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L350'>
+          <td class='lineno'>350</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; add_edge&#33;&#40;g, 2, 1&#41;;</span>
+          </td>
+        </tr>
+        <tr id='L351'>
+          <td class='lineno'>351</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L352'>
+          <td class='lineno'>352</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; h &#61; SimpleDiGraphFromIterator&#40;edges&#40;g&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L353'>
+          <td class='lineno'>353</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#123;2, 2&#125; directed simple Int64 graph</span>
+          </td>
+        </tr>
+        <tr id='L354'>
+          <td class='lineno'>354</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L355'>
+          <td class='lineno'>355</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>julia&gt; collect&#40;edges&#40;h&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L356'>
+          <td class='lineno'>356</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>2-element Array&#123;LightGraphs.SimpleGraphs.SimpleEdge&#123;Int64&#125;,1&#125;:</span>
+          </td>
+        </tr>
+        <tr id='L357'>
+          <td class='lineno'>357</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'> Edge 1 &#61;&gt; 2</span>
+          </td>
+        </tr>
+        <tr id='L358'>
+          <td class='lineno'>358</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'> Edge 2 &#61;&gt; 1</span>
+          </td>
+        </tr>
+        <tr id='L359'>
+          <td class='lineno'>359</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#96;&#96;&#96;</span>
+          </td>
+        </tr>
+        <tr id='L360'>
+          <td class='lineno'>360</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&quot;&quot;&quot;</span>
+          </td>
+        </tr>
+        <tr id='L361'>
+          <td class='lineno'>361</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function SimpleDiGraphFromIterator&#40;iter&#41;::SimpleDiGraph</span>
+          </td>
+        </tr>
+        <tr id='L362'>
+          <td class='lineno'>362</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L363'>
+          <td class='lineno'>363</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if Base.IteratorEltype&#40;iter&#41; &#61;&#61; Base.HasEltype&#40;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L364'>
+          <td class='lineno'>364</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        E &#61; eltype&#40;iter&#41;</span>
+          </td>
+        </tr>
+        <tr id='L365'>
+          <td class='lineno'>365</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if &#40;E &lt;: SimpleGraphEdge&#123;&lt;: Integer&#125; &amp;&amp; isconcretetype&#40;E&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L366'>
+          <td class='lineno'>366</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            T &#61; eltype&#40;E&#41;</span>
+          </td>
+        </tr>
+        <tr id='L367'>
+          <td class='lineno'>367</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if isconcretetype&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L368'>
+          <td class='lineno'>368</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                return _SimpleDiGraphFromIterator&#40;iter, T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L369'>
+          <td class='lineno'>369</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L370'>
+          <td class='lineno'>370</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L371'>
+          <td class='lineno'>371</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L372'>
+          <td class='lineno'>372</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L373'>
+          <td class='lineno'>373</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return _SimpleDiGraphFromIterator&#40;iter&#41;</span>
+          </td>
+        </tr>
+        <tr id='L374'>
+          <td class='lineno'>374</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L375'>
+          <td class='lineno'>375</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L376'>
+          <td class='lineno'>376</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L377'>
+          <td class='lineno'>377</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L378'>
+          <td class='lineno'>378</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>edgetype&#40;::SimpleDiGraph&#123;T&#125;&#41; where T &lt;: Integer &#61; SimpleGraphEdge&#123;T&#125;</span>
+          </td>
+        </tr>
+        <tr id='L379'>
+          <td class='lineno'>379</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L380'>
+          <td class='lineno'>380</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L381'>
+          <td class='lineno'>381</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>badj&#40;g::SimpleDiGraph&#41; &#61; g.badjlist</span>
+          </td>
+        </tr>
+        <tr id='L382'>
+          <td class='lineno'>382</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>badj&#40;g::SimpleDiGraph, v::Integer&#41; &#61; badj&#40;g&#41;&#91;v&#93;</span>
+          </td>
+        </tr>
+        <tr id='L383'>
+          <td class='lineno'>383</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L384'>
+          <td class='lineno'>384</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L385'>
+          <td class='lineno'>385</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>copy&#40;g::SimpleDiGraph&#123;T&#125;&#41; where T &lt;: Integer &#61;</span>
+          </td>
+        </tr>
+        <tr id='L386'>
+          <td class='lineno'>386</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>SimpleDiGraph&#123;T&#125;&#40;g.ne, deepcopy_adjlist&#40;g.fadjlist&#41;, deepcopy_adjlist&#40;g.badjlist&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L387'>
+          <td class='lineno'>387</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L388'>
+          <td class='lineno'>388</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L389'>
+          <td class='lineno'>389</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>&#61;&#61;&#40;g::SimpleDiGraph, h::SimpleDiGraph&#41; &#61;</span>
+          </td>
+        </tr>
+        <tr id='L390'>
+          <td class='lineno'>390</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>vertices&#40;g&#41; &#61;&#61; vertices&#40;h&#41; &amp;&amp;</span>
+          </td>
+        </tr>
+        <tr id='L391'>
+          <td class='lineno'>391</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>ne&#40;g&#41; &#61;&#61; ne&#40;h&#41; &amp;&amp;</span>
+          </td>
+        </tr>
+        <tr id='L392'>
+          <td class='lineno'>392</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>fadj&#40;g&#41; &#61;&#61; fadj&#40;h&#41; &amp;&amp;</span>
+          </td>
+        </tr>
+        <tr id='L393'>
+          <td class='lineno'>393</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>badj&#40;g&#41; &#61;&#61; badj&#40;h&#41;</span>
+          </td>
+        </tr>
+        <tr id='L394'>
+          <td class='lineno'>394</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L395'>
+          <td class='lineno'>395</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>is_directed&#40;::Type&#123;&lt;:SimpleDiGraph&#125;&#41; &#61; true</span>
+          </td>
+        </tr>
+        <tr id='L396'>
+          <td class='lineno'>396</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L397'>
+          <td class='lineno'>397</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function has_edge&#40;g::SimpleDiGraph&#123;T&#125;, s, d&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L398'>
+          <td class='lineno'>398</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    verts &#61; vertices&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L399'>
+          <td class='lineno'>399</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    &#40;s in verts &amp;&amp; d in verts&#41; || return false  # edge out of bounds</span>
+          </td>
+        </tr>
+        <tr id='L400'>
+          <td class='lineno'>400</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds list &#61; g.fadjlist&#91;s&#93;</span>
+          </td>
+        </tr>
+        <tr id='L401'>
+          <td class='lineno'>401</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds list_backedge &#61; g.badjlist&#91;d&#93;</span>
+          </td>
+        </tr>
+        <tr id='L402'>
+          <td class='lineno'>402</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if length&#40;list&#41; &gt; length&#40;list_backedge&#41;</span>
+          </td>
+        </tr>
+        <tr id='L403'>
+          <td class='lineno'>403</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        d &#61; s</span>
+          </td>
+        </tr>
+        <tr id='L404'>
+          <td class='lineno'>404</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        list &#61; list_backedge</span>
+          </td>
+        </tr>
+        <tr id='L405'>
+          <td class='lineno'>405</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L406'>
+          <td class='lineno'>406</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return insorted&#40;d, list&#41;</span>
+          </td>
+        </tr>
+        <tr id='L407'>
+          <td class='lineno'>407</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L408'>
+          <td class='lineno'>408</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L409'>
+          <td class='lineno'>409</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function has_edge&#40;g::SimpleDiGraph&#123;T&#125;, e::SimpleDiGraphEdge&#123;T&#125;&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L410'>
+          <td class='lineno'>410</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    s, d &#61; T.&#40;Tuple&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L411'>
+          <td class='lineno'>411</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return has_edge&#40;g, s, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L412'>
+          <td class='lineno'>412</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L413'>
+          <td class='lineno'>413</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            <div class='call-sites'>
+              6343 &#40;17 &#37;&#41;
+              samples spent in add_edge&#33;
+              <br />
+              9 &#40;0 &#37;&#41; &#40;ex.&#41;,
+              6307 &#40;99 &#37;&#41; &#40;incl.&#41;
+              when called from add_edge&#33;
+              <a href='SimpleGraphs.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9TaW1wbGVHcmFwaHMuamw&#61;.html#L90'>line 90</a>
+              <br />
+              36 &#40;1 &#37;&#41; &#40;ex.&#41;,
+              36 &#40;1 &#37;&#41; &#40;incl.&#41;
+              when called from add_zdd_node_and_edge&#33;
+              <a href='zdd.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9aREQvemRkLmps.html#L394'>line 394</a>
+              <br />
+            </div>
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L414'>
+          <td class='lineno'>414</td>
+          <td class='tracecount excl'>36 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>36 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>function add_edge&#33;&#40;g::SimpleDiGraph&#123;T&#125;, e::SimpleDiGraphEdge&#123;T&#125;&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L415'>
+          <td class='lineno'>415</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='simpleedge.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9zaW1wbGVlZGdlLmps.html#L27'>Tuple</a>
+              <br />
+            </div>
+            <span class='code'>    s, d &#61; T.&#40;Tuple&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L416'>
+          <td class='lineno'>416</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    verts &#61; vertices&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L417'>
+          <td class='lineno'>417</td>
+          <td class='tracecount excl'>1 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>1 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>    &#40;s in verts &amp;&amp; d in verts&#41; || return false  # edge out of bounds</span>
+          </td>
+        </tr>
+        <tr id='L418'>
+          <td class='lineno'>418</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>79 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              79 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L809'>getindex</a>
+              <br />
+            </div>
+            <span class='code'>    @inbounds list &#61; g.fadjlist&#91;s&#93;</span>
+          </td>
+        </tr>
+        <tr id='L419'>
+          <td class='lineno'>419</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>97 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              97 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='sort.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3NvcnQuamw&#61;.html#L326'>searchsortedfirst</a>
+              <br />
+            </div>
+            <span class='code'>    index &#61; searchsortedfirst&#40;list, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L420'>
+          <td class='lineno'>420</td>
+          <td class='tracecount excl'>2 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>4 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              2 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='int.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2ludC5qbA&#61;&#61;.html#L441'>&lt;&#61;</a>
+              <br />
+            </div>
+            <span class='code'>    @inbounds &#40;index &lt;&#61; length&#40;list&#41; &amp;&amp; list&#91;index&#93; &#61;&#61; d&#41; &amp;&amp; return false  # edge already in graph</span>
+          </td>
+        </tr>
+        <tr id='L421'>
+          <td class='lineno'>421</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>109 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              109 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L1283'>insert&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    insert&#33;&#40;list, index, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L422'>
+          <td class='lineno'>422</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L423'>
+          <td class='lineno'>423</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>3 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              3 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='Base.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL0Jhc2Uuamw&#61;.html#L34'>setproperty&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    g.ne &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L424'>
+          <td class='lineno'>424</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L425'>
+          <td class='lineno'>425</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>18 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              18 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L809'>getindex</a>
+              <br />
+            </div>
+            <span class='code'>    @inbounds list &#61; g.badjlist&#91;d&#93;</span>
+          </td>
+        </tr>
+        <tr id='L426'>
+          <td class='lineno'>426</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>130 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              130 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='sort.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL3NvcnQuamw&#61;.html#L326'>searchsortedfirst</a>
+              <br />
+            </div>
+            <span class='code'>    index &#61; searchsortedfirst&#40;list, s&#41;</span>
+          </td>
+        </tr>
+        <tr id='L427'>
+          <td class='lineno'>427</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>5866 &#40;16 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              5861 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L1283'>insert&#33;</a>
+              <br />
+              5 &#40;0 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L1285'>insert&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    insert&#33;&#40;list, index, s&#41;</span>
+          </td>
+        </tr>
+        <tr id='L428'>
+          <td class='lineno'>428</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return true  # edge successfully added</span>
+          </td>
+        </tr>
+        <tr id='L429'>
+          <td class='lineno'>429</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L430'>
+          <td class='lineno'>430</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L431'>
+          <td class='lineno'>431</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L432'>
+          <td class='lineno'>432</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function rem_edge&#33;&#40;g::SimpleDiGraph&#123;T&#125;, e::SimpleDiGraphEdge&#123;T&#125;&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L433'>
+          <td class='lineno'>433</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    s, d &#61; T.&#40;Tuple&#40;e&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L434'>
+          <td class='lineno'>434</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    verts &#61; vertices&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L435'>
+          <td class='lineno'>435</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    &#40;s in verts &amp;&amp; d in verts&#41; || return false  # edge out of bounds</span>
+          </td>
+        </tr>
+        <tr id='L436'>
+          <td class='lineno'>436</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds list &#61; g.fadjlist&#91;s&#93; </span>
+          </td>
+        </tr>
+        <tr id='L437'>
+          <td class='lineno'>437</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    index &#61; searchsortedfirst&#40;list, d&#41;</span>
+          </td>
+        </tr>
+        <tr id='L438'>
+          <td class='lineno'>438</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds &#40;index &lt;&#61; length&#40;list&#41; &amp;&amp; list&#91;index&#93; &#61;&#61; d&#41; || return false   # edge not in graph</span>
+          </td>
+        </tr>
+        <tr id='L439'>
+          <td class='lineno'>439</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    deleteat&#33;&#40;list, index&#41;</span>
+          </td>
+        </tr>
+        <tr id='L440'>
+          <td class='lineno'>440</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L441'>
+          <td class='lineno'>441</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.ne -&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L442'>
+          <td class='lineno'>442</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L443'>
+          <td class='lineno'>443</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds list &#61; g.badjlist&#91;d&#93; </span>
+          </td>
+        </tr>
+        <tr id='L444'>
+          <td class='lineno'>444</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    index &#61; searchsortedfirst&#40;list, s&#41;</span>
+          </td>
+        </tr>
+        <tr id='L445'>
+          <td class='lineno'>445</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    deleteat&#33;&#40;list, index&#41;</span>
+          </td>
+        </tr>
+        <tr id='L446'>
+          <td class='lineno'>446</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return true # edge successfully removed</span>
+          </td>
+        </tr>
+        <tr id='L447'>
+          <td class='lineno'>447</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L448'>
+          <td class='lineno'>448</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            <div class='call-sites'>
+              255 &#40;1 &#37;&#41;
+              samples spent in add_vertex&#33;
+              <br />
+              15 &#40;6 &#37;&#41; &#40;ex.&#41;,
+              255 &#40;100 &#37;&#41; &#40;incl.&#41;
+              when called from add_zdd_node_and_edge&#33;
+              <a href='zdd.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9aREQvemRkLmps.html#L381'>line 381</a>
+              <br />
+            </div>
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L449'>
+          <td class='lineno'>449</td>
+          <td class='tracecount excl'>8 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>8 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            
+            <span class='code'>function add_vertex&#33;&#40;g::SimpleDiGraph&#123;T&#125;&#41; where T</span>
+          </td>
+        </tr>
+        <tr id='L450'>
+          <td class='lineno'>450</td>
+          <td class='tracecount excl'>3 &#40;0 &#37;&#41;</td>
+          <td class='tracecount incl'>4 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              1 &#40;100 &#37;&#41;
+              samples spent calling
+              <a href='SimpleGraphs.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS8uanVsaWEvcGFja2FnZXMvTGlnaHRHcmFwaHMvc2lGZ1Avc3JjL1NpbXBsZUdyYXBocy9TaW1wbGVHcmFwaHMuamw&#61;.html#L57'>nv</a>
+              <br />
+            </div>
+            <span class='code'>    &#40;nv&#40;g&#41; &#43; one&#40;T&#41; &lt;&#61; nv&#40;g&#41;&#41; &amp;&amp; return false       # test for overflow</span>
+          </td>
+        </tr>
+        <tr id='L451'>
+          <td class='lineno'>451</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>132 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              2 &#40;2 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L936'>push&#33;</a>
+              <br />
+              101 &#40;77 &#37;&#41;
+              samples spent calling
+              <a href='boot.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Jvb3Quamw&#61;.html#L425'>Array</a>
+              <br />
+              29 &#40;22 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L935'>push&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    push&#33;&#40;g.badjlist, Vector&#123;T&#125;&#40;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L452'>
+          <td class='lineno'>452</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'>107 &#40;0 &#37;&#41;</td>
+          <td>
+            
+            <div class='callees'>
+              88 &#40;82 &#37;&#41;
+              samples spent calling
+              <a href='boot.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2Jvb3Quamw&#61;.html#L425'>Array</a>
+              <br />
+              19 &#40;18 &#37;&#41;
+              samples spent calling
+              <a href='array.jl-L2NsdXN0ZXIvaG9tZS9nc2Nob2UwMS9qdWxpYS0xLjUuMi9iaW4vLi4vc2hhcmUvanVsaWEvYmFzZS8uL2FycmF5Lmps.html#L935'>push&#33;</a>
+              <br />
+            </div>
+            <span class='code'>    push&#33;&#40;g.fadjlist, Vector&#123;T&#125;&#40;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L453'>
+          <td class='lineno'>453</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L454'>
+          <td class='lineno'>454</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return true</span>
+          </td>
+        </tr>
+        <tr id='L455'>
+          <td class='lineno'>455</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+        <tr id='L456'>
+          <td class='lineno'>456</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L457'>
+          <td class='lineno'>457</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>function rem_vertices&#33;&#40;g::SimpleDiGraph&#123;T&#125;,</span>
+          </td>
+        </tr>
+        <tr id='L458'>
+          <td class='lineno'>458</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                       vs::AbstractVector&#123;&lt;: Integer&#125;;</span>
+          </td>
+        </tr>
+        <tr id='L459'>
+          <td class='lineno'>459</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                       keep_order::Bool&#61;false</span>
+          </td>
+        </tr>
+        <tr id='L460'>
+          <td class='lineno'>460</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                      &#41; where &#123;T &lt;: Integer&#125;</span>
+          </td>
+        </tr>
+        <tr id='L461'>
+          <td class='lineno'>461</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # check the implementation in simplegraph.jl for more comments</span>
+          </td>
+        </tr>
+        <tr id='L462'>
+          <td class='lineno'>462</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L463'>
+          <td class='lineno'>463</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    n &#61; nv&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L464'>
+          <td class='lineno'>464</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    isempty&#40;vs&#41; &amp;&amp; return collect&#40;Base.OneTo&#40;n&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L465'>
+          <td class='lineno'>465</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L466'>
+          <td class='lineno'>466</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # Sort and filter the vertices that we want to remove</span>
+          </td>
+        </tr>
+        <tr id='L467'>
+          <td class='lineno'>467</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    remove &#61; sort&#40;vs&#41;</span>
+          </td>
+        </tr>
+        <tr id='L468'>
+          <td class='lineno'>468</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    unique&#33;&#40;remove&#41;</span>
+          </td>
+        </tr>
+        <tr id='L469'>
+          <td class='lineno'>469</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    &#40;1 &lt;&#61; remove&#91;1&#93; &amp;&amp; remove&#91;end&#93; &lt;&#61; n&#41; ||</span>
+          </td>
+        </tr>
+        <tr id='L470'>
+          <td class='lineno'>470</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            throw&#40;ArgumentError&#40;&quot;Vertices to be removed must be in the range 1:nv&#40;g&#41;.&quot;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L471'>
+          <td class='lineno'>471</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L472'>
+          <td class='lineno'>472</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # Create a vmap that maps vertices to their new position</span>
+          </td>
+        </tr>
+        <tr id='L473'>
+          <td class='lineno'>473</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # vertices that get removed are mapped to 0</span>
+          </td>
+        </tr>
+        <tr id='L474'>
+          <td class='lineno'>474</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    vmap &#61; Vector&#123;T&#125;&#40;undef, n&#41;</span>
+          </td>
+        </tr>
+        <tr id='L475'>
+          <td class='lineno'>475</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    if keep_order</span>
+          </td>
+        </tr>
+        <tr id='L476'>
+          <td class='lineno'>476</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        # traverse the vertex list and shift if a vertex gets removed</span>
+          </td>
+        </tr>
+        <tr id='L477'>
+          <td class='lineno'>477</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        i &#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L478'>
+          <td class='lineno'>478</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        @inbounds for u in vertices&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L479'>
+          <td class='lineno'>479</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if i &lt;&#61; length&#40;remove&#41; &amp;&amp; u &#61;&#61; remove&#91;i&#93;</span>
+          </td>
+        </tr>
+        <tr id='L480'>
+          <td class='lineno'>480</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                vmap&#91;u&#93; &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L481'>
+          <td class='lineno'>481</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                i &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L482'>
+          <td class='lineno'>482</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            else</span>
+          </td>
+        </tr>
+        <tr id='L483'>
+          <td class='lineno'>483</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                vmap&#91;u&#93; &#61; u - &#40;i - 1&#41;</span>
+          </td>
+        </tr>
+        <tr id='L484'>
+          <td class='lineno'>484</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L485'>
+          <td class='lineno'>485</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L486'>
+          <td class='lineno'>486</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    else</span>
+          </td>
+        </tr>
+        <tr id='L487'>
+          <td class='lineno'>487</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        # traverse the vertex list and replace vertices that get removed </span>
+          </td>
+        </tr>
+        <tr id='L488'>
+          <td class='lineno'>488</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        # with the furthest one to the back that does not get removed</span>
+          </td>
+        </tr>
+        <tr id='L489'>
+          <td class='lineno'>489</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        i &#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L490'>
+          <td class='lineno'>490</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        j &#61; length&#40;remove&#41;</span>
+          </td>
+        </tr>
+        <tr id='L491'>
+          <td class='lineno'>491</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        v &#61; n</span>
+          </td>
+        </tr>
+        <tr id='L492'>
+          <td class='lineno'>492</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        @inbounds for u in vertices&#40;g&#41;</span>
+          </td>
+        </tr>
+        <tr id='L493'>
+          <td class='lineno'>493</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            u &gt; v &amp;&amp; break</span>
+          </td>
+        </tr>
+        <tr id='L494'>
+          <td class='lineno'>494</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if i &lt;&#61; length&#40;remove&#41; &amp;&amp; u &#61;&#61; remove&#91;i&#93;</span>
+          </td>
+        </tr>
+        <tr id='L495'>
+          <td class='lineno'>495</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                while v &#61;&#61; remove&#91;j&#93; &amp;&amp; v &gt; u</span>
+          </td>
+        </tr>
+        <tr id='L496'>
+          <td class='lineno'>496</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                   vmap&#91;v&#93; &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L497'>
+          <td class='lineno'>497</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                   v -&#61; one&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L498'>
+          <td class='lineno'>498</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                   j -&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L499'>
+          <td class='lineno'>499</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                end</span>
+          </td>
+        </tr>
+        <tr id='L500'>
+          <td class='lineno'>500</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                # v &gt; remove&#91;j&#93; || u &#61;&#61; v</span>
+          </td>
+        </tr>
+        <tr id='L501'>
+          <td class='lineno'>501</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                vmap&#91;v&#93; &#61; u</span>
+          </td>
+        </tr>
+        <tr id='L502'>
+          <td class='lineno'>502</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                vmap&#91;u&#93; &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L503'>
+          <td class='lineno'>503</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                v -&#61; one&#40;T&#41;</span>
+          </td>
+        </tr>
+        <tr id='L504'>
+          <td class='lineno'>504</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                i &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L505'>
+          <td class='lineno'>505</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            else</span>
+          </td>
+        </tr>
+        <tr id='L506'>
+          <td class='lineno'>506</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                vmap&#91;u&#93; &#61; u</span>
+          </td>
+        </tr>
+        <tr id='L507'>
+          <td class='lineno'>507</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L508'>
+          <td class='lineno'>508</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L509'>
+          <td class='lineno'>509</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L510'>
+          <td class='lineno'>510</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L511'>
+          <td class='lineno'>511</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    fadjlist &#61; g.fadjlist</span>
+          </td>
+        </tr>
+        <tr id='L512'>
+          <td class='lineno'>512</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    badjlist &#61; g.badjlist</span>
+          </td>
+        </tr>
+        <tr id='L513'>
+          <td class='lineno'>513</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L514'>
+          <td class='lineno'>514</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # count the number of edges that will be removed</span>
+          </td>
+        </tr>
+        <tr id='L515'>
+          <td class='lineno'>515</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    num_removed_edges &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L516'>
+          <td class='lineno'>516</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for u in remove</span>
+          </td>
+        </tr>
+        <tr id='L517'>
+          <td class='lineno'>517</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        for v in fadjlist&#91;u&#93;</span>
+          </td>
+        </tr>
+        <tr id='L518'>
+          <td class='lineno'>518</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            num_removed_edges &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L519'>
+          <td class='lineno'>519</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L520'>
+          <td class='lineno'>520</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        for v in badjlist&#91;u&#93;</span>
+          </td>
+        </tr>
+        <tr id='L521'>
+          <td class='lineno'>521</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if vmap&#91;v&#93; &#33;&#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L522'>
+          <td class='lineno'>522</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                num_removed_edges &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L523'>
+          <td class='lineno'>523</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L524'>
+          <td class='lineno'>524</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L525'>
+          <td class='lineno'>525</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L526'>
+          <td class='lineno'>526</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    g.ne -&#61; num_removed_edges</span>
+          </td>
+        </tr>
+        <tr id='L527'>
+          <td class='lineno'>527</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L528'>
+          <td class='lineno'>528</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # move the lists in the adjacency list to their new position</span>
+          </td>
+        </tr>
+        <tr id='L529'>
+          <td class='lineno'>529</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # order of traversing is important&#33;</span>
+          </td>
+        </tr>
+        <tr id='L530'>
+          <td class='lineno'>530</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for u in &#40;keep_order ? &#40;one&#40;T&#41;:1:n&#41; : &#40;n:-1:one&#40;T&#41;&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L531'>
+          <td class='lineno'>531</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if vmap&#91;u&#93; &#33;&#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L532'>
+          <td class='lineno'>532</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            fadjlist&#91;vmap&#91;u&#93;&#93; &#61; fadjlist&#91;u&#93;</span>
+          </td>
+        </tr>
+        <tr id='L533'>
+          <td class='lineno'>533</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            badjlist&#91;vmap&#91;u&#93;&#93; &#61; badjlist&#91;u&#93;</span>
+          </td>
+        </tr>
+        <tr id='L534'>
+          <td class='lineno'>534</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L535'>
+          <td class='lineno'>535</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L536'>
+          <td class='lineno'>536</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    resize&#33;&#40;fadjlist, n - length&#40;remove&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L537'>
+          <td class='lineno'>537</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    resize&#33;&#40;badjlist, n - length&#40;remove&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L538'>
+          <td class='lineno'>538</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L539'>
+          <td class='lineno'>539</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # remove vertices from the lists in fadjlist and badjlist</span>
+          </td>
+        </tr>
+        <tr id='L540'>
+          <td class='lineno'>540</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for list_of_lists in &#40;fadjlist, badjlist&#41;</span>
+          </td>
+        </tr>
+        <tr id='L541'>
+          <td class='lineno'>541</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        for list in list_of_lists</span>
+          </td>
+        </tr>
+        <tr id='L542'>
+          <td class='lineno'>542</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            Δ &#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L543'>
+          <td class='lineno'>543</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            for &#40;i, v&#41; in enumerate&#40;list&#41;</span>
+          </td>
+        </tr>
+        <tr id='L544'>
+          <td class='lineno'>544</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                if vmap&#91;v&#93; &#61;&#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L545'>
+          <td class='lineno'>545</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                    Δ &#43;&#61; 1</span>
+          </td>
+        </tr>
+        <tr id='L546'>
+          <td class='lineno'>546</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                else</span>
+          </td>
+        </tr>
+        <tr id='L547'>
+          <td class='lineno'>547</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                    list&#91;i - Δ&#93; &#61; vmap&#91;v&#93;</span>
+          </td>
+        </tr>
+        <tr id='L548'>
+          <td class='lineno'>548</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                end</span>
+          </td>
+        </tr>
+        <tr id='L549'>
+          <td class='lineno'>549</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L550'>
+          <td class='lineno'>550</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            resize&#33;&#40;list, length&#40;list&#41; - Δ&#41;</span>
+          </td>
+        </tr>
+        <tr id='L551'>
+          <td class='lineno'>551</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            if &#33;keep_order</span>
+          </td>
+        </tr>
+        <tr id='L552'>
+          <td class='lineno'>552</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>                sort&#33;&#40;list&#41;</span>
+          </td>
+        </tr>
+        <tr id='L553'>
+          <td class='lineno'>553</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            end</span>
+          </td>
+        </tr>
+        <tr id='L554'>
+          <td class='lineno'>554</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L555'>
+          <td class='lineno'>555</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L556'>
+          <td class='lineno'>556</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L557'>
+          <td class='lineno'>557</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # we create a reverse vmap, that maps vertices in the result graph</span>
+          </td>
+        </tr>
+        <tr id='L558'>
+          <td class='lineno'>558</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # to the ones in the original graph. This resembles the output of</span>
+          </td>
+        </tr>
+        <tr id='L559'>
+          <td class='lineno'>559</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    # induced_subgraph</span>
+          </td>
+        </tr>
+        <tr id='L560'>
+          <td class='lineno'>560</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    reverse_vmap &#61; Vector&#123;T&#125;&#40;undef, nv&#40;g&#41;&#41;</span>
+          </td>
+        </tr>
+        <tr id='L561'>
+          <td class='lineno'>561</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    @inbounds for &#40;i, u&#41; in enumerate&#40;vmap&#41;</span>
+          </td>
+        </tr>
+        <tr id='L562'>
+          <td class='lineno'>562</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        if u &#33;&#61; 0</span>
+          </td>
+        </tr>
+        <tr id='L563'>
+          <td class='lineno'>563</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>            reverse_vmap&#91;u&#93; &#61; i</span>
+          </td>
+        </tr>
+        <tr id='L564'>
+          <td class='lineno'>564</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>        end</span>
+          </td>
+        </tr>
+        <tr id='L565'>
+          <td class='lineno'>565</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    end</span>
+          </td>
+        </tr>
+        <tr id='L566'>
+          <td class='lineno'>566</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'></span>
+          </td>
+        </tr>
+        <tr id='L567'>
+          <td class='lineno'>567</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>    return reverse_vmap</span>
+          </td>
+        </tr>
+        <tr id='L568'>
+          <td class='lineno'>568</td>
+          <td class='tracecount excl'></td>
+          <td class='tracecount incl'></td>
+          <td>
+            
+            
+            <span class='code'>end</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
+
