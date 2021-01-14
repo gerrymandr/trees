@@ -59,10 +59,34 @@ end
 Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(n.comp_assign, hash(:Node, h))))))
 
 function node_summary(node::Node)
-    println("Label: ", node.label)
-    println("cc: ",node.cc)
-    println("comp: ",node.comp)
-    println("fps: ",node.fps)
-    println("comp_assign: ", node.comp_assign)
+    println("Label: ", readable(node.label))
+    println("cc: ", readable(node.cc))
+    println("comp: ", readable(node.comp))
+    println("fps: ", readable(node.fps))
+    println("comp_assign: ", readable(node.comp_assign))
     println()
+end
+
+function readable(edge::NodeEdge)::String
+    "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
+end
+
+function readable(comp::Array{UInt8, 1})::Array{Int64, 1}
+    Array{Int, 1}([Int64(x) for x in comp])
+end
+
+function readable(cc::UInt8)::Int64
+    Int64(cc)
+end
+
+function readable(fp::ForbiddenPair)::String
+    "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
+end
+
+function readable(fp_set::Set{ForbiddenPair})::Set{String}
+    readable_set = Set{String}([])
+    for fp in fp_set
+        push!(readable_set, readable(fp))
+    end
+    readable_set
 end

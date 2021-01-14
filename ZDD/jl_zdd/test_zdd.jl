@@ -6,7 +6,8 @@ include("zdd.jl")
 println("*")
 
 ### Compiling `construct_zdd()` ###
-construct_zdd(grid([2,2]), 2, 0, optimal_grid_edge_order(grid([2,2]), 2, 2)); nothing
+grid_edges = convert_lightgraphs_edges_to_node_edges(optimal_grid_edge_order(grid([2,2]), 2, 2))
+construct_zdd(grid([2,2]), 2, 0, grid_edges); nothing
 ###
 
 solutions = Dict(
@@ -49,6 +50,7 @@ for contiguity ∈ contiguities
                 g = queen_grid([n,n])
                 g_edges = optimal_queen_grid_edge_order(g, n, n)
             end
+            g_edges = convert_lightgraphs_edges_to_node_edges(g_edges)
 
             if contiguity == "rook" print(" ") end # for lining up test results
 
