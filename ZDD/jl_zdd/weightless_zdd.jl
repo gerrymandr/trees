@@ -192,6 +192,7 @@ function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{
     """
     if vertex ∉ prev_frontier
         push!(n′.comp, vertex)
+        sort!(n′.comp) # needed for Node equality to increase Node merges
         # n′.comp_weights[vertex] = 1 # equal population
     end
     nothing
@@ -277,6 +278,7 @@ function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{Forbi
         # change comp
         filter!(x -> x != vertex_comp, node.comp)
         push!(node.comp, new_max)
+        sort!(node.comp) # needed for Node equality to increase Node merges
 
         # if new_max != vertex_comp
         #     node.comp_weights[new_max] = node.comp_weights[vertex_comp]
