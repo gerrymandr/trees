@@ -121,26 +121,6 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
     end
 end
 
-# function label_occurences(zdd::ZDD)
-#     """
-#     """
-#     keys = Set(values(zdd.node_labels))
-#     arr = values(zdd.node_labels)
-#     occs = Dict{NodeEdge, Int}([])
-#     for key in keys
-#         occs[key] = count(x-> x == key, arr)
-#     end
-#
-#     # insert root
-#     occs[zdd.root.label] = 1
-#
-#     # insert terminal nodes
-#     occs[NodeEdge(0,0)] = 1
-#     occs[NodeEdge(1,1)] = 1
-#
-#     occs
-# end
-
 function label_occurences(zdd::ZDD)
     """
     """
