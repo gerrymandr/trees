@@ -52,7 +52,7 @@ end
 function node_locations(zdd, g_edges)
     """
     """
-    label_occs = label_occurences(zdd)
+    label_occs = label_occurences(zdd) #  this is a Dict{NodeEdge, Int}
 
     tree_depth = length(keys(label_occs)) - 1 # - 1 because the two terminals will be on the same depth
     tree_width = maximum(values(label_occs))
@@ -61,7 +61,7 @@ function node_locations(zdd, g_edges)
     loc_ys = fill(-1., nv(zdd.graph))
     loc_ys[[1, 2]] = [tree_depth, tree_depth]
 
-    labels_seen = Dict{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}()
+    labels_seen = Dict{NodeEdge, Int}()
     add_locations(zdd::ZDD, zdd.root, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
 
     loc_xs = Float64.(loc_xs)
@@ -71,7 +71,7 @@ function node_locations(zdd, g_edges)
 end
 
 function node_by_idx(zdd::ZDD, idx)
-    for (node, val) in zdd.nodes
+    for (node, val) in zdd.nodes_complete
         if val == idx
             return node
         end
@@ -81,24 +81,24 @@ end
 function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
     """
     """
-    if node isa TerminalNode
+    if node.label == NodeEdge(0,0) || node.label == NodeEdge(1,1)
         return
     end
 
     # put in the location of the node
-    if loc_xs[zdd.nodes[node]] == -1
-        if node.label in keys(labels_seen)
+    if loc_xs[zdd.nodes_complete[node]] == -1
+        if node.label in keys(labels_seen) # i wont be able to extract a node here.
             labels_seen[node.label] += 1
         else
             labels_seen[node.label] = 1
         end
 
-        loc_xs[zdd.nodes[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
-        loc_ys[zdd.nodes[node]] = findfirst(y -> y == node.label, g_edges) #collect(edges(zdd.base_graph)))
+        loc_xs[zdd.nodes_complete[node]] = labels_seen[node.label] * (tree_width / (label_occs[node.label] + 1))
+        loc_ys[zdd.nodes_complete[node]] = findfirst(y -> y == node.label, g_edges) #collect(edges(zdd.base_graph)))
     end
 
     # recurse on the neighbors of the node
-    neighbors = [node_by_idx(zdd, n) for n in outneighbors(zdd.graph, zdd.nodes[node])]
+    neighbors = [node_by_idx(zdd, n) for n in outneighbors(zdd.graph, zdd.nodes_complete[node])]
 
     if length(neighbors) == 1
         add_locations(zdd, neighbors[1], loc_xs, loc_ys, tree_width, label_occs, labels_seen, g_edges)
@@ -121,11 +121,31 @@ function add_locations(zdd::ZDD, node, loc_xs, loc_ys, tree_width, label_occs, l
     end
 end
 
+# function label_occurences(zdd::ZDD)
+#     """
+#     """
+#     keys = Set(values(zdd.node_labels))
+#     arr = values(zdd.node_labels)
+#     occs = Dict{NodeEdge, Int}([])
+#     for key in keys
+#         occs[key] = count(x-> x == key, arr)
+#     end
+#
+#     # insert root
+#     occs[zdd.root.label] = 1
+#
+#     # insert terminal nodes
+#     occs[NodeEdge(0,0)] = 1
+#     occs[NodeEdge(1,1)] = 1
+#
+#     occs
+# end
+
 function label_occurences(zdd::ZDD)
     """
     """
-    occs = Dict{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, Int}()
-    for node in keys(zdd.nodes)
+    occs = Dict{NodeEdge, Int}()
+    for node in keys(zdd.nodes_complete)
         if node.label in keys(occs)
             occs[node.label] += 1
         else
@@ -136,21 +156,25 @@ function label_occurences(zdd::ZDD)
 end
 
 function get_corresponding_node(zdd, node_id)
-    for (k , v) in zdd.nodes
+    for (k , v) in zdd.nodes_complete
         if v == node_id
             return k
         end
     end
 end
 
+function readable(node_labels::Array{NodeEdge, 1})
+    map(x -> string(Int64(x.edge₁)) * " -> " * string(Int64(x.edge₂)), node_labels)
+end
+
 function label_nodes(zdd::ZDD)
     """
     """
-    node_labels = Array{Union{LightGraphs.SimpleGraphs.SimpleEdge{Int64}, Int}, 1}(undef, nv(zdd.graph))
-    for node in keys(zdd.nodes)
-        node_labels[zdd.nodes[node]] = node.label
+    node_labels = Array{NodeEdge, 1}(undef, nv(zdd.graph))
+    for node in keys(zdd.nodes_complete)
+        node_labels[zdd.nodes_complete[node]] = node.label
     end
-    node_labels
+    readable(node_labels)
 end
 
 function get_node_from_seq(zdd::ZDD, seq::Array{Int})

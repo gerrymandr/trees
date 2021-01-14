@@ -10,7 +10,8 @@ mutable struct ZDD{G<:SimpleDiGraph, S<:SimpleGraph, N<:Node}
     # graph stuff
     graph::G
     nodes::Dict{UInt64, Int64}
-    edges::Dict{Tuple{N, N}, Int64}
+    nodes_complete::Dict{N, Int64} # used only when viz = True
+    edges::Dict{Tuple{N, N}, Int8}      # used only when viz = True
     edge_multiplicity::Set{Tuple{N, N}}
     base_graph::S
     root::N
@@ -23,10 +24,16 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes[hash(Node(0))] = 1
     nodes[hash(Node(1))] = 2
     nodes[hash(root)] = 3
-    edges = Dict{Tuple{Node,Node},Int64}()
+
+    nodes_complete = Dict{Node, Int64}()
+    nodes_complete[Node(0)] = 1
+    nodes_complete[Node(1)] = 2
+    nodes_complete[root] = 3
+    
+    edges = Dict{Tuple{Node,Node}, Int8}()
     edge_multiplicity = Set{Tuple{Node,Node}}()
     base_graph = g
-    return ZDD(graph, nodes, edges, edge_multiplicity, base_graph, root, viz)
+    return ZDD(graph, nodes, nodes_complete, edges, edge_multiplicity, base_graph, root, viz)
 end
 
 # these need to be included only after the ZDD struct is defined
@@ -93,7 +100,7 @@ function construct_zdd(g::SimpleGraph,
 
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
-                        add_zdd_node_and_edge!(zdd, n′, n, n_idx)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x)
                         continue
                     end
                 end
@@ -295,7 +302,7 @@ function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{Forbi
     empty!(fp_container)
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
+function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
     """
     """
     add_vertex!(zdd.graph)
@@ -303,6 +310,8 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64)
     zdd.nodes[hash(n′)] = n′_idx
 
     if zdd.viz
+        zdd.nodes_complete[n′] = n′_idx
+
         if (n, n′) in keys(zdd.edges)
             push!(zdd.edge_multiplicity, (n, n′))
         else
