@@ -33,20 +33,21 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Array{UInt8, 1} # can hold 256 possible values
-    comp_weights::Dict{Int8, Int8}
-    cc::UInt8 # can hold only 256 possible values
+    comp::Array{UInt8, 1}       # can hold 256 possible values
+    comp_weights::Vector{UInt8} # the max population of a component can only be 256
+    cc::UInt8                   # can hold only 256 possible values
     fps::Set{ForbiddenPair}
-    comp_assign::Vector{UInt8} # only 256 possible values
+    comp_assign::Vector{UInt8}  # only 256 possible values
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+    return Node(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
 end
 
 function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
     comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
+    comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
+    return Node(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
