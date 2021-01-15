@@ -107,6 +107,7 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
+        N[i] = Set{Node}([]) # release memory
     end
 
     return zdd
