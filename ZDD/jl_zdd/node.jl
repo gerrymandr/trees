@@ -38,16 +38,16 @@ mutable struct Node
     cc::UInt8                   # can hold only 256 possible values
     fps::Set{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
-end
 
-function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
-end
+    function Node(i::Int)::Node # for Terminal Nodes
+        return Node(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+    end
 
-function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
-    comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-    return Node(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+    function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
+        comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
+        comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
+        return Node(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+    end
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
