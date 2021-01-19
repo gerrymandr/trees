@@ -12,7 +12,7 @@ function run_algo(dim, k, d)
 # to compile it the first time round
     # println("Making a small ZDD for compiling purposes")
     g = grid([dim, dim])
-    g_edges = optimal_grid_edge_order(g, dim, dim)
+    g_edges = optimal_grid_edge_order_diags(g, dim, dim)
     g_edges = convert_lightgraphs_edges_to_node_edges(g_edges)
     zdd = construct_zdd(g, k, d, g_edges)
 end
