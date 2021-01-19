@@ -169,7 +169,7 @@ function make_new_node(g::SimpleGraph,
     for a in prev_frontier
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
-            if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
+            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
                 if n′.comp_weights[a_comp] < lower_bound
                     return zero_terminal
                 end
@@ -258,7 +258,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
     vertex_comp = node.comp_assign[vertex]
 
     for fp in node.fps
-        if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
+        if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && count(x -> x == vertex_comp, node.comp_assign) == 1
             delete!(node.fps, fp)
             filter!(x -> x != vertex_comp, node.comp)
         end
