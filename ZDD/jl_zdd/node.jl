@@ -61,31 +61,30 @@ mutable struct Node
 end
 
 function copy_to_vec!(vec₁::Vector{UInt8}, vec₂::Vector{UInt8})
+    """ Copy items from vec₁ into vec₂.
+        It is assumed that length(vec₂) >= length(vec₁)
+    """
     for (i, item) in enumerate(vec₁)
-        vec₂[i] = item
+        @inbounds vec₂[i] = item
     end
 end
 
-# function custom_deepcopy(n::Node)::Node
-#     n′ = Node()
-#     n′.label = deepcopy(n.label)
-#     n′.comp = deepcopy(n.comp)
-#     n′.comp_weights = deepcopy(n.comp_weights)
-#     n′.cc = deepcopy(n.cc)
-#     n′.fps = deepcopy(n.fps)
-#     n′.comp_assign = deepcopy(n.comp_assign)
-#     return n′
-# end
+function copy_to_set!(set₁::Set{ForbiddenPair}, set₂::Set{ForbiddenPair})
+    for item in set₁
+        push!(set₂, item)
+    end
+end
 
 function custom_deepcopy(n::Node)::Node
     comp = Vector{UInt8}(undef, length(n.comp))
     comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
     comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+    fps = Set{ForbiddenPair}()
 
     copy_to_vec!(n.comp, comp)
     copy_to_vec!(n.comp_weights, comp_weights)
     copy_to_vec!(n.comp_assign, comp_assign)
-    fps = deepcopy(n.fps)
+    copy_to_set!(n.fps, fps)
 
     return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign)
 end
