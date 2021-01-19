@@ -108,6 +108,11 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
+        # sizes = [Base.summarysize(n) for n in N[i]]
+        # println("Level: ", i)
+        # println("Minimum: ", minimum(sizes))
+        # println("Mean: ", mean(sizes))
+        # println()
         N[i] = Set{Node}([]) # release memory
     end
 
@@ -134,7 +139,8 @@ function make_new_node(g::SimpleGraph,
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = deepcopy(n)
+    n′ = custom_deepcopy(n)
+    # n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, prev_frontier)

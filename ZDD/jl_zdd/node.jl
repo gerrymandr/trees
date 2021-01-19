@@ -39,15 +39,55 @@ mutable struct Node
     fps::Set{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
 
+    # allow for incomplete initialization
+    function Node()::Node
+        new()
+    end
+
     function Node(i::Int)::Node # for Terminal Nodes
-        return Node(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+        return new(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return Node(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+        return new(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
     end
+
+    function Node(label::NodeEdge, comp::Array{UInt8, 1}, comp_weights::Vector{UInt8},
+                  cc::UInt8, fps::Set{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
+        return new(label, comp, comp_weights, cc, fps, comp_assign)
+    end
+end
+
+function copy_to_vec!(vec₁::Vector{UInt8}, vec₂::Vector{UInt8})
+    for (i, item) in enumerate(vec₁)
+        vec₂[i] = item
+    end
+end
+
+# function custom_deepcopy(n::Node)::Node
+#     n′ = Node()
+#     n′.label = deepcopy(n.label)
+#     n′.comp = deepcopy(n.comp)
+#     n′.comp_weights = deepcopy(n.comp_weights)
+#     n′.cc = deepcopy(n.cc)
+#     n′.fps = deepcopy(n.fps)
+#     n′.comp_assign = deepcopy(n.comp_assign)
+#     return n′
+# end
+
+function custom_deepcopy(n::Node)::Node
+    comp = Vector{UInt8}(undef, length(n.comp))
+    comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
+    comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+
+    copy_to_vec!(n.comp, comp)
+    copy_to_vec!(n.comp_weights, comp_weights)
+    copy_to_vec!(n.comp_assign, comp_assign)
+    fps = deepcopy(n.fps)
+
+    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)

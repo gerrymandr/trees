@@ -3,6 +3,9 @@ using LightGraphs
 using GraphPlot
 # using ProfileView
 using StatProfilerHTML
+using Profile
+
+# include("weightless_zdd.jl")
 include("zdd.jl")
 
 function run_algo(dim, k, d)
@@ -27,5 +30,7 @@ end
 # zdd = construct_zdd(g, 12, g_edges)
 
 run_algo(3, 3, 0) # test
+
+Profile.clear_malloc_data()
 
 run_algo(6, 6, 0)
