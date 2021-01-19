@@ -33,20 +33,60 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Array{UInt8, 1} # can hold 256 possible values
-    comp_weights::Dict{Int8, Int8}
-    cc::UInt8 # can hold only 256 possible values
+    comp::Array{UInt8, 1}       # can hold 256 possible values
+    comp_weights::Vector{UInt8} # the max population of a component can only be 256
+    cc::UInt8                   # can hold only 256 possible values
     fps::Set{ForbiddenPair}
-    comp_assign::Vector{UInt8} # only 256 possible values
+    comp_assign::Vector{UInt8}  # only 256 possible values
+
+    # allow for incomplete initialization
+    function Node()::Node
+        new()
+    end
+
+    function Node(i::Int)::Node # for Terminal Nodes
+        return new(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+    end
+
+    function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
+        comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
+        comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
+        return new(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+    end
+
+    function Node(label::NodeEdge, comp::Array{UInt8, 1}, comp_weights::Vector{UInt8},
+                  cc::UInt8, fps::Set{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
+        return new(label, comp, comp_weights, cc, fps, comp_assign)
+    end
 end
 
-function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Array{UInt8, 1}(),Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+function copy_to_vec!(vec₁::Vector{UInt8}, vec₂::Vector{UInt8})
+    """ Copy items from vec₁ into vec₂.
+        It is assumed that length(vec₂) >= length(vec₁)
+    """
+    for (i, item) in enumerate(vec₁)
+        @inbounds vec₂[i] = item
+    end
 end
 
-function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
-    comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Array{UInt8, 1}(), Dict{Int8, Int8}(), 0, Set{ForbiddenPair}(), comp_assign)
+function copy_to_set!(set₁::Set{ForbiddenPair}, set₂::Set{ForbiddenPair})
+    for item in set₁
+        push!(set₂, item)
+    end
+end
+
+function custom_deepcopy(n::Node)::Node
+    comp = Vector{UInt8}(undef, length(n.comp))
+    comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
+    comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+    fps = Set{ForbiddenPair}()
+
+    copy_to_vec!(n.comp, comp)
+    copy_to_vec!(n.comp_weights, comp_weights)
+    copy_to_vec!(n.comp_assign, comp_assign)
+    copy_to_set!(n.fps, fps)
+
+    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)

@@ -1,5 +1,6 @@
 using DataStructures
 using LightGraphs
+using Statistics
 
 include("node.jl")
 include("grid.jl")
@@ -107,6 +108,11 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
+        # sizes = [Base.summarysize(n) for n in N[i]]
+        # println("Level: ", i)
+        # println("Minimum: ", minimum(sizes))
+        # println("Mean: ", mean(sizes))
+        # println()
         N[i] = Set{Node}([]) # release memory
     end
 
@@ -133,7 +139,8 @@ function make_new_node(g::SimpleGraph,
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = deepcopy(n)
+    n′ = custom_deepcopy(n)
+    # n′ = deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, prev_frontier)
@@ -166,7 +173,7 @@ function make_new_node(g::SimpleGraph,
                 if n′.comp_weights[a_comp] < lower_bound
                     return zero_terminal
                 end
-                delete!(n′.comp_weights, a_comp)
+                n′.comp_weights[a_comp] = 0
                 n′.cc += 1
                 if n′.cc > k
                     return zero_terminal
@@ -194,7 +201,6 @@ function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{
     if vertex ∉ prev_frontier
         push!(n′.comp, vertex)
         sort!(n′.comp) # needed for Node equality to increase Node merges
-        n′.comp_weights[vertex] = 1 # equal population
     end
     nothing
 end
@@ -235,7 +241,7 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         filter!(x -> x != to_change, n.comp)
         n.comp_weights[assignment] += n.comp_weights[to_change]
-        delete!(n.comp_weights, to_change)
+        n.comp_weights[to_change] = 0
     end
 end
 
@@ -283,7 +289,7 @@ function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{Forbi
 
         if new_max != vertex_comp
             node.comp_weights[new_max] = node.comp_weights[vertex_comp]
-            delete!(node.comp_weights, vertex_comp)
+            node.comp_weights[vertex_comp] = 0
         end
 
         # change ForbiddenPair
