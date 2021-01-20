@@ -59,8 +59,6 @@ function add_zdd_edge!(zdd::ZDD,
 
     # add to simple graph
     add_edge!(zdd.graph, node₁_idx, node₂_idx)
-
-    nothing
 end
 
 function num_edges(zdd::ZDD)
@@ -133,7 +131,7 @@ function make_new_node(g::SimpleGraph,
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = deepcopy(n)
+    n′ = custom_deepcopy(n)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, prev_frontier)
@@ -162,7 +160,7 @@ function make_new_node(g::SimpleGraph,
     for a in prev_frontier
         if a ∉ curr_frontier
             a_comp = n′.comp_assign[a]
-            if a_comp in n′.comp && length(filter(x -> x == a_comp, n′.comp_assign)) == 1
+            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
                 # if n′.comp_weights[a_comp] < lower_bound
                 #     return zero_terminal
                 # end
@@ -251,57 +249,22 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
     """
     vertex_comp = node.comp_assign[vertex]
 
+    if count(x -> x == vertex_comp, node.comp_assign) != 1
+        node.comp_assign[vertex] = 0
+        return
+    end
+
     for fp in node.fps
-        if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂) && length(filter(x -> x == vertex_comp, node.comp_assign)) == 1
-            delete!(node.fps, fp)
+        if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂)
+            push!(fp_container, fp)
             filter!(x -> x != vertex_comp, node.comp)
         end
     end
+    for fp in fp_container
+        delete!(node.fps, fp)
+    end
 
     node.comp_assign[vertex] = 0
-    adjust_node!(node, vertex_comp, fp_container)
-end
-
-function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{ForbiddenPair})
-    """
-    """
-    if vertex_comp in node.comp_assign
-        # there is atleast one lower vertex number that has the higher comp
-        # number and needs to be adjusted
-        lower_vertices = findall(x->x==vertex_comp, node.comp_assign)
-        new_max = maximum(lower_vertices)
-
-        # change comp.assign
-        for v in lower_vertices
-            node.comp_assign[v] = new_max
-        end
-
-        # change comp
-        filter!(x -> x != vertex_comp, node.comp)
-        push!(node.comp, new_max)
-        sort!(node.comp) # needed for Node equality to increase Node merges
-
-        # if new_max != vertex_comp
-        #     node.comp_weights[new_max] = node.comp_weights[vertex_comp]
-        #     delete!(node.comp_weights, vertex_comp)
-        # end
-
-        # change ForbiddenPair
-        for fp in node.fps
-            if vertex_comp == fp.comp₁
-                other = fp.comp₂
-                delete!(node.fps, fp)
-                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
-            elseif vertex_comp == fp.comp₂
-                other = fp.comp₁
-                delete!(node.fps, fp)
-                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
-            end
-        end
-        for fp in fp_container
-            push!(node.fps, fp)
-        end
-    end
     empty!(fp_container)
 end
 

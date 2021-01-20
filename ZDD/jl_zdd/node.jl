@@ -33,7 +33,7 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Array{UInt8, 1}       # can hold 256 possible values
+    comp::Vector{UInt8}       # can hold 256 possible values
     comp_weights::Vector{UInt8} # the max population of a component can only be 256
     cc::UInt8                   # can hold only 256 possible values
     fps::Set{ForbiddenPair}
@@ -45,22 +45,22 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        return new(NodeEdge(i, i), Array{UInt8, 1}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return new(root_edge, Array{UInt8, 1}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
     end
 
-    function Node(label::NodeEdge, comp::Array{UInt8, 1}, comp_weights::Vector{UInt8},
+    function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
                   cc::UInt8, fps::Set{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
         return new(label, comp, comp_weights, cc, fps, comp_assign)
     end
 end
 
-function copy_to_vec!(vec₁::Vector{UInt8}, vec₂::Vector{UInt8})
+function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
     """ Copy items from vec₁ into vec₂.
         It is assumed that length(vec₂) >= length(vec₁)
     """
@@ -69,7 +69,7 @@ function copy_to_vec!(vec₁::Vector{UInt8}, vec₂::Vector{UInt8})
     end
 end
 
-function copy_to_set!(set₁::Set{ForbiddenPair}, set₂::Set{ForbiddenPair})
+function copy_to_set!(set₁::Set{T}, set₂::Set{T}) where T
     for item in set₁
         push!(set₂, item)
     end
