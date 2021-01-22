@@ -148,7 +148,7 @@ function make_new_node(g::SimpleGraph,
 
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
-        if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
+        @inbounds if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
             return zero_terminal
         end
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
@@ -166,12 +166,12 @@ function make_new_node(g::SimpleGraph,
 
     for a in prev_frontier
         if a ∉ curr_frontier
-            a_comp = n′.comp_assign[a]
+            @inbounds a_comp = n′.comp_assign[a]
             if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
-                if n′.comp_weights[a_comp] < lower_bound
+                @inbounds if n′.comp_weights[a_comp] < lower_bound
                     return zero_terminal
                 end
-                n′.comp_weights[a_comp] = 0
+                @inbounds n′.comp_weights[a_comp] = 0
                 n′.cc += 1
                 if n′.cc > k
                     return zero_terminal
@@ -237,8 +237,8 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
         filter!(x -> x != to_change, n.comp)
-        n.comp_weights[assignment] += n.comp_weights[to_change]
-        n.comp_weights[to_change] = 0
+        @inbounds n.comp_weights[assignment] += n.comp_weights[to_change]
+        @inbounds n.comp_weights[to_change] = 0
     end
 end
 
@@ -246,16 +246,16 @@ function components(u::UInt8, v::UInt8, node::Node)::Tuple{UInt8, UInt8}
     """ Returns Cᵤ and Cᵥ which are the sets in `components` that contain
         vertices `u` and `v` respectively.
     """
-    return node.comp_assign[u], node.comp_assign[v]
+    @inbounds return node.comp_assign[u], node.comp_assign[v]
 end
 
 function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair})
     """
     """
-    vertex_comp = node.comp_assign[vertex]
+    @inbounds vertex_comp = node.comp_assign[vertex]
 
     if count(x -> x == vertex_comp, node.comp_assign) != 1
-        node.comp_assign[vertex] = 0
+        @inbounds node.comp_assign[vertex] = 0
         return
     end
 
@@ -269,7 +269,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
         delete!(node.fps, fp)
     end
 
-    node.comp_assign[vertex] = 0
+    @inbounds node.comp_assign[vertex] = 0
     empty!(fp_container)
 end
 
