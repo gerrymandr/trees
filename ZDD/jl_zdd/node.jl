@@ -1,5 +1,5 @@
 # node.jl
-import Base: isequal, ==
+import Base: isequal, ==, isless
 
 struct NodeEdge
     edge₁::UInt8
@@ -25,6 +25,10 @@ function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
 end
 
+function Base.isless(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
+    fp_1.comp₁ < fp_2.comp₁
+end
+
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
 
 #######################   Node   ##################################
@@ -36,7 +40,7 @@ mutable struct Node
     comp::Vector{UInt8}       # can hold 256 possible values
     comp_weights::Vector{UInt8} # the max population of a component can only be 256
     cc::UInt8                   # can hold only 256 possible values
-    fps::Set{ForbiddenPair}
+    fps::Vector{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
 
     # allow for incomplete initialization
@@ -45,17 +49,17 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]))
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Set{ForbiddenPair}(), comp_assign)
+        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign)
     end
 
     function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
-                  cc::UInt8, fps::Set{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
+                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
         return new(label, comp, comp_weights, cc, fps, comp_assign)
     end
 end
@@ -79,12 +83,13 @@ function custom_deepcopy(n::Node)::Node
     comp = Vector{UInt8}(undef, length(n.comp))
     comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
     comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
-    fps = Set{ForbiddenPair}()
+    fps = Vector{ForbiddenPair}(undef, length(n.fps))
+    # fps = Set{ForbiddenPair}()
 
     copy_to_vec!(n.comp, comp)
     copy_to_vec!(n.comp_weights, comp_weights)
     copy_to_vec!(n.comp_assign, comp_assign)
-    copy_to_set!(n.fps, fps)
+    copy_to_vec!(n.fps, fps)
 
     return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign)
 end

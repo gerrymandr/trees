@@ -84,6 +84,7 @@ function construct_zdd(g::SimpleGraph,
     zero_terminal = Node(0)
     one_terminal = Node(1)
     fp_container = Vector{ForbiddenPair}([]) # reusable container
+    rm_container = Vector{ForbiddenPair}([]) # reusable container
 
     for i = 1:ne(g)
         for n in N[i]
@@ -92,10 +93,12 @@ function construct_zdd(g::SimpleGraph,
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
                                    zero_terminal, one_terminal,
-                                   fp_container)
+                                   fp_container, rm_container)
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
+                    (sort!(n′.fps); unique!(n′.fps))
+                    sort!(n′.comp)
 
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
@@ -131,14 +134,15 @@ function make_new_node(g::SimpleGraph,
                        upper_bound::Int8,
                        zero_terminal::Node,
                        one_terminal::Node,
-                       fp_container::Vector{ForbiddenPair})
+                       fp_container::Vector{ForbiddenPair},
+                       rm_container::Vector{ForbiddenPair})
     """
     """
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
     n′ = custom_deepcopy(n)
-    # n′ = deepcopy(n)
+
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, prev_frontier)
@@ -154,7 +158,7 @@ function make_new_node(g::SimpleGraph,
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
             return zero_terminal
         else
-            replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container)
+            replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container, rm_container)
         end
     else
         if Cᵤ == Cᵥ
@@ -198,11 +202,16 @@ function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{
     """
     if vertex ∉ prev_frontier
         push!(n′.comp, vertex)
-        sort!(n′.comp) # needed for Node equality to increase Node merges
     end
 end
 
-function replace_components_with_union!(node::Node, Cᵤ::UInt8, Cᵥ::UInt8, fp_container::Vector{ForbiddenPair})
+function replace_components_with_union!(
+    node::Node,
+    Cᵤ::UInt8,
+    Cᵥ::UInt8,
+    fp_container::Vector{ForbiddenPair},
+    rm_container::Vector{ForbiddenPair}
+    )
     """
     update fps to replace the smaller component with the larger component
     (TODO: rename)
@@ -213,17 +222,18 @@ function replace_components_with_union!(node::Node, Cᵤ::UInt8, Cᵥ::UInt8, fp
     for fp in node.fps
         if to_change == fp.comp₁
             other = fp.comp₂
-            delete!(node.fps, fp)
+            push!(rm_container, fp)
             push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         elseif to_change == fp.comp₂
             other = fp.comp₁
-            delete!(node.fps, fp)
+            push!(rm_container, fp)
             push!(fp_container, ForbiddenPair(min(assignment, other), max(assignment, other)))
         end
     end
-    for fp in fp_container
-        push!(node.fps, fp)
-    end
+    filter!(x -> x ∉ rm_container, node.fps)
+    append!(node.fps, fp_container)
+
+    empty!(rm_container)
     empty!(fp_container)
 end
 
@@ -262,12 +272,11 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
     for fp in node.fps
         if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂)
             push!(fp_container, fp)
-            filter!(x -> x != vertex_comp, node.comp)
         end
     end
-    for fp in fp_container
-        delete!(node.fps, fp)
-    end
+
+    filter!(x -> x != vertex_comp, node.comp)
+    filter!(x -> x ∉ fp_container, node.fps)
 
     @inbounds node.comp_assign[vertex] = 0
     empty!(fp_container)
