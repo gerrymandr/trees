@@ -60,6 +60,50 @@ function calculate_enumeration_paths!(zdd::ZDD)
     return nothing
 end
 
+function count_paths(zdd::ZDD, g_edges::Array{NodeEdge,1}, file::String)::Int
+    """ Returns the number of paths to the 1 Node in `zdd`
+    """
+    terminal_level = Dict{Int, Int}()
+
+    terminal_level[2] = 1 # the 1 terminal Node is always at node 2
+    depth = 1             # depth at bottom of the ZDD tree is 1
+    return count_paths(zdd, terminal_level, depth, g_edges, file)
+end
+
+function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int, g_edges::Array{NodeEdge,1}, file::String)::Int
+    """ Recursively finds the number of paths to a node.
+        This function is called at each depth of the ZDD tree.
+        Arguments:
+            zdd        : ZDD object
+            prev_level : Dict where keys are the nodes in the lower level, and
+                         the values are the paths from that node to the 1 terminal node.
+            curr_depth : depth traversed in the ZDD tree, from the bottom.
+    """
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes_complete)
+    if curr_depth == ne(zdd.base_graph) + 1
+        @assert length(prev_level) == 1 # we should be at the root so only 1
+        @assert 3 in keys(prev_level)   # the root is always node 3
+        node_at[3].deadend = false # set the root node deadend column to false
+        print_node_attributes(zdd, g_edges, file)
+        return prev_level[3]
+    end
+
+    curr_level = Dict{Int, Int}()
+
+    for node in keys(prev_level) # for child node with a path to terminal
+        node_at[node].deadend = false
+        for i in inneighbors(zdd.graph, node) # do for each parent
+            if haskey(curr_level, i) # if the parent has already been treated, add the paths from this child
+                curr_level[i] += prev_level[node]
+            else # otherwise, start it of with these paths
+                curr_level[i] = prev_level[node]
+            end
+        end
+    end
+
+    return count_paths(zdd, curr_level, curr_depth+1, g_edges, file)
+end
+
 function count_paths(zdd::ZDD)::Int
     """ Returns the number of paths to the 1 Node in `zdd`
     """
@@ -87,8 +131,11 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
     end
 
     curr_level = Dict{Int, Int}()
+    node_at = Dict(int => node for (node, int) ∈ zdd.nodes_complete)
 
     for node in keys(prev_level) # for child node with a path to terminal
+        # println(node_at[node])
+        node_at[node].deadend = false
         for i in inneighbors(zdd.graph, node) # do for each parent
             if haskey(curr_level, i) # if the parent has already been treated, add the paths from this child
                 curr_level[i] += prev_level[node]
@@ -99,6 +146,37 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
     end
 
     return count_paths(zdd, curr_level, curr_depth+1)
+end
+
+
+function print_node_attributes(node::Node, g_edges::Array{NodeEdge,1}, file::String)
+    edge = readable(node.label)
+    label = findfirst(x -> readable(x) == edge, g_edges)
+    if isnothing(label)
+        label = length(g_edges)
+    else
+        label -= 1
+    end
+    cc = readable(node.cc)
+    fps = readable(node.fps)
+    comp_assign = readable(node.comp_assign)
+    comp_weights = readable(node.comp_weights)
+    deadend = node.deadend
+    open(file, "a") do io
+        write(io, "$label\t$edge\t$cc\t$fps\t$comp_assign\t$comp_weights\t$deadend\n")
+    end
+    return nothing
+end
+
+function print_node_attributes(zdd::ZDD, g_edges::Array{NodeEdge,1}, file::String)
+    nodes = keys(zdd.nodes_complete)
+    open(file, "a") do io
+        write(io, "level\tedge\tcc\tfps\tcomp_assign\tcomp_weights\tdeadend\n")
+    end
+    for node in nodes
+        print_node_attributes(node, g_edges, file)
+    end
+    return nothing
 end
 
 function enumerate_paths(zdd::ZDD, g_edges) # think about typecasting the result
