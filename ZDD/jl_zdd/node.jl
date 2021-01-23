@@ -42,6 +42,7 @@ mutable struct Node
     cc::UInt8                   # can hold only 256 possible values
     fps::Vector{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
+    deadend::Bool
 
     # allow for incomplete initialization
     function Node()::Node
@@ -49,18 +50,18 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]))
+        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true)
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign)
+        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true)
     end
 
     function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
-                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8})::Node
-        return new(label, comp, comp_weights, cc, fps, comp_assign)
+                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8}, deadend::Bool)::Node
+        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend)
     end
 end
 
@@ -91,7 +92,7 @@ function custom_deepcopy(n::Node)::Node
     copy_to_vec!(n.comp_assign, comp_assign)
     copy_to_vec!(n.fps, fps)
 
-    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign)
+    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)

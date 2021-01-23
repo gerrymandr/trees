@@ -37,15 +37,16 @@ mutable struct Node
     cc::UInt8 # can hold only 256 possible values
     fps::Set{ForbiddenPair}
     comp_assign::Vector{UInt8} # only 256 possible values
+    deadend::Bool
 end
 
 function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]))
+    return Node(NodeEdge(i, i), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]), true)
 end
 
 function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
     comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Vector{UInt8}(), 0, Set{ForbiddenPair}(), comp_assign)
+    return Node(root_edge, Vector{UInt8}(), 0, Set{ForbiddenPair}(), comp_assign, true)
 end
 
 function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
@@ -72,7 +73,7 @@ function custom_deepcopy(n::Node)::Node
     copy_to_vec!(n.comp_assign, comp_assign)
     copy_to_set!(n.fps, fps)
 
-    return Node(n.label, comp, n.cc, fps, comp_assign)
+    return Node(n.label, comp, n.cc, fps, comp_assign, true)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
