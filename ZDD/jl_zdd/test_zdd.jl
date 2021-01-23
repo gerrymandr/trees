@@ -74,4 +74,115 @@ for contiguity ∈ contiguities
 end
 
 println("*\n*\n*")
-println("***** TESTS PASSED $correct/$tests *****")
+println("***** SOLUTION TESTS PASSED $correct/$tests *****")
+
+
+###
+# Node-merging tests
+
+"""
+All of these were built on Jan 22, 2021 using
+* the optimal_grid_edge_order_diags() function
+* k = m where m x m is the size of the grid and k denotes the number of partitions.
+* d = 0 i.e the only exactly population balanced components are allowed.
+
+There is no guarantee that these numbers are correct, and even less
+of a guarantee that these are the most optimal numbers. Indeed, if we succeed in
+detecting dead nodes early on then these numbers will definitely change.
+All of this is to say -- if these tests fail then there is a real chance that
+the tests are faulty in themselves, especially if the zdd that is failing tests
+is smaller than these zdds.
+"""
+
+node_per_level_2x2 = Dict{Float64,Int64}(
+    4.0 => 2,
+    2.0 => 2,
+    3.0 => 2,
+    5.0 => 2,
+    1.0 => 1
+    )
+
+node_per_level_3x3 = Dict{Float64, Int64}(
+    2.0  => 2,
+    11.0 => 5,
+    7.0  => 9,
+    9.0  => 12,
+    10.0 => 13,
+    8.0  => 9,
+    6.0  => 8,
+    4.0  => 5,
+    3.0  => 3,
+    5.0  => 6,
+    13.0 => 2,
+    12.0 => 4,
+    1.0  => 1
+    )
+
+node_per_level_4x4 = Dict{Float64,Int64}(
+  18.0 => 149,
+  2.0  => 2,
+  16.0 => 116,
+  11.0 => 52,
+  21.0 => 40,
+  7.0  => 13,
+  9.0  => 32,
+  25.0 => 2,
+  10.0 => 43,
+  19.0 => 57,
+  17.0 => 129,
+  8.0  => 24,
+  22.0 => 40,
+  6.0  => 11,
+  24.0 => 9,
+  4.0  => 6,
+  3.0  => 3,
+  5.0  => 9,
+  20.0 => 51,
+  23.0 => 9,
+  13.0 => 76,
+  14.0 => 82,
+  15.0 => 101,
+  12.0 => 66,
+  1.0  => 1
+  )
+
+global merge_tests, merge_correct = 0, 0
+function test_node_merging(g::SimpleGraph, dims, merge_solutions)
+    global merge_tests += 1
+    n = dims[1]
+    d = 0
+
+
+    println("Node-merging check $(n)x$(n) grid -> $n districts (d = 0): ")
+
+    g_edges = optimal_grid_edge_order_diags(g, dims[1], dims[2])
+    g_edges = convert_lightgraphs_edges_to_node_edges(g_edges)
+    zdd = construct_zdd(g, n, d, g_edges, viz=true)
+
+    _, loc_ys = node_locations(zdd, g_edges) # from visualization.jl
+
+    u = unique(loc_ys)
+    level_counts = Dict([(i,count(x -> x == i, loc_ys)) for i in u])
+
+    if level_counts == merge_solutions[n-1]
+        println("*** CORRECT :) ***\n")
+        global merge_correct += 1
+    else
+        println("*** INCORRECT :( ***\n")
+        println("Expected: ", merge_solutions[n-1])
+        println()
+        println("Got: ", level_counts)
+        println()
+    end
+end
+
+merge_solutions = [node_per_level_2x2, node_per_level_3x3, node_per_level_4x4]
+
+for i in 2:4
+    dims = [i, i]
+    g = grid(dims)
+    test_node_merging(g, dims, merge_solutions)
+end
+
+println("*\n*\n*")
+println("***** NODE MERGING TESTS PASSED $merge_correct/$merge_tests *****")

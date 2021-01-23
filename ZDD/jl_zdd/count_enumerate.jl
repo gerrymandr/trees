@@ -124,18 +124,15 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
             curr_depth : depth traversed in the ZDD tree, from the bottom.
     """
     if curr_depth == ne(zdd.base_graph) + 1
-        # println(prev_level)
         @assert length(prev_level) == 1 # we should be at the root so only 1
         @assert 3 in keys(prev_level)   # the root is always node 3
         return prev_level[3]
     end
 
     curr_level = Dict{Int, Int}()
-    node_at = Dict(int => node for (node, int) ∈ zdd.nodes_complete)
 
     for node in keys(prev_level) # for child node with a path to terminal
-        # println(node_at[node])
-        node_at[node].deadend = false
+
         for i in inneighbors(zdd.graph, node) # do for each parent
             if haskey(curr_level, i) # if the parent has already been treated, add the paths from this child
                 curr_level[i] += prev_level[node]
