@@ -8,10 +8,9 @@ include("frontier.jl")
 include("edge_ordering.jl")
 
 mutable struct ZDD{G<:SimpleDiGraph, S<:SimpleGraph, N<:Node}
-    # graph stuff
     graph::G
     nodes::Dict{UInt64, Int64}
-    nodes_complete::Dict{N, Int64} # used only when viz = True
+    nodes_complete::Dict{N, Int64}      # used only when viz = True
     edges::Dict{Tuple{N, N}, Int8}      # used only when viz = True
     edge_multiplicity::Set{Tuple{N, N}}
     base_graph::S
@@ -109,11 +108,6 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
-        # sizes = [Base.summarysize(n) for n in N[i]]
-        # println("Level: ", i)
-        # println("Minimum: ", minimum(sizes))
-        # println("Mean: ", mean(sizes))
-        # println()
         N[i] = Set{Node}([]) # release memory
     end
 
@@ -192,9 +186,17 @@ function make_new_node(g::SimpleGraph,
             return zero_terminal
         end
     end
+    n′.first_idx = first_non_zero(n′.comp_assign)
     return n′
 end
 
+function first_non_zero(vec::Vector{UInt8})::UInt8
+    for (i, item) in enumerate(vec)
+        if i != 0
+            return UInt8(i)
+        end
+    end
+end
 
 function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{UInt8})
     """ Add `u` or `v` or both to n`.comp if they are not in
