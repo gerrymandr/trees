@@ -14,6 +14,8 @@ function convert_lightgraphs_edges_to_node_edges(g_edges::Array{LightGraphs.Simp
     return node_edges
 end
 
+Base.hash(ne::NodeEdge, h::UInt) = hash(ne.edge₁, hash(ne.edge₂, h))
+
 ######################## ForbiddenPair #########################
 # comp₁ < comp₂ by requirement
 struct ForbiddenPair
@@ -25,11 +27,11 @@ function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
     (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
 end
 
-function Base.isless(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
+function Base.isless(fp_1::ForbiddenPair, fp_2::ForbiddenPair) # TODO: does this make sense???
     fp_1.comp₁ < fp_2.comp₁
 end
 
-Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
+Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 
 #######################   Node   ##################################
 
@@ -37,12 +39,13 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Vector{UInt8}       # can hold 256 possible values
+    comp::Vector{UInt8}         # can hold 256 possible values
     comp_weights::Vector{UInt8} # the max population of a component can only be 256
     cc::UInt8                   # can hold only 256 possible values
     fps::Vector{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
     deadend::Bool
+    first_idx::UInt8
 
     # allow for incomplete initialization
     function Node()::Node
@@ -50,18 +53,18 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true)
+        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1))
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true)
+        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1))
     end
 
     function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
-                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8}, deadend::Bool)::Node
-        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend)
+                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8}, deadend::Bool, first_idx::UInt8)::Node
+        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx)
     end
 end
 
@@ -74,9 +77,12 @@ function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
     end
 end
 
-function copy_to_set!(set₁::Set{T}, set₂::Set{T}) where T
-    for item in set₁
-        push!(set₂, item)
+function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8) where T
+    """ Copy items from vec₁ into vec₂.
+        It is assumed that length(vec₂) >= length(vec₁)
+    """
+    for i = idx:length(vec₁)
+        @inbounds vec₂[i] = vec₁[i]
     end
 end
 
@@ -85,14 +91,13 @@ function custom_deepcopy(n::Node)::Node
     comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
     comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
     fps = Vector{ForbiddenPair}(undef, length(n.fps))
-    # fps = Set{ForbiddenPair}()
 
     copy_to_vec!(n.comp, comp)
-    copy_to_vec!(n.comp_weights, comp_weights)
-    copy_to_vec!(n.comp_assign, comp_assign)
+    copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)
+    copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
     copy_to_vec!(n.fps, fps)
 
-    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true)
+    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
@@ -104,7 +109,11 @@ function Base.:(==)(node₁::Node, node₂::Node)
     node₁.comp_assign == node₂.comp_assign
 end
 
-Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(n.comp_weights, hash(n.comp_assign, hash(:Node, h)))))))
+function Base.hash(n::Node, h::UInt)
+    comp_weights = @view n.comp_weights[n.first_idx:end]
+    comp_assign = @view n.comp_assign[n.first_idx:end]
+    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign, h))))))
+end
 
 function node_summary(node::Node)
     println("Label: ", readable(node.label))
