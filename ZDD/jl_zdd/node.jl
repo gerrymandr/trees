@@ -1,5 +1,6 @@
 # node.jl
-import Base: isequal, ==, isless
+import Base: isequal, ==, isless, Dict
+using StaticArrays
 
 struct NodeEdge
     edge₁::UInt8
@@ -46,6 +47,7 @@ mutable struct Node
     comp_assign::Vector{UInt8}  # only 256 possible values
     deadend::Bool
     first_idx::UInt8
+    hash::UInt64
 
     # allow for incomplete initialization
     function Node()::Node
@@ -53,18 +55,23 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        return new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1))
+        node = new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
+        node.hash = hash(node)
+        return node
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        return new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1))
+        node = new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
+        node.hash = hash(node)
+        return node
     end
 
     function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
-                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8}, deadend::Bool, first_idx::UInt8)::Node
-        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx)
+                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
+                  deadend::Bool, first_idx::UInt8)::Node
+        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx, 0)
     end
 end
 
@@ -113,6 +120,10 @@ function Base.hash(n::Node, h::UInt)
     comp_weights = @view n.comp_weights[n.first_idx:end]
     comp_assign = @view n.comp_assign[n.first_idx:end]
     hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign, h))))))
+end
+
+function Base.hashindex(node::Node, sz)::Int
+    (((node.hash %Int) & (sz-1)) + 1)
 end
 
 function node_summary(node::Node)

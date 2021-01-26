@@ -21,9 +21,11 @@ end
 function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
     nodes = Dict{UInt64, Int64}()
-    nodes[hash(Node(0))] = 1
-    nodes[hash(Node(1))] = 2
-    nodes[hash(root)] = 3
+    zero_node = Node(0)
+    one_node = Node(1)
+    nodes[zero_node.hash] = 1
+    nodes[one_node.hash] = 2
+    nodes[root.hash] = 3
 
     nodes_complete = Dict{Node, Int64}()
     nodes_complete[Node(0)] = 1
@@ -55,7 +57,7 @@ function add_zdd_edge!(zdd::ZDD,
         end
     end
 
-    node₂_idx = zdd.nodes[hash(node₂)]
+    node₂_idx = zdd.nodes[node₂.hash]
 
     # add to simple graph
     add_edge!(zdd.graph, node₁_idx, node₂_idx)
@@ -63,6 +65,19 @@ end
 
 function num_edges(zdd::ZDD)
     length(zdd.edges) + length(zdd.edge_multiplicity)
+end
+
+function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
+    for item in set
+        push!(vec, item)
+    end
+end
+
+function reusable_unique!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
+    union!(set, vec)
+    empty!(vec)
+    copy_to_vec!(vec, set)
+    empty!(set)
 end
 
 function construct_zdd(g::SimpleGraph,
@@ -84,10 +99,11 @@ function construct_zdd(g::SimpleGraph,
     one_terminal = Node(1)
     fp_container = Vector{ForbiddenPair}([]) # reusable container
     rm_container = Vector{ForbiddenPair}([]) # reusable container
+    reusable_set = Set{ForbiddenPair}([])
 
     for i = 1:ne(g)
         for n in N[i]
-            n_idx = zdd.nodes[hash(n)]
+            n_idx = zdd.nodes[n.hash]
             for x in xs
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
@@ -96,8 +112,11 @@ function construct_zdd(g::SimpleGraph,
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
-                    (sort!(n′.fps); unique!(n′.fps))
+                    reusable_unique!(n′.fps, reusable_set)
+                    sort!(n′.fps, alg=QuickSort)
+
                     sort!(n′.comp)
+                    n′.hash = hash(n′)
 
                     if n′ ∉ N[i+1]
                         push!(N[i+1], n′)
@@ -110,11 +129,8 @@ function construct_zdd(g::SimpleGraph,
         end
         N[i] = Set{Node}([]) # release memory
     end
-
     return zdd
 end
-
-
 
 function make_new_node(g::SimpleGraph,
                        g_edges::Array{NodeEdge,1},
@@ -289,7 +305,7 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::
     """
     add_vertex!(zdd.graph)
     n′_idx = nv(zdd.graph)
-    zdd.nodes[hash(n′)] = n′_idx
+    zdd.nodes[n′.hash] = n′_idx
 
     if zdd.viz
         zdd.nodes_complete[n′] = n′_idx
