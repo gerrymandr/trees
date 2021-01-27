@@ -1,6 +1,5 @@
 # node.jl
 import Base: isequal, ==, isless, Dict
-using StaticArrays
 
 struct NodeEdge
     edge₁::UInt8
