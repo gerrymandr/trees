@@ -204,6 +204,7 @@ function make_new_node(g::SimpleGraph,
 
     if i == length(g_edges)
         if n′.cc == k
+            push!(recycler, n′)
             return one_terminal
         else
             push!(recycler, n′)
