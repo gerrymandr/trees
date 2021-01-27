@@ -23,13 +23,11 @@ struct ForbiddenPair
     comp₂::UInt8
 end
 
-function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
-    (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
-end
+==(p::ForbiddenPair, q::ForbiddenPair) = (p.comp₁==q.comp₁) & (p.comp₂==q.comp₂)
 
-function Base.isless(fp_1::ForbiddenPair, fp_2::ForbiddenPair) # TODO: does this make sense???
-    fp_1.comp₁ < fp_2.comp₁
-end
+isequal(p::ForbiddenPair, q::ForbiddenPair) = isequal(p.comp₁,q.comp₁) & isequal(p.comp₂,q.comp₂)
+
+isless(p::ForbiddenPair, q::ForbiddenPair) = ifelse(!isequal(p.comp₁,q.comp₁), isless(p.comp₁,q.comp₁), isless(p.comp₂,q.comp₂))
 
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 
@@ -92,8 +90,10 @@ function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8)
     end
 end
 
-function custom_deepcopy(n::Node, recycler::Stack{Node})::Node
-
+function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
+    if x == 1
+        return n
+    end
     if isempty(recycler)
         comp = Vector{UInt8}(undef, length(n.comp))
         comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
@@ -129,12 +129,11 @@ function custom_deepcopy(n::Node, recycler::Stack{Node})::Node
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.cc == node₂.cc &&
-    node₁.comp_weights == node₂.comp_weights &&
-    node₁.label == node₂.label &&
-    node₁.comp == node₂.comp &&
-    node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign
+    node₁.hash == node₂.hash
+end
+
+function Base.isequal(node₁::Node, node₂::Node)
+    node₁.hash == node₂.hash
 end
 
 function Base.hash(n::Node, h::UInt)
