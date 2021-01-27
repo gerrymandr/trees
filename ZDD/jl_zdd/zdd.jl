@@ -183,10 +183,11 @@ function make_new_node(g::SimpleGraph,
         end
     end
 
+    n′.first_idx = first_non_zero(n′.comp_assign)
     for a in prev_frontier
         if a ∉ curr_frontier
             @inbounds a_comp = n′.comp_assign[a]
-            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
+            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign[n′.first_idx:end]) == 1
                 @inbounds if n′.comp_weights[a_comp] < lower_bound
                     push!(recycler, n′)
                     return zero_terminal
@@ -211,7 +212,7 @@ function make_new_node(g::SimpleGraph,
             return zero_terminal
         end
     end
-    n′.first_idx = first_non_zero(n′.comp_assign)
+
     return n′
 end
 
@@ -276,6 +277,7 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
         filter!(x -> x != to_change, n.comp)
         @inbounds n.comp_weights[assignment] += n.comp_weights[to_change]
         @inbounds n.comp_weights[to_change] = 0
+        n.first_idx = first_non_zero(n.comp_assign)
     end
 end
 
