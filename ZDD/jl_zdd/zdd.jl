@@ -100,6 +100,7 @@ function construct_zdd(g::SimpleGraph,
     fp_container = Vector{ForbiddenPair}([]) # reusable container
     rm_container = Vector{ForbiddenPair}([]) # reusable container
     reusable_set = Set{ForbiddenPair}([])
+    recycler = Stack{Node}()
 
     for i = 1:ne(g)
         for n in N[i]
@@ -108,7 +109,7 @@ function construct_zdd(g::SimpleGraph,
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
                                    zero_terminal, one_terminal,
-                                   fp_container, rm_container)
+                                   fp_container, rm_container, recycler)
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
@@ -126,6 +127,9 @@ function construct_zdd(g::SimpleGraph,
                 end
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
+        end
+        for n in N[i]
+            push!(recycler, n)
         end
         N[i] = Set{Node}([]) # release memory
     end
@@ -145,13 +149,14 @@ function make_new_node(g::SimpleGraph,
                        zero_terminal::Node,
                        one_terminal::Node,
                        fp_container::Vector{ForbiddenPair},
-                       rm_container::Vector{ForbiddenPair})
+                       rm_container::Vector{ForbiddenPair},
+                       recycler::Stack{Node})
     """
     """
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = custom_deepcopy(n)
+    n′ = custom_deepcopy(n, recycler)
 
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
