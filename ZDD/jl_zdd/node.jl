@@ -129,12 +129,11 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
 end
 
 function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.cc == node₂.cc &&
-    node₁.comp_weights == node₂.comp_weights &&
-    node₁.label == node₂.label &&
-    node₁.comp == node₂.comp &&
-    node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign
+    node₁.hash == node₂.hash
+end
+
+function Base.isequal(node₁::Node, node₂::Node)
+    node₁.hash == node₂.hash
 end
 
 function Base.hash(n::Node, h::UInt)
