@@ -128,9 +128,6 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
-        for n in N[i]
-            push!(recycler, n)
-        end
         N[i] = Set{Node}([]) # release memory
     end
     return zdd
@@ -156,7 +153,7 @@ function make_new_node(g::SimpleGraph,
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = custom_deepcopy(n, recycler)
+    n′ = custom_deepcopy(n, recycler, x)
 
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
@@ -168,15 +165,18 @@ function make_new_node(g::SimpleGraph,
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
         @inbounds if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
+            push!(recycler, n′)
             return zero_terminal
         end
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
+            push!(recycler, n′)
             return zero_terminal
         else
             replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container, rm_container)
         end
     else
         if Cᵤ == Cᵥ
+            push!(recycler, n′)
             return zero_terminal
         else
             push!(n′.fps, ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)))
@@ -188,11 +188,13 @@ function make_new_node(g::SimpleGraph,
             @inbounds a_comp = n′.comp_assign[a]
             if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
                 @inbounds if n′.comp_weights[a_comp] < lower_bound
+                    push!(recycler, n′)
                     return zero_terminal
                 end
                 @inbounds n′.comp_weights[a_comp] = 0
                 n′.cc += 1
                 if n′.cc > k
+                    push!(recycler, n′)
                     return zero_terminal
                 end
             end
@@ -204,6 +206,7 @@ function make_new_node(g::SimpleGraph,
         if n′.cc == k
             return one_terminal
         else
+            push!(recycler, n′)
             return zero_terminal
         end
     end
