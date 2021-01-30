@@ -1,5 +1,5 @@
 # node.jl
-import Base: isequal, ==
+import Base: isequal, ==, isless, Dict
 
 struct NodeEdge
     edge₁::UInt8
@@ -21,11 +21,12 @@ struct ForbiddenPair
     comp₂::UInt8
 end
 
-function Base.:(==)(fp_1::ForbiddenPair, fp_2::ForbiddenPair)
-    (fp_1.comp₁ == fp_2.comp₁) && (fp_1.comp₂ == fp_2.comp₂)
-end
+==(p::ForbiddenPair, q::ForbiddenPair) = (p.comp₁==q.comp₁) & (p.comp₂==q.comp₂)
 
-Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:ForbiddenPair, h)))
+isequal(p::ForbiddenPair, q::ForbiddenPair) = isequal(p.comp₁,q.comp₁) & isequal(p.comp₂,q.comp₂)
+isless(p::ForbiddenPair, q::ForbiddenPair) = ifelse(!isequal(p.comp₁,q.comp₁), isless(p.comp₁,q.comp₁), isless(p.comp₂,q.comp₂))
+
+Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 
 #######################   Node   ##################################
 
@@ -33,20 +34,37 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, hash(:
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Vector{UInt8} # can hold 256 possible values
-    cc::UInt8 # can hold only 256 possible values
-    fps::Set{ForbiddenPair}
-    comp_assign::Vector{UInt8} # only 256 possible values
+    comp::Vector{UInt8}         # can hold 256 possible values
+    cc::UInt8                   # can hold only 256 possible values
+    fps::Vector{ForbiddenPair}
+    comp_assign::Vector{UInt8}  # only 256 possible values
     deadend::Bool
-end
+    first_idx::UInt8
+    hash::UInt64
 
-function Node(i::Int)::Node # for Terminal Nodes
-    return Node(NodeEdge(i, i), Vector{UInt8}(), 0, Set{ForbiddenPair}(), Vector{UInt8}([]), true)
-end
+    # allow for incomplete initialization
+    function Node()::Node
+        new()
+    end
 
-function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
-    comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-    return Node(root_edge, Vector{UInt8}(), 0, Set{ForbiddenPair}(), comp_assign, true)
+    function Node(i::Int)::Node # for Terminal Nodes
+        node = new(NodeEdge(i, i), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
+        node.hash = hash(node)
+        return node
+    end
+
+    function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
+        comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
+        node = new(root_edge, Vector{UInt8}(), 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
+        node.hash = hash(node)
+        return node
+    end
+
+    function Node(label::NodeEdge, comp::Vector{UInt8},
+                  cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
+                  deadend::Bool, first_idx::UInt8)::Node
+        return new(label, comp, cc, fps, comp_assign, deadend, first_idx, 0)
+    end
 end
 
 function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
@@ -58,30 +76,61 @@ function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
     end
 end
 
-function copy_to_set!(set₁::Set{T}, set₂::Set{T}) where T
-    for item in set₁
-        push!(set₂, item)
+function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8) where T
+    """ Copy items from vec₁ into vec₂.
+        It is assumed that length(vec₂) >= length(vec₁)
+    """
+    for i = idx:length(vec₁)
+        @inbounds vec₂[i] = vec₁[i]
     end
 end
 
-function custom_deepcopy(n::Node)::Node
-    comp = Vector{UInt8}(undef, length(n.comp))
-    comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
-    fps = Set{ForbiddenPair}()
+function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
+    if x == 1
+        return n
+    end
+    if isempty(recycler)
+        comp = Vector{UInt8}(undef, length(n.comp))
+        comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+        fps = Vector{ForbiddenPair}(undef, length(n.fps))
 
-    copy_to_vec!(n.comp, comp)
-    copy_to_vec!(n.comp_assign, comp_assign)
-    copy_to_set!(n.fps, fps)
+        copy_to_vec!(n.comp, comp)
+        copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
+        copy_to_vec!(n.fps, fps)
 
-    return Node(n.label, comp, n.cc, fps, comp_assign, true)
+        return Node(n.label, comp, n.cc, fps, comp_assign, true, n.first_idx)
+    else
+        n′ = pop!(recycler)
+
+        # empty the fields
+        resize!(n′.comp, length(n.comp))
+        resize!(n′.fps, length(n.fps))
+
+        # fill
+        copy_to_vec!(n.comp, n′.comp)
+        copy_to_vec!(n.fps, n′.fps)
+        copy_to_vec_from_idx!(n.comp_assign, n′.comp_assign, n.first_idx)
+
+        n′.cc = n.cc
+        n′.first_idx = n.first_idx
+        n′.deadend = n.deadend
+        n′.label = n.label
+
+        return n′
+    end
 end
 
-function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.cc == node₂.cc &&
-    node₁.label == node₂.label &&
-    node₁.comp == node₂.comp &&
-    node₁.fps == node₂.fps &&
-    node₁.comp_assign == node₂.comp_assign
+function Base.isequal(node₁::Node, node₂::Node)
+    node₁.hash == node₂.hash
+end
+
+function Base.hash(n::Node, h::UInt)
+    comp_assign = @view n.comp_assign[n.first_idx:end]
+    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_assign, h)))))
+end
+
+function Base.hashindex(node::Node, sz)::Int
+    (((node.hash %Int) & (sz-1)) + 1)
 end
 
 Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(n.comp_assign, hash(:Node, h))))))
@@ -99,8 +148,8 @@ function readable(edge::NodeEdge)::String
     "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
 end
 
-function readable(comp::Array{UInt8, 1})::Array{Int64, 1}
-    Array{Int, 1}([Int64(x) for x in comp])
+function readable(arr::Array{UInt8, 1})::Array{Int64, 1}
+    Array{Int, 1}([Int64(x) for x in arr])
 end
 
 function readable(cc::UInt8)::Int64
@@ -111,10 +160,10 @@ function readable(fp::ForbiddenPair)::String
     "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
 end
 
-function readable(fp_set::Set{ForbiddenPair})::Set{String}
-    readable_set = Set{String}([])
-    for fp in fp_set
-        push!(readable_set, readable(fp))
+function readable(fps::Vector{ForbiddenPair})::Vector{String}
+    readable_vec = Vector{String}([])
+    for fp in fps
+        push!(readable_vec, readable(fp))
     end
-    readable_set
+    readable_vec
 end
