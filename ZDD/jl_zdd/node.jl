@@ -104,43 +104,43 @@ function custom_deepcopy(n::Node)::Node
     return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
 end
 
-# function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
-#     if x == 1
-#         return n
-#     end
-#     if isempty(recycler)
-#         comp = Vector{UInt8}(undef, length(n.comp))
-#         comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
-#         comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
-#         fps = Vector{ForbiddenPair}(undef, length(n.fps))
-#
-#         copy_to_vec!(n.comp, comp)
-#         copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)
-#         copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
-#         copy_to_vec!(n.fps, fps)
-#
-#         return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
-#     else
-#         n′ = pop!(recycler)
-#
-#         # empty the fields
-#         resize!(n′.comp, length(n.comp))
-#         resize!(n′.fps, length(n.fps))
-#
-#         # fill
-#         copy_to_vec!(n.comp, n′.comp)
-#         copy_to_vec!(n.fps, n′.fps)
-#         copy_to_vec_from_idx!(n.comp_weights, n′.comp_weights, n.first_idx)
-#         copy_to_vec_from_idx!(n.comp_assign, n′.comp_assign, n.first_idx)
-#
-#         n′.cc = n.cc
-#         n′.first_idx = n.first_idx
-#         n′.deadend = n.deadend
-#         n′.label = n.label
-#
-#         return n′
-#     end
-# end
+function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
+    if x == 1
+        return n
+    end
+    if isempty(recycler)
+        comp = Vector{UInt8}(undef, length(n.comp))
+        comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
+        comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+        fps = Vector{ForbiddenPair}(undef, length(n.fps))
+
+        copy_to_vec!(n.comp, comp)
+        copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)
+        copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
+        copy_to_vec!(n.fps, fps)
+
+        return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
+    else
+        n′ = pop!(recycler)
+
+        # empty the fields
+        resize!(n′.comp, length(n.comp))
+        resize!(n′.fps, length(n.fps))
+
+        # fill
+        copy_to_vec!(n.comp, n′.comp)
+        copy_to_vec!(n.fps, n′.fps)
+        copy_to_vec_from_idx!(n.comp_weights, n′.comp_weights, n.first_idx)
+        copy_to_vec_from_idx!(n.comp_assign, n′.comp_assign, n.first_idx)
+
+        n′.cc = n.cc
+        n′.first_idx = n.first_idx
+        n′.deadend = n.deadend
+        n′.label = n.label
+
+        return n′
+    end
+end
 
 function Base.:(==)(node₁::Node, node₂::Node)
     node₁.hash == node₂.hash

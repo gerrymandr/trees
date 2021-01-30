@@ -100,7 +100,7 @@ function construct_zdd(g::SimpleGraph,
     fp_container = Vector{ForbiddenPair}([]) # reusable container
     rm_container = Vector{ForbiddenPair}([]) # reusable container
     reusable_set = Set{ForbiddenPair}([])
-    # recycler = Stack{Node}()
+    recycler = Stack{Node}()
     lower_vs = Vector{UInt8}([])
 
     for i = 1:ne(g)
@@ -110,7 +110,7 @@ function construct_zdd(g::SimpleGraph,
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
                                    zero_terminal, one_terminal,
-                                   fp_container, rm_container, lower_vs) #, recycler)
+                                   fp_container, rm_container, lower_vs, recycler)
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
@@ -148,14 +148,14 @@ function make_new_node(g::SimpleGraph,
                        one_terminal::Node,
                        fp_container::Vector{ForbiddenPair},
                        rm_container::Vector{ForbiddenPair},
-                       lower_vs::Vector{UInt8})
-                       # recycler::Stack{Node})
+                       lower_vs::Vector{UInt8},
+                       recycler::Stack{Node})
     """
     """
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-    n′ = custom_deepcopy(n) #, recycler, x)
+    n′ = custom_deepcopy(n, recycler, x)
 
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
@@ -167,18 +167,18 @@ function make_new_node(g::SimpleGraph,
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
         @inbounds if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
-            # push!(recycler, n′)
+            push!(recycler, n′)
             return zero_terminal
         end
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
-            # push!(recycler, n′)
+            push!(recycler, n′)
             return zero_terminal
         else
             replace_components_with_union!(n′, Cᵤ, Cᵥ, fp_container, rm_container)
         end
     else
         if Cᵤ == Cᵥ
-            # push!(recycler, n′)
+            push!(recycler, n′)
             return zero_terminal
         else
             push!(n′.fps, ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)))
@@ -191,13 +191,13 @@ function make_new_node(g::SimpleGraph,
             @inbounds a_comp = n′.comp_assign[a]
             if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
                 @inbounds if n′.comp_weights[a_comp] < lower_bound
-                    # push!(recycler, n′)
+                    push!(recycler, n′)
                     return zero_terminal
                 end
                 @inbounds n′.comp_weights[a_comp] = 0
                 n′.cc += 1
                 if n′.cc > k
-                    # push!(recycler, n′)
+                    push!(recycler, n′)
                     return zero_terminal
                 end
             end
@@ -207,10 +207,10 @@ function make_new_node(g::SimpleGraph,
 
     if i == length(g_edges)
         if n′.cc == k
-            # push!(recycler, n′)
+            push!(recycler, n′)
             return one_terminal
         else
-            # push!(recycler, n′)
+            push!(recycler, n′)
             return zero_terminal
         end
     end
