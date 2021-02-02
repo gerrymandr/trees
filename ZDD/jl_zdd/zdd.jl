@@ -116,7 +116,6 @@ function construct_zdd(g::SimpleGraph,
                     n′.label = g_edges[i+1] # update the label of n′
                     reusable_unique!(n′.fps, reusable_set)
                     sort!(n′.fps, alg=QuickSort)
-
                     sort!(n′.comp)
                     n′.hash = hash(n′)
 
@@ -134,6 +133,7 @@ function construct_zdd(g::SimpleGraph,
     return zdd
 end
 
+
 function make_new_node(g::SimpleGraph,
                        g_edges::Array{NodeEdge,1},
                        k::Int,
@@ -149,7 +149,8 @@ function make_new_node(g::SimpleGraph,
                        fp_container::Vector{ForbiddenPair},
                        rm_container::Vector{ForbiddenPair},
                        lower_vs::Vector{UInt8},
-                       recycler::Stack{Node})
+                       recycler::Stack{Node}
+                       )
     """
     """
     u = g_edges[i].edge₁
@@ -186,10 +187,13 @@ function make_new_node(g::SimpleGraph,
     end
 
     n′.first_idx = first_non_zero(n′.comp_assign)
+
     for a in prev_frontier
         if a ∉ curr_frontier
             @inbounds a_comp = n′.comp_assign[a]
-            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
+            comp_assign = @view n.comp_assign[n′.first_idx:a_comp] # indices > a_comp wouldn't be labeled as a_comp, so we can ignore them
+
+            if count(x -> x == a_comp, comp_assign) == 1
                 @inbounds if n′.comp_weights[a_comp] < lower_bound
                     push!(recycler, n′)
                     return zero_terminal
@@ -201,7 +205,7 @@ function make_new_node(g::SimpleGraph,
                     return zero_terminal
                 end
             end
-            remove_vertex_from_node_fps!(n′, a, fp_container, rm_container, lower_vs)
+            remove_vertex_from_node!(n′, a, fp_container, rm_container, lower_vs)
         end
     end
 
@@ -279,7 +283,6 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
         filter!(x -> x != to_change, n.comp)
         @inbounds n.comp_weights[assignment] += n.comp_weights[to_change]
         @inbounds n.comp_weights[to_change] = 0
-        n.first_idx = first_non_zero(n.comp_assign)
     end
 end
 
@@ -290,13 +293,13 @@ function components(u::UInt8, v::UInt8, node::Node)::Tuple{UInt8, UInt8}
     @inbounds return node.comp_assign[u], node.comp_assign[v]
 end
 
-function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair},
-                                      rm_container::Vector{ForbiddenPair}, lower_vs::Vector{UInt8})
+function remove_vertex_from_node!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair},
+                                  rm_container::Vector{ForbiddenPair}, lower_vs::Vector{UInt8})
     """
     """
     @inbounds vertex_comp = node.comp_assign[vertex]
-
-    if count(x -> x == vertex_comp, node.comp_assign) == 1
+    c = count(x -> x == vertex_comp, node.comp_assign)
+    if c == 1
         @inbounds node.comp_assign[vertex] = 0
         for fp in node.fps
             if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂)
@@ -307,7 +310,7 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
         filter!(x -> x != vertex_comp, node.comp)
         filter!(x -> x ∉ fp_container, node.fps)
         empty!(fp_container)
-    elseif count(x -> x == vertex_comp, node.comp_assign) > 1
+    elseif c > 1
         @inbounds node.comp_assign[vertex] = 0
         adjust_node!(node, vertex_comp, fp_container, rm_container, lower_vs)
     end
@@ -331,7 +334,6 @@ function adjust_node!(node::Node,
                       lower_vs::Vector{UInt8})
     """
     """
-    # if vertex_comp in node.comp_assign
     # there is atleast one lower vertex number that has the higher comp
     # number and needs to be adjusted
     lower_vertices!(vertex_comp, node.comp_assign, lower_vs) #findall(x->x==vertex_comp, node.comp_assign)
@@ -369,29 +371,6 @@ function adjust_node!(node::Node,
     empty!(fp_container)
     empty!(rm_container)
 end
-
-# function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair})
-#     """
-#     """
-#     @inbounds vertex_comp = node.comp_assign[vertex]
-#
-#     if count(x -> x == vertex_comp, node.comp_assign) != 1
-#         @inbounds node.comp_assign[vertex] = 0
-#         return
-#     end
-#
-#     for fp in node.fps
-#         if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂)
-#             push!(fp_container, fp)
-#         end
-#     end
-#
-#     filter!(x -> x != vertex_comp, node.comp)
-#     filter!(x -> x ∉ fp_container, node.fps)
-#
-#     @inbounds node.comp_assign[vertex] = 0
-#     empty!(fp_container)
-# end
 
 function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
     """

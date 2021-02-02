@@ -52,7 +52,7 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
+        node = new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1))
         node.hash = hash(node)
         return node
     end
@@ -60,7 +60,7 @@ mutable struct Node
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        node = new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
+        node = new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1))
         node.hash = hash(node)
         return node
     end
@@ -68,7 +68,7 @@ mutable struct Node
     function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
                   deadend::Bool, first_idx::UInt8)::Node
-        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx, 0)
+        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx)
     end
 end
 
@@ -88,20 +88,6 @@ function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8)
     for i = idx:length(vec₁)
         @inbounds vec₂[i] = vec₁[i]
     end
-end
-
-function custom_deepcopy(n::Node)::Node
-    comp = Vector{UInt8}(undef, length(n.comp))
-    comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
-    comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
-    fps = Vector{ForbiddenPair}(undef, length(n.fps))
-
-    copy_to_vec!(n.comp, comp)
-    copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)
-    copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
-    copy_to_vec!(n.fps, fps)
-
-    return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
 end
 
 function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
@@ -150,10 +136,10 @@ function Base.isequal(node₁::Node, node₂::Node)
     node₁.hash == node₂.hash
 end
 
-function Base.hash(n::Node, h::UInt)
+function Base.hash(n::Node)
     comp_weights = @view n.comp_weights[n.first_idx:end]
     comp_assign = @view n.comp_assign[n.first_idx:end]
-    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign, h))))))
+    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign))))))
 end
 
 function Base.hashindex(node::Node, sz)::Int
@@ -174,8 +160,8 @@ function readable(edge::NodeEdge)::String
     "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
 end
 
-function readable(comp::Array{UInt8, 1})::Array{Int64, 1}
-    Array{Int, 1}([Int64(x) for x in comp])
+function readable(arr::Vector{UInt8})::Vector{Int64}
+    Vector{Int}([Int64(x) for x in arr])
 end
 
 function readable(cc::UInt8)::Int64
@@ -186,18 +172,10 @@ function readable(fp::ForbiddenPair)::String
     "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
 end
 
-function readable(fp_set::Set{ForbiddenPair})::Set{String}
-    readable_set = Set{String}([])
-    for fp in fp_set
-        push!(readable_set, readable(fp))
+function readable(fp_vec::Vector{ForbiddenPair})::Set{String}
+    readable_vec = Vector{String}([])
+    for fp in fp_vec
+        push!(readable_vec, readable(fp))
     end
-    readable_set
-end
-
-function readable(comp_weights::Dict{Int8, Int8})::Dict{Int, Int}
-    readable_dict = Dict{Int, Int}()
-    for (k, v) in comp_weights
-        readable_dict[Int(k)] = v
-    end
-    readable_dict
+    readable_vec
 end
