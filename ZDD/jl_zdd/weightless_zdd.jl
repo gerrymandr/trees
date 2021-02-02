@@ -100,6 +100,7 @@ function construct_zdd(g::SimpleGraph,
     rm_container = Vector{ForbiddenPair}([]) # reusable container
     reusable_set = Set{ForbiddenPair}([])
     recycler = Stack{Node}()
+    lower_vs = Vector{UInt8}([])
 
     for i = 1:ne(g)
         for n in N[i]
@@ -108,7 +109,7 @@ function construct_zdd(g::SimpleGraph,
                 n′ = make_new_node(g, g_edges, k, n, i, x, d, frontiers,
                                    lower_bound, upper_bound,
                                    zero_terminal, one_terminal,
-                                   fp_container, rm_container, recycler)
+                                   fp_container, rm_container, lower_vs, recycler)
 
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
@@ -149,13 +150,14 @@ function make_new_node(g::SimpleGraph,
                        one_terminal::Node,
                        fp_container::Vector{ForbiddenPair},
                        rm_container::Vector{ForbiddenPair},
+                       lower_vs::Vector{UInt8},
                        recycler::Stack{Node})
     """
     """
     u = g_edges[i].edge₁
     v = g_edges[i].edge₂
 
-     n′ = custom_deepcopy(n, recycler, x)
+    n′ = custom_deepcopy(n, recycler, x)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
     add_vertex_as_component!(n′, u, prev_frontier)
@@ -198,7 +200,7 @@ function make_new_node(g::SimpleGraph,
                     return zero_terminal
                 end
             end
-            remove_vertex_from_node_fps!(n′, a, fp_container, rm_container)
+            remove_vertex_from_node!(n′, a, fp_container, rm_container, lower_vs)
         end
     end
 
@@ -285,13 +287,14 @@ function components(u::UInt8, v::UInt8, node::Node)::Tuple{UInt8, UInt8}
     return node.comp_assign[u], node.comp_assign[v]
 end
 
-function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair},
-                                      rm_container::Vector{ForbiddenPair})
+function remove_vertex_from_node!(node::Node, vertex::UInt8, fp_container::Vector{ForbiddenPair},
+                                  rm_container::Vector{ForbiddenPair}, lower_vs::Vector{UInt8})
     """
     """
     @inbounds vertex_comp = node.comp_assign[vertex]
+    c = count(x -> x == vertex_comp, node.comp_assign)
 
-    if count(x -> x == vertex_comp, node.comp_assign) == 1
+    if c == 1
         @inbounds node.comp_assign[vertex] = 0
         for fp in node.fps
             if (vertex_comp == fp.comp₁ || vertex_comp == fp.comp₂)
@@ -302,26 +305,38 @@ function remove_vertex_from_node_fps!(node::Node, vertex::UInt8, fp_container::V
         filter!(x -> x != vertex_comp, node.comp)
         filter!(x -> x ∉ fp_container, node.fps)
         empty!(fp_container)
-    elseif count(x -> x == vertex_comp, node.comp_assign) > 1
+    elseif c > 1
         @inbounds node.comp_assign[vertex] = 0
-        adjust_node!(node, vertex_comp, fp_container, rm_container)
+        adjust_node!(node, vertex_comp, fp_container, rm_container, lower_vs)
+    end
+end
+
+function lower_vertices!(num::UInt8, arr::Vector{UInt8}, container::Vector{UInt8})
+    """
+    """
+    empty!(container)
+    for (i, x) in enumerate(arr)
+        if x == num
+            push!(container, i)
+        end
     end
 end
 
 function adjust_node!(node::Node,
                       vertex_comp::UInt8,
                       fp_container::Vector{ForbiddenPair},
-                      rm_container::Vector{ForbiddenPair})
+                      rm_container::Vector{ForbiddenPair},
+                      lower_vs::Vector{UInt8})
     """
     """
     # if vertex_comp in node.comp_assign
     # there is atleast one lower vertex number that has the higher comp
     # number and needs to be adjusted
-    lower_vertices = findall(x->x==vertex_comp, node.comp_assign)
-    new_max = maximum(lower_vertices)
+    lower_vertices!(vertex_comp, node.comp_assign, lower_vs) #findall(x->x==vertex_comp, node.comp_assign)
+    new_max = maximum(lower_vs)
 
     # change comp.assign
-    for v in lower_vertices
+    for v in lower_vs
         node.comp_assign[v] = new_max
     end
 
