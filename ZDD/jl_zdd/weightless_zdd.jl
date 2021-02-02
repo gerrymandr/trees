@@ -180,7 +180,6 @@ function make_new_node(g::SimpleGraph,
         end
     end
 
-    n′.first_idx = first_non_zero(n′.comp_assign)
     for a in prev_frontier
         if a ∉ curr_frontier
             @inbounds a_comp = n′.comp_assign[a]
@@ -205,14 +204,6 @@ function make_new_node(g::SimpleGraph,
         end
     end
     return n′
-end
-
-function first_non_zero(vec::Vector{UInt8})::UInt8
-    for (i, item) in enumerate(vec)
-        if i != 0
-            return UInt8(i)
-        end
-    end
 end
 
 function replace_components_with_union!(
@@ -286,6 +277,10 @@ function remove_vertex_from_node!(node::Node, vertex::UInt8, fp_container::Vecto
     elseif c > 1
         @inbounds node.comp_assign[vertex] = 0
         adjust_node!(node, vertex_comp, fp_container, rm_container, lower_vs)
+    end
+
+    if vertex == node.first_idx
+        node.first_idx += 1
     end
 end
 
