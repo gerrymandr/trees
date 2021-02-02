@@ -116,7 +116,6 @@ function construct_zdd(g::SimpleGraph,
                     n′.label = g_edges[i+1] # update the label of n′
                     reusable_unique!(n′.fps, reusable_set)
                     sort!(n′.fps, alg=QuickSort)
-                    sort!(n′.comp)
                     n′.hash = hash(n′)
 
                     if n′ ∉ N[i+1]
@@ -159,9 +158,6 @@ function make_new_node(g::SimpleGraph,
     n′ = custom_deepcopy(n, recycler, x)
 
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
-
-    add_vertex_as_component!(n′, u, prev_frontier)
-    add_vertex_as_component!(n′, v, prev_frontier)
 
     Cᵤ, Cᵥ = components(u, v, n′)
 
@@ -230,15 +226,6 @@ function first_non_zero(vec::Vector{UInt8})::UInt8
     end
 end
 
-function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{UInt8})
-    """ Add `u` or `v` or both to n`.comp if they are not in
-        `prev_frontier`
-    """
-    if vertex ∉ prev_frontier
-        push!(n′.comp, vertex)
-    end
-end
-
 function replace_components_with_union!(
     node::Node,
     Cᵤ::UInt8,
@@ -280,7 +267,6 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     to_change = min(Cᵤ, Cᵥ)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
-        filter!(x -> x != to_change, n.comp)
         @inbounds n.comp_weights[assignment] += n.comp_weights[to_change]
         @inbounds n.comp_weights[to_change] = 0
     end
@@ -307,7 +293,6 @@ function remove_vertex_from_node!(node::Node, vertex::UInt8, fp_container::Vecto
             end
         end
 
-        filter!(x -> x != vertex_comp, node.comp)
         filter!(x -> x ∉ fp_container, node.fps)
         empty!(fp_container)
     elseif c > 1
@@ -343,10 +328,6 @@ function adjust_node!(node::Node,
     for v in lower_vs
         node.comp_assign[v] = new_max
     end
-
-    # change comp
-    filter!(x -> x != vertex_comp, node.comp)
-    push!(node.comp, new_max)
 
     # change comp_weights
     if new_max != vertex_comp

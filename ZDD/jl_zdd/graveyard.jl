@@ -30,31 +30,11 @@ function update_comp_weights!(node::Node, vertex_comp::UInt8, new_max::UInt8)
     end
 end
 
-function adjust_node!(node::Node, vertex_comp::UInt8, fp_container::Vector{ForbiddenPair})
+function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{UInt8})
+    """ Add `u` or `v` or both to n`.comp if they are not in
+        `prev_frontier`
     """
-    """
-    if vertex_comp in node.comp_assign
-        # there is atleast one lower vertex number that has the higher comp
-        # number and needs to be adjusted
-        new_max = update_comp_assign!(node, vertex_comp)
-        update_comp!(node, vertex_comp, new_max)
-        update_comp_weights!(node, vertex_comp, new_max)
-
-        # change ForbiddenPair
-        for fp in node.fps
-            if vertex_comp == fp.comp₁
-                other = fp.comp₂
-                delete!(node.fps, fp)
-                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
-            elseif vertex_comp == fp.comp₂
-                other = fp.comp₁
-                delete!(node.fps, fp)
-                push!(fp_container, ForbiddenPair(min(new_max, other), max(new_max, other)))
-            end
-        end
-        for fp in fp_container
-            push!(node.fps, fp)
-        end
+    if vertex ∉ prev_frontier
+        push!(n′.comp, vertex)
     end
-    empty!(fp_container)
 end

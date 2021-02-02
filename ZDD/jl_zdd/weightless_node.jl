@@ -34,7 +34,6 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Vector{UInt8}         # can hold 256 possible values
     cc::UInt8                   # can hold only 256 possible values
     fps::Vector{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
@@ -48,22 +47,22 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), Vector{UInt8}(), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
+        node = new(NodeEdge(i, i), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
         node.hash = hash(node)
         return node
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-        node = new(root_edge, Vector{UInt8}(), 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
+        node = new(root_edge, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
         node.hash = hash(node)
         return node
     end
 
-    function Node(label::NodeEdge, comp::Vector{UInt8},
+    function Node(label::NodeEdge,
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
                   deadend::Bool, first_idx::UInt8)::Node
-        return new(label, comp, cc, fps, comp_assign, deadend, first_idx, 0)
+        return new(label, cc, fps, comp_assign, deadend, first_idx, 0)
     end
 end
 
@@ -90,24 +89,21 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         return n
     end
     if isempty(recycler)
-        comp = Vector{UInt8}(undef, length(n.comp))
         comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
         fps = Vector{ForbiddenPair}(undef, length(n.fps))
 
-        copy_to_vec!(n.comp, comp)
+        # copy_to_vec!(n.comp, comp)
         copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
         copy_to_vec!(n.fps, fps)
 
-        return Node(n.label, comp, n.cc, fps, comp_assign, true, n.first_idx)
+        return Node(n.label, n.cc, fps, comp_assign, true, n.first_idx)
     else
         n′ = pop!(recycler)
 
         # empty the fields
-        resize!(n′.comp, length(n.comp))
         resize!(n′.fps, length(n.fps))
 
         # fill
-        copy_to_vec!(n.comp, n′.comp)
         copy_to_vec!(n.fps, n′.fps)
         copy_to_vec_from_idx!(n.comp_assign, n′.comp_assign, n.first_idx)
 
@@ -126,14 +122,14 @@ end
 
 function Base.hash(n::Node, h::UInt)
     comp_assign = @view n.comp_assign[n.first_idx:end]
-    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_assign, h)))))
+    hash(n.label, hash(n.cc, hash(n.fps, hash(comp_assign, h))))
 end
 
 function Base.hashindex(node::Node, sz)::Int
     (((node.hash %Int) & (sz-1)) + 1)
 end
 
-Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(n.comp_assign, hash(:Node, h))))))
+Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.cc, hash(n.fps, hash(n.comp_assign, hash(:Node, h)))))
 
 function node_summary(node::Node)
     println("Label: ", readable(node.label))

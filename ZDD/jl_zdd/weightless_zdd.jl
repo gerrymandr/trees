@@ -116,7 +116,7 @@ function construct_zdd(g::SimpleGraph,
                     reusable_unique!(n′.fps, reusable_set)
                     sort!(n′.fps, alg=QuickSort)
 
-                    sort!(n′.comp)
+                    # sort!(n′.comp)
                     n′.hash = hash(n′)
 
                     if n′ ∉ N[i+1]
@@ -160,16 +160,11 @@ function make_new_node(g::SimpleGraph,
     n′ = custom_deepcopy(n, recycler, x)
     prev_frontier, curr_frontier = frontiers[i], frontiers[i+1]
 
-    add_vertex_as_component!(n′, u, prev_frontier)
-    add_vertex_as_component!(n′, v, prev_frontier)
-
     Cᵤ, Cᵥ = components(u, v, n′)
 
     if x == 1
         connect_components!(n′, Cᵤ, Cᵥ)
-        # if n′.comp_weights[max(Cᵤ, Cᵥ)] > upper_bound # --> 0 if new connected component is too big
-        #     return zero_terminal
-        # end
+
         if Cᵤ != Cᵥ && ForbiddenPair(min(Cᵤ, Cᵥ), max(Cᵤ, Cᵥ)) in n′.fps
             push!(recycler, n′)
             return zero_terminal
@@ -189,11 +184,7 @@ function make_new_node(g::SimpleGraph,
     for a in prev_frontier
         if a ∉ curr_frontier
             @inbounds a_comp = n′.comp_assign[a]
-            if a_comp in n′.comp && count(x -> x == a_comp, n′.comp_assign) == 1
-                # if n′.comp_weights[a_comp] < lower_bound
-                #     return zero_terminal
-                # end
-                # delete!(n′.comp_weights, a_comp)
+            if count(x -> x == a_comp, n′.comp_assign) == 1
                 n′.cc += 1
                 if n′.cc > k
                     push!(recycler, n′)
@@ -221,15 +212,6 @@ function first_non_zero(vec::Vector{UInt8})::UInt8
         if i != 0
             return UInt8(i)
         end
-    end
-end
-
-function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{UInt8})
-    """ Add `u` or `v` or both to n`.comp if they are not in
-        `prev_frontier`
-    """
-    if vertex ∉ prev_frontier
-        push!(n′.comp, vertex)
     end
 end
 
@@ -274,9 +256,6 @@ function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     to_change = min(Cᵤ, Cᵥ)
     if Cᵤ != Cᵥ
         map!(val -> val == to_change ? assignment : val, n.comp_assign, n.comp_assign)
-        filter!(x -> x != to_change, n.comp)
-        # n.comp_weights[assignment] += n.comp_weights[to_change]
-        # delete!(n.comp_weights, to_change)
     end
 end
 
@@ -302,7 +281,6 @@ function remove_vertex_from_node!(node::Node, vertex::UInt8, fp_container::Vecto
             end
         end
 
-        filter!(x -> x != vertex_comp, node.comp)
         filter!(x -> x ∉ fp_container, node.fps)
         empty!(fp_container)
     elseif c > 1
@@ -329,7 +307,6 @@ function adjust_node!(node::Node,
                       lower_vs::Vector{UInt8})
     """
     """
-    # if vertex_comp in node.comp_assign
     # there is atleast one lower vertex number that has the higher comp
     # number and needs to be adjusted
     lower_vertices!(vertex_comp, node.comp_assign, lower_vs) #findall(x->x==vertex_comp, node.comp_assign)
@@ -339,10 +316,6 @@ function adjust_node!(node::Node,
     for v in lower_vs
         node.comp_assign[v] = new_max
     end
-
-    # change comp
-    filter!(x -> x != vertex_comp, node.comp)
-    push!(node.comp, new_max)
 
     # change ForbiddenPair
     for fp in node.fps

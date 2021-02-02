@@ -37,7 +37,6 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp::Vector{UInt8}         # can hold 256 possible values
     comp_weights::Vector{UInt8} # the max population of a component can only be 256
     cc::UInt8                   # can hold only 256 possible values
     fps::Vector{ForbiddenPair}
@@ -52,7 +51,7 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), Vector{UInt8}(), Vector{UInt8}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1))
+        node = new(NodeEdge(i, i), Vector{UInt8}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1))
         node.hash = hash(node)
         return node
     end
@@ -60,15 +59,15 @@ mutable struct Node
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
-        node = new(root_edge, Vector{UInt8}(), comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1))
+        node = new(root_edge, comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1))
         node.hash = hash(node)
         return node
     end
 
-    function Node(label::NodeEdge, comp::Vector{UInt8}, comp_weights::Vector{UInt8},
+    function Node(label::NodeEdge, comp_weights::Vector{UInt8},
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
                   deadend::Bool, first_idx::UInt8)::Node
-        return new(label, comp, comp_weights, cc, fps, comp_assign, deadend, first_idx)
+        return new(label, comp_weights, cc, fps, comp_assign, deadend, first_idx)
     end
 end
 
@@ -95,26 +94,22 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         return n
     end
     if isempty(recycler)
-        comp = Vector{UInt8}(undef, length(n.comp))
         comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
         comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
         fps = Vector{ForbiddenPair}(undef, length(n.fps))
 
-        copy_to_vec!(n.comp, comp)
         copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)
         copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
         copy_to_vec!(n.fps, fps)
 
-        return Node(n.label, comp, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
+        return Node(n.label, comp_weights, n.cc, fps, comp_assign, true, n.first_idx)
     else
         n′ = pop!(recycler)
 
         # empty the fields
-        resize!(n′.comp, length(n.comp))
         resize!(n′.fps, length(n.fps))
 
         # fill
-        copy_to_vec!(n.comp, n′.comp)
         copy_to_vec!(n.fps, n′.fps)
         copy_to_vec_from_idx!(n.comp_weights, n′.comp_weights, n.first_idx)
         copy_to_vec_from_idx!(n.comp_assign, n′.comp_assign, n.first_idx)
@@ -139,7 +134,7 @@ end
 function Base.hash(n::Node)
     comp_weights = @view n.comp_weights[n.first_idx:end]
     comp_assign = @view n.comp_assign[n.first_idx:end]
-    hash(n.label, hash(n.comp, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign))))))
+    hash(n.label, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign)))))
 end
 
 function Base.hashindex(node::Node, sz)::Int
