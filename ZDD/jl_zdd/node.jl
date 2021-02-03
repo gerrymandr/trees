@@ -95,7 +95,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
     end
     if isempty(recycler)
         comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
-        comp_assign = Vector{UInt8}(undef, length(n.comp_assign))
+        comp_assign = zeros(UInt8, length(n.comp_assign))
         fps = Vector{ForbiddenPair}(undef, length(n.fps))
 
         copy_to_vec_from_idx!(n.comp_weights, comp_weights, n.first_idx)

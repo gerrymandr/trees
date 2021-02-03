@@ -38,3 +38,11 @@ function add_vertex_as_component!(n′::Node, vertex::UInt8, prev_frontier::Set{
         push!(n′.comp, vertex)
     end
 end
+
+function first_non_zero(vec::Vector{UInt8})::UInt8
+    for (i, item) in enumerate(vec)
+        if item != 0
+            return UInt8(i)
+        end
+    end
+end
