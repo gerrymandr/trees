@@ -11,8 +11,6 @@ mutable struct ZDD{N<:Node, S<:SimpleGraph}
     graph::Vector{ZDD_Node}
     nodes::Dict{UInt64, Int64}
     # nodes_complete::Dict{N, Int64}    # used only when viz = True
-    # edges::Dict{Tuple{N, N}, Int8}    # used only when viz = True
-    # edge_multiplicity::Set{Tuple{N, N}}
     base_graph::S
     root::N
     viz::Bool
@@ -36,13 +34,12 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes[zero_node_complete.hash] = 1
     nodes[one_node_complete.hash] = 2
     nodes[root.hash] = 3
-    # nodes_complete = Dict{Node, Int64}()
-    # nodes_complete[Node(0)] = 1
-    # nodes_complete[Node(1)] = 2
-    # nodes_complete[root] = 3
 
-    # edges = Dict{Tuple{Node,Node}, Int8}()
-    # edge_multiplicity = Set{Tuple{Node,Node}}()
+    nodes_complete = Dict{Node, Int64}()
+    nodes_complete[Node(0)] = 1
+    nodes_complete[Node(1)] = 2
+    nodes_complete[root] = 3
+
     base_graph = g
     return ZDD(graph, nodes, base_graph, root, viz)
 end
@@ -50,72 +47,6 @@ end
 # these need to be included only after the ZDD struct is defined
 include("count_enumerate.jl")
 include("visualization.jl")
-
-
-# function add_zdd_edge!(zdd::ZDD,
-#                        node₁::Node,
-#                        node₂::Node,
-#                        node₁_idx::Int64,
-#                        x::Int8)
-#     """ zdd_edge is represented as (Node, Node)
-#     """
-#     if zdd.viz
-#         if (node₁, node₂) in keys(zdd.edges)
-#             push!(zdd.edge_multiplicity, (node₁, node₂))
-#         else
-#             zdd.edges[(node₁, node₂)] = x
-#         end
-#     end
-#
-#     node₂_idx = zdd.nodes[node₂.hash]
-#
-#     # add to simple graph
-#     add_edge!(zdd.graph, node₁_idx, node₂_idx)
-# end
-
-function add_zdd_edge!(zdd::ZDD,
-                       node₁::Node,
-                       node₂::Node,
-                       node₁_idx::Int64,
-                       x::Int8)
-    """ You would have to change the x field of node₁ to the index of node₂.
-        No fields of node₂ are touched.
-    """
-    # if zdd.viz
-    #     if (node₁, node₂) in keys(zdd.edges)
-    #         push!(zdd.edge_multiplicity, (node₁, node₂))
-    #     else
-    #         zdd.edges[(node₁, node₂)] = x
-    #     end
-    # end
-
-    node₂_idx = zdd.nodes[node₂.hash]
-
-    if x == 0
-        zdd.graph[node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[node₁_idx].one)
-    else
-        zdd.graph[node₁_idx] = ZDD_Node(zdd.graph[node₁_idx].zero, node₂_idx)
-    end
-    # add to simple graph
-    # add_edge!(zdd.graph, node₁_idx, node₂_idx)
-end
-
-function num_edges(zdd::ZDD)
-    length(zdd.edges) + length(zdd.edge_multiplicity)
-end
-
-function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
-    for item in set
-        push!(vec, item)
-    end
-end
-
-function reusable_unique!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
-    union!(set, vec)
-    empty!(vec)
-    copy_to_vec!(vec, set)
-    empty!(set)
-end
 
 function construct_zdd(g::SimpleGraph,
                        k::Int64,
@@ -154,7 +85,6 @@ function construct_zdd(g::SimpleGraph,
                     reusable_unique!(n′.fps, reusable_set)
                     sort!(n′.fps, alg=QuickSort)
 
-                    # sort!(n′.comp)
                     n′.hash = hash(n′)
 
                     if n′ ∉ N[i+1]
@@ -244,6 +174,19 @@ function make_new_node(g::SimpleGraph,
     return n′
 end
 
+function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
+    for item in set
+        push!(vec, item)
+    end
+end
+
+function reusable_unique!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
+    union!(set, vec)
+    empty!(vec)
+    copy_to_vec!(vec, set)
+    empty!(set)
+end
+
 function replace_components_with_union!(
     node::Node,
     Cᵤ::UInt8,
@@ -279,7 +222,9 @@ end
 
 function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     """
-    If the two components are different, remove the smaller component from n.comp, and update n.comp_assign. Adjust n.comp_weights to remove the smaller-indexed component and add its weight into the larger one.
+    If the two components are different, remove the smaller component from n.comp,
+    and update n.comp_assign. Adjust n.comp_weights to remove the smaller-indexed
+    component and add its weight into the larger one.
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)
@@ -368,27 +313,6 @@ function adjust_node!(node::Node,
     empty!(rm_container)
 end
 
-# function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
-#     """
-#     """
-#     add_vertex!(zdd.graph)
-#     n′_idx = nv(zdd.graph)
-#     zdd.nodes[n′.hash] = n′_idx
-#
-#     if zdd.viz
-#         zdd.nodes_complete[n′] = n′_idx
-#
-#         if (n, n′) in keys(zdd.edges)
-#             push!(zdd.edge_multiplicity, (n, n′))
-#         else
-#             zdd.edges[(n, n′)] = x
-#         end
-#     end
-#
-#     # add to simple graph
-#     add_edge!(zdd.graph, n_idx, n′_idx)
-# end
-
 function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
     """
     """
@@ -396,8 +320,6 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::
     push!(zdd.graph, new_node)
 
     n′_idx = length(zdd.graph)
-    # add_vertex!(zdd.graph)
-    # n′_idx = nv(zdd.graph)
     zdd.nodes[n′.hash] = n′_idx
 
     # if zdd.viz
@@ -411,11 +333,34 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::
     # end
 
     # add to simple graph
-    # add_edge!(zdd.graph, n_idx, n′_idx)
-
     if x == 0
         zdd.graph[n_idx] = ZDD_Node(n′_idx, zdd.graph[n_idx].one)
     else
         zdd.graph[n_idx] = ZDD_Node(zdd.graph[n_idx].zero, n′_idx)
+    end
+end
+
+function add_zdd_edge!(zdd::ZDD,
+                       node₁::Node,
+                       node₂::Node,
+                       node₁_idx::Int64,
+                       x::Int8)
+    """ 
+    """
+    # if zdd.viz
+    #     if (node₁, node₂) in keys(zdd.edges)
+    #         push!(zdd.edge_multiplicity, (node₁, node₂))
+    #     else
+    #         zdd.edges[(node₁, node₂)] = x
+    #     end
+    # end
+
+    node₂_idx = zdd.nodes[node₂.hash]
+
+    # add to simple graph
+    if x == 0
+        zdd.graph[node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[node₁_idx].one)
+    else
+        zdd.graph[node₁_idx] = ZDD_Node(zdd.graph[node₁_idx].zero, node₂_idx)
     end
 end
