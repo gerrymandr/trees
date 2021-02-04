@@ -5,61 +5,99 @@ include("weightless_node.jl")
 include("grid.jl")
 include("frontier.jl")
 include("edge_ordering.jl")
+include("graph.jl")
 
-mutable struct ZDD{G<:SimpleDiGraph, S<:SimpleGraph, N<:Node}
-    graph::G
+mutable struct ZDD{N<:Node, S<:SimpleGraph}
+    graph::Vector{ZDD_Node}
     nodes::Dict{UInt64, Int64}
-    nodes_complete::Dict{N, Int64}    # used only when viz = True
-    edges::Dict{Tuple{N, N}, Int8}   # used only when viz = True
-    edge_multiplicity::Set{Tuple{N, N}}
+    # nodes_complete::Dict{N, Int64}    # used only when viz = True
+    # edges::Dict{Tuple{N, N}, Int8}    # used only when viz = True
+    # edge_multiplicity::Set{Tuple{N, N}}
     base_graph::S
     root::N
     viz::Bool
 end
 
 function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
-    graph = SimpleDiGraph(3) # 2 for terminal nodes and 1 for the root
+    graph = Vector{ZDD_Node}()
+
+    zero_node_zdd = ZDD_Node(0, 0)
+    one_node_zdd = ZDD_Node(1, 1)
+    root_stub = ZDD_Node(7, 7) # these are "random" numbers
+
+    push!(graph, zero_node_zdd)
+    push!(graph, one_node_zdd)
+    push!(graph, root_stub)
+
+    zero_node_complete = Node(0)
+    one_node_complete = Node(1)
+
     nodes = Dict{UInt64, Int64}()
-    zero_node = Node(0)
-    one_node = Node(1)
-    nodes[zero_node.hash] = 1
-    nodes[one_node.hash] = 2
+    nodes[zero_node_complete.hash] = 1
+    nodes[one_node_complete.hash] = 2
     nodes[root.hash] = 3
+    # nodes_complete = Dict{Node, Int64}()
+    # nodes_complete[Node(0)] = 1
+    # nodes_complete[Node(1)] = 2
+    # nodes_complete[root] = 3
 
-    nodes_complete = Dict{Node, Int64}()
-    nodes_complete[Node(0)] = 1
-    nodes_complete[Node(1)] = 2
-    nodes_complete[root] = 3
-
-    edges = Dict{Tuple{Node,Node}, Int8}()
-    edge_multiplicity = Set{Tuple{Node,Node}}()
+    # edges = Dict{Tuple{Node,Node}, Int8}()
+    # edge_multiplicity = Set{Tuple{Node,Node}}()
     base_graph = g
-    return ZDD(graph, nodes, nodes_complete, edges, edge_multiplicity, base_graph, root, viz)
+    return ZDD(graph, nodes, base_graph, root, viz)
 end
 
 # these need to be included only after the ZDD struct is defined
 include("count_enumerate.jl")
 include("visualization.jl")
 
+
+# function add_zdd_edge!(zdd::ZDD,
+#                        node₁::Node,
+#                        node₂::Node,
+#                        node₁_idx::Int64,
+#                        x::Int8)
+#     """ zdd_edge is represented as (Node, Node)
+#     """
+#     if zdd.viz
+#         if (node₁, node₂) in keys(zdd.edges)
+#             push!(zdd.edge_multiplicity, (node₁, node₂))
+#         else
+#             zdd.edges[(node₁, node₂)] = x
+#         end
+#     end
+#
+#     node₂_idx = zdd.nodes[node₂.hash]
+#
+#     # add to simple graph
+#     add_edge!(zdd.graph, node₁_idx, node₂_idx)
+# end
+
 function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
                        node₂::Node,
                        node₁_idx::Int64,
                        x::Int8)
-    """ zdd_edge is represented as (Node, Node)
+    """ You would have to change the x field of node₁ to the index of node₂.
+        No fields of node₂ are touched.
     """
-    if zdd.viz
-        if (node₁, node₂) in keys(zdd.edges)
-            push!(zdd.edge_multiplicity, (node₁, node₂))
-        else
-            zdd.edges[(node₁, node₂)] = x
-        end
-    end
+    # if zdd.viz
+    #     if (node₁, node₂) in keys(zdd.edges)
+    #         push!(zdd.edge_multiplicity, (node₁, node₂))
+    #     else
+    #         zdd.edges[(node₁, node₂)] = x
+    #     end
+    # end
 
     node₂_idx = zdd.nodes[node₂.hash]
 
+    if x == 0
+        zdd.graph[node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[node₁_idx].one)
+    else
+        zdd.graph[node₁_idx] = ZDD_Node(zdd.graph[node₁_idx].zero, node₂_idx)
+    end
     # add to simple graph
-    add_edge!(zdd.graph, node₁_idx, node₂_idx)
+    # add_edge!(zdd.graph, node₁_idx, node₂_idx)
 end
 
 function num_edges(zdd::ZDD)
@@ -330,23 +368,54 @@ function adjust_node!(node::Node,
     empty!(rm_container)
 end
 
+# function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
+#     """
+#     """
+#     add_vertex!(zdd.graph)
+#     n′_idx = nv(zdd.graph)
+#     zdd.nodes[n′.hash] = n′_idx
+#
+#     if zdd.viz
+#         zdd.nodes_complete[n′] = n′_idx
+#
+#         if (n, n′) in keys(zdd.edges)
+#             push!(zdd.edge_multiplicity, (n, n′))
+#         else
+#             zdd.edges[(n, n′)] = x
+#         end
+#     end
+#
+#     # add to simple graph
+#     add_edge!(zdd.graph, n_idx, n′_idx)
+# end
+
 function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
     """
     """
-    add_vertex!(zdd.graph)
-    n′_idx = nv(zdd.graph)
+    new_node = ZDD_Node(0, 0)
+    push!(zdd.graph, new_node)
+
+    n′_idx = length(zdd.graph)
+    # add_vertex!(zdd.graph)
+    # n′_idx = nv(zdd.graph)
     zdd.nodes[n′.hash] = n′_idx
 
-    if zdd.viz
-        zdd.nodes_complete[n′] = n′_idx
-
-        if (n, n′) in keys(zdd.edges)
-            push!(zdd.edge_multiplicity, (n, n′))
-        else
-            zdd.edges[(n, n′)] = x
-        end
-    end
+    # if zdd.viz
+    #     zdd.nodes_complete[n′] = n′_idx
+    #
+    #     if (n, n′) in keys(zdd.edges)
+    #         push!(zdd.edge_multiplicity, (n, n′))
+    #     else
+    #         zdd.edges[(n, n′)] = x
+    #     end
+    # end
 
     # add to simple graph
-    add_edge!(zdd.graph, n_idx, n′_idx)
+    # add_edge!(zdd.graph, n_idx, n′_idx)
+
+    if x == 0
+        zdd.graph[n_idx] = ZDD_Node(n′_idx, zdd.graph[n_idx].one)
+    else
+        zdd.graph[n_idx] = ZDD_Node(zdd.graph[n_idx].zero, n′_idx)
+    end
 end
