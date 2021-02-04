@@ -13,9 +13,9 @@ All of these commands are on the command line.
    `cd GerryChain`
 
 4. Copy the `install_script.sh` file in this Github directory (not the one you just entered!)
-   The file is at https://github.com/gerrymandr/rev_recom_demo/install_script.sh .
+   The file is at https://github.com/gerrymandr/trees/blob/main/rev_recom_demo/install_script.sh .
    Put this file in the `GerryChain` repository. This can be done by entering
-   `wget https://github.com/gerrymandr/blob/main/rev_recom_demo/install_script.sh`
+   `wget https://github.com/gerrymandr/trees/blob/main/rev_recom_demo/install_script.sh`
 
 5. Run the script. This installs all the dependencies for the new release.
    `sh install_script.sh`
