@@ -1,5 +1,6 @@
 using DataStructures
 using LightGraphs
+import Base: Dict
 
 include("weightless_node.jl")
 include("grid.jl")
@@ -12,7 +13,9 @@ mutable struct ZDD{N<:Node, S<:SimpleGraph}
     nodes::Dict{UInt64, Int64}
     # nodes_complete::Dict{N, Int64}    # used only when viz = True
     base_graph::S
+    valid_partitions::Int
     root::N
+    paths::Int
     viz::Bool
 end
 
@@ -41,7 +44,7 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes_complete[root] = 3
 
     base_graph = g
-    return ZDD(graph, nodes, base_graph, root, viz)
+    return ZDD(graph, nodes, base_graph, 0, root, 0, viz)
 end
 
 # these need to be included only after the ZDD struct is defined
@@ -80,16 +83,22 @@ function construct_zdd(g::SimpleGraph,
                                    zero_terminal, one_terminal,
                                    fp_container, rm_container, lower_vs, recycler)
 
+                if n′ === one_terminal
+                    zdd.paths += n.paths
+                end
+
                 if !(n′.label == NodeEdge(0, 0) || n′.label == NodeEdge(1, 1)) # if not a Terminal Node
                     n′.label = g_edges[i+1] # update the label of n′
                     reusable_unique!(n′.fps, reusable_set)
                     sort!(n′.fps, alg=QuickSort)
-
                     n′.hash = hash(n′)
 
-                    if n′ ∉ N[i+1]
-                        push!(N[i+1], n′)
+                    if n′ ∈ N[i+1]
+                        index = Base.ht_keyindex2!(N[i+1].dict, n′)
+                        N[i+1].dict.keys[index].paths += n.paths
+                    else
                         add_zdd_node_and_edge!(zdd, n′, n, n_idx, x)
+                        push!(N[i+1], n′)
                         continue
                     end
                 end
@@ -322,17 +331,9 @@ function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::
     n′_idx = length(zdd.graph)
     zdd.nodes[n′.hash] = n′_idx
 
-    # if zdd.viz
-    #     zdd.nodes_complete[n′] = n′_idx
-    #
-    #     if (n, n′) in keys(zdd.edges)
-    #         push!(zdd.edge_multiplicity, (n, n′))
-    #     else
-    #         zdd.edges[(n, n′)] = x
-    #     end
-    # end
+    n′.paths = n.paths
 
-    # add to simple graph
+    # add to graph
     if x == 0
         zdd.graph[n_idx] = ZDD_Node(n′_idx, zdd.graph[n_idx].one)
     else
@@ -345,19 +346,11 @@ function add_zdd_edge!(zdd::ZDD,
                        node₂::Node,
                        node₁_idx::Int64,
                        x::Int8)
-    """ 
+    """ Add an edge from node₁ to node₂.
     """
-    # if zdd.viz
-    #     if (node₁, node₂) in keys(zdd.edges)
-    #         push!(zdd.edge_multiplicity, (node₁, node₂))
-    #     else
-    #         zdd.edges[(node₁, node₂)] = x
-    #     end
-    # end
-
     node₂_idx = zdd.nodes[node₂.hash]
 
-    # add to simple graph
+    # add to graph
     if x == 0
         zdd.graph[node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[node₁_idx].one)
     else

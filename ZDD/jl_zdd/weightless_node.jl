@@ -40,6 +40,7 @@ mutable struct Node
     deadend::Bool
     first_idx::UInt8
     hash::UInt64
+    paths::Int
 
     # allow for incomplete initialization
     function Node()::Node
@@ -47,22 +48,22 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0)
+        node = new(NodeEdge(i, i), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0, 0)
         node.hash = hash(node)
         return node
     end
 
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-        node = new(root_edge, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0)
+        node = new(root_edge, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, 1)
         node.hash = hash(node)
         return node
     end
 
     function Node(label::NodeEdge,
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
-                  deadend::Bool, first_idx::UInt8)::Node
-        return new(label, cc, fps, comp_assign, deadend, first_idx, 0)
+                  deadend::Bool, first_idx::UInt8, paths::Int)::Node
+        return new(label, cc, fps, comp_assign, deadend, first_idx, 0, paths)
     end
 end
 
@@ -95,7 +96,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         copy_to_vec_from_idx!(n.comp_assign, comp_assign, n.first_idx)
         copy_to_vec!(n.fps, fps)
 
-        return Node(n.label, n.cc, fps, comp_assign, true, n.first_idx)
+        return Node(n.label, n.cc, fps, comp_assign, true, n.first_idx, n.paths)
     else
         n′ = pop!(recycler)
 
@@ -110,6 +111,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         n′.first_idx = n.first_idx
         n′.deadend = n.deadend
         n′.label = n.label
+        n′.paths = n.paths
 
         return n′
     end
