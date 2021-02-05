@@ -13,7 +13,6 @@ mutable struct ZDD{N<:Node, S<:SimpleGraph}
     nodes::Dict{UInt64, Int64}
     # nodes_complete::Dict{N, Int64}    # used only when viz = True
     base_graph::S
-    valid_partitions::Int
     root::N
     paths::Int
     viz::Bool
@@ -38,13 +37,9 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes[one_node_complete.hash] = 2
     nodes[root.hash] = 3
 
-    nodes_complete = Dict{Node, Int64}()
-    nodes_complete[Node(0)] = 1
-    nodes_complete[Node(1)] = 2
-    nodes_complete[root] = 3
-
     base_graph = g
-    return ZDD(graph, nodes, base_graph, 0, root, 0, viz)
+    paths = 0
+    return ZDD(graph, nodes, base_graph, root, paths, viz)
 end
 
 # these need to be included only after the ZDD struct is defined
