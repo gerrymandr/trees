@@ -7,7 +7,11 @@ include("node.jl")
 include("grid.jl")
 include("frontier.jl")
 include("edge_ordering.jl")
-include("graph.jl")
+
+struct ZDD_Node
+    zero::Int
+    one::Int
+end
 
 mutable struct ZDD{N<:Node, S<:SimpleGraph}
     graph::Vector{ZDD_Node}
