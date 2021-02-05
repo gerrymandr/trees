@@ -18,4 +18,5 @@ run_algo(3, 3, 0) # test
 
 Profile.clear_malloc_data()
 
-@profilehtml run_algo(7, 7, 0)
+# @profilehtml run_algo(7, 7, 0)
+run_algo(7, 7, 0)

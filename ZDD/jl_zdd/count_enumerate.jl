@@ -105,14 +105,20 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int, g_ed
 end
 
 function count_paths(zdd::ZDD)::Int
-    """ Returns the number of paths to the 1 Node in `zdd`
+    """ Return the total number of plans that go to the 1 terminal
     """
-    terminal_level = Dict{Int, Int}()
-
-    terminal_level[2] = 1 # the 1 terminal Node is always at node 2
-    depth = 1             # depth at bottom of the ZDD tree is 1
-    return count_paths(zdd, terminal_level, depth)
+    zdd.paths
 end
+
+# function count_paths(zdd::ZDD)::Int
+#     """ Returns the number of paths to the 1 Node in `zdd`
+#     """
+#     terminal_level = Dict{Int, Int}()
+#
+#     terminal_level[2] = 1 # the 1 terminal Node is always at node 2
+#     depth = 1             # depth at bottom of the ZDD tree is 1
+#     return count_paths(zdd, terminal_level, depth)
+# end
 
 function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int)::Int
     """ Recursively finds the number of paths to a node.
