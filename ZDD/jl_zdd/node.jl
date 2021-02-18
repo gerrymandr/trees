@@ -57,9 +57,9 @@ mutable struct Node
         return node
     end
 
-    function Node(root_edge::NodeEdge, base_graph::SimpleGraph)::Node
+    function Node(root_edge::NodeEdge, base_graph::SimpleGraph, weights::Vector{UInt8})::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-        comp_weights = Vector{UInt8}([1 for i in 1:nv(base_graph)]) # initialize each vertex's population to be 1.
+        comp_weights = weights # initialize each vertex's population based on user input
         node = new(root_edge, comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, 1)
         node.hash = hash(node)
         return node
