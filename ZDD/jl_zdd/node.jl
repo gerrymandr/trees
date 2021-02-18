@@ -37,7 +37,7 @@ Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
     label::NodeEdge
-    comp_weights::Vector{UInt8} # the max population of a component can only be 256
+    comp_weights::Vector{UInt32}
     cc::UInt8                   # can hold only 256 possible values
     fps::Vector{ForbiddenPair}
     comp_assign::Vector{UInt8}  # only 256 possible values
@@ -52,12 +52,12 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), Vector{UInt8}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1), 0, 0)
+        node = new(NodeEdge(i, i), Vector{UInt32}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1), 0, 0)
         node.hash = hash(node)
         return node
     end
 
-    function Node(root_edge::NodeEdge, base_graph::SimpleGraph, weights::Vector{UInt8})::Node
+    function Node(root_edge::NodeEdge, base_graph::SimpleGraph, weights::Vector{UInt32})::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = weights # initialize each vertex's population based on user input
         node = new(root_edge, comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, 1)
@@ -65,7 +65,7 @@ mutable struct Node
         return node
     end
 
-    function Node(label::NodeEdge, comp_weights::Vector{UInt8},
+    function Node(label::NodeEdge, comp_weights::Vector{UInt32},
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
                   deadend::Bool, first_idx::UInt8, paths::Int)::Node
         return new(label, comp_weights, cc, fps, comp_assign, deadend, first_idx, paths)
@@ -95,7 +95,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         return n
     end
     if isempty(recycler)
-        comp_weights = Vector{UInt8}(undef, length(n.comp_weights))
+        comp_weights = Vector{UInt32}(undef, length(n.comp_weights))
         comp_assign = zeros(UInt8, length(n.comp_assign))
         fps = Vector{ForbiddenPair}(undef, length(n.fps))
 

@@ -74,11 +74,11 @@ function construct_zdd(g::SimpleGraph,
                        g_edges::Array{NodeEdge,1};
                        weights::Vector{Int64}=Vector{Int64}([1 for i in 1:nv(g)]),
                        viz::Bool=false)::ZDD
-    weights = [convert(UInt8,i) for i in weights]
+    weights = [convert(UInt32,i) for i in weights]
     root = Node(g_edges[1], g, weights)
 
-    lower_bound = Int8(floor(sum(weights)/k - d)) # TODO: extend to non-nice ratios
-    upper_bound = Int8(floor(sum(weights)/k + d))
+    lower_bound = Int32(floor(sum(weights)/k - d))
+    upper_bound = Int32(floor(sum(weights)/k + d))
     println("Accepting districts with population in [$lower_bound, $upper_bound]")
 
     zdd = ZDD(g, root, viz=viz)
@@ -139,8 +139,8 @@ function make_new_node(g::SimpleGraph,
                        x::Int8,
                        d::Int,
                        frontiers::Array{Set{UInt8}, 1},
-                       lower_bound::Int8,
-                       upper_bound::Int8,
+                       lower_bound::Int32,
+                       upper_bound::Int32,
                        zero_terminal::Node,
                        one_terminal::Node,
                        fp_container::Vector{ForbiddenPair},
