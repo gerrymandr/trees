@@ -1,35 +1,37 @@
 # node.jl
-import Base: isequal, ==, isless, Dict
+include("forbidden_pair.jl")
 
-struct NodeEdge
-    edge₁::UInt8
-    edge₂::UInt8
-end
-
-function convert_lightgraphs_edges_to_node_edges(g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})::Array{NodeEdge, 1}
-    node_edges = Array{NodeEdge, 1}([])
-    for edge in g_edges
-        push!(node_edges, NodeEdge(edge.src, edge.dst))
-    end
-    return node_edges
-end
-
-Base.hash(ne::NodeEdge, h::UInt) = hash(ne.edge₁, hash(ne.edge₂, h))
-
-######################## ForbiddenPair #########################
-# comp₁ < comp₂ by requirement
-struct ForbiddenPair
-    comp₁::UInt8
-    comp₂::UInt8
-end
-
-==(p::ForbiddenPair, q::ForbiddenPair) = (p.comp₁==q.comp₁) & (p.comp₂==q.comp₂)
-
-isequal(p::ForbiddenPair, q::ForbiddenPair) = isequal(p.comp₁,q.comp₁) & isequal(p.comp₂,q.comp₂)
-
-isless(p::ForbiddenPair, q::ForbiddenPair) = ifelse(!isequal(p.comp₁,q.comp₁), isless(p.comp₁,q.comp₁), isless(p.comp₂,q.comp₂))
-
-Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
+# import Base: isequal, ==, isless, Dict
+#
+# struct NodeEdge
+#     edge₁::UInt8
+#     edge₂::UInt8
+# end
+#
+# function convert_lightgraphs_edges_to_node_edges(g_edges::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1})::Array{NodeEdge, 1}
+#     node_edges = Array{NodeEdge, 1}([])
+#     for edge in g_edges
+#         push!(node_edges, NodeEdge(edge.src, edge.dst))
+#     end
+#     return node_edges
+# end
+#
+# Base.hash(ne::NodeEdge, h::UInt) = hash(ne.edge₁, hash(ne.edge₂, h))
+#
+# ######################## ForbiddenPair #########################
+# # comp₁ < comp₂ by requirement
+# struct ForbiddenPair
+#     comp₁::UInt8
+#     comp₂::UInt8
+# end
+#
+# ==(p::ForbiddenPair, q::ForbiddenPair) = (p.comp₁==q.comp₁) & (p.comp₂==q.comp₂)
+#
+# isequal(p::ForbiddenPair, q::ForbiddenPair) = isequal(p.comp₁,q.comp₁) & isequal(p.comp₂,q.comp₂)
+#
+# isless(p::ForbiddenPair, q::ForbiddenPair) = ifelse(!isequal(p.comp₁,q.comp₁), isless(p.comp₁,q.comp₁), isless(p.comp₂,q.comp₂))
+#
+# Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
 
 #######################   Node   ##################################
 
@@ -72,23 +74,23 @@ mutable struct Node
     end
 end
 
-function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
-    """ Copy items from vec₁ into vec₂.
-        It is assumed that length(vec₂) >= length(vec₁)
-    """
-    for (i, item) in enumerate(vec₁)
-        @inbounds vec₂[i] = item
-    end
-end
-
-function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8) where T
-    """ Copy items from vec₁ into vec₂.
-        It is assumed that length(vec₂) >= length(vec₁)
-    """
-    for i = idx:length(vec₁)
-        @inbounds vec₂[i] = vec₁[i]
-    end
-end
+# function copy_to_vec!(vec₁::Vector{T}, vec₂::Vector{T}) where T
+#     """ Copy items from vec₁ into vec₂.
+#         It is assumed that length(vec₂) >= length(vec₁)
+#     """
+#     for (i, item) in enumerate(vec₁)
+#         @inbounds vec₂[i] = item
+#     end
+# end
+#
+# function copy_to_vec_from_idx!(vec₁::Vector{T}, vec₂::Vector{T}, idx::UInt8) where T
+#     """ Copy items from vec₁ into vec₂.
+#         It is assumed that length(vec₂) >= length(vec₁)
+#     """
+#     for i = idx:length(vec₁)
+#         @inbounds vec₂[i] = vec₁[i]
+#     end
+# end
 
 function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
     if x == 1
@@ -125,13 +127,13 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
     end
 end
 
-function Base.:(==)(node₁::Node, node₂::Node)
-    node₁.hash == node₂.hash
-end
-
-function Base.isequal(node₁::Node, node₂::Node)
-    node₁.hash == node₂.hash
-end
+# function Base.:(==)(node₁::Node, node₂::Node)
+#     node₁.hash == node₂.hash
+# end
+#
+# function Base.isequal(node₁::Node, node₂::Node)
+#     node₁.hash == node₂.hash
+# end
 
 function Base.hash(n::Node)
     comp_weights = @view n.comp_weights[n.first_idx:end]
@@ -139,9 +141,9 @@ function Base.hash(n::Node)
     hash(n.label, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign)))))
 end
 
-function Base.hashindex(node::Node, sz)::Int
-    (((node.hash %Int) & (sz-1)) + 1)
-end
+# function Base.hashindex(node::Node, sz)::Int
+#     (((node.hash %Int) & (sz-1)) + 1)
+# end
 
 function node_summary(node::Node)
     println("Label: ", readable(node.label))
@@ -153,26 +155,26 @@ function node_summary(node::Node)
     println()
 end
 
-function readable(edge::NodeEdge)::String
-    "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
-end
-
-function readable(arr::Vector{UInt8})::Vector{Int64}
-    Vector{Int}([Int64(x) for x in arr])
-end
-
-function readable(cc::UInt8)::Int64
-    Int64(cc)
-end
-
-function readable(fp::ForbiddenPair)::String
-    "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
-end
-
-function readable(fp_vec::Vector{ForbiddenPair})::Set{String}
-    readable_vec = Vector{String}([])
-    for fp in fp_vec
-        push!(readable_vec, readable(fp))
-    end
-    readable_vec
-end
+# function readable(edge::NodeEdge)::String
+#     "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
+# end
+#
+# function readable(arr::Vector{UInt8})::Vector{Int64}
+#     Vector{Int}([Int64(x) for x in arr])
+# end
+#
+# function readable(cc::UInt8)::Int64
+#     Int64(cc)
+# end
+#
+# function readable(fp::ForbiddenPair)::String
+#     "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
+# end
+#
+# function readable(fp_vec::Vector{ForbiddenPair})::Set{String}
+#     readable_vec = Vector{String}([])
+#     for fp in fp_vec
+#         push!(readable_vec, readable(fp))
+#     end
+#     readable_vec
+# end
