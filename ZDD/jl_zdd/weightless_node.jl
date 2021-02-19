@@ -1,8 +1,6 @@
 
 include("forbidden_pair.jl")
 
-#######################   Node   ##################################
-
 # The 1st node is always the 0-terminal, and the 2nd node is always the 1 terminal. Adding the first node to the ZDD
 # means the ZDD will have 3 nodes, the node + the two terminal nodes
 mutable struct Node
@@ -80,21 +78,6 @@ function Base.hash(n::Node, h::UInt)
     hash(n.label, hash(n.cc, hash(n.fps, hash(comp_assign, h))))
 end
 
-# function Base.isequal(node₁::Node, node₂::Node)
-#     node₁.hash == node₂.hash
-# end
-#
-# function Base.hash(n::Node, h::UInt)
-#     comp_assign = @view n.comp_assign[n.first_idx:end]
-#     hash(n.label, hash(n.cc, hash(n.fps, hash(comp_assign, h))))
-# end
-#
-# function Base.hashindex(node::Node, sz)::Int
-#     (((node.hash %Int) & (sz-1)) + 1)
-# end
-
-# Base.hash(n::Node, h::UInt) = hash(n.label, hash(n.cc, hash(n.fps, hash(n.comp_assign, hash(:Node, h)))))
-
 function node_summary(node::Node)
     println("Label: ", readable(node.label))
     println("cc: ", readable(node.cc))
@@ -103,27 +86,3 @@ function node_summary(node::Node)
     println("comp_assign: ", readable(node.comp_assign))
     println()
 end
-
-# function readable(edge::NodeEdge)::String
-#     "NodeEdge(" * string(Int64(edge.edge₁)) * " -> " * string(Int64(edge.edge₂)) * ")"
-# end
-#
-# function readable(arr::Array{UInt8, 1})::Array{Int64, 1}
-#     Array{Int, 1}([Int64(x) for x in arr])
-# end
-#
-# function readable(cc::UInt8)::Int64
-#     Int64(cc)
-# end
-#
-# function readable(fp::ForbiddenPair)::String
-#     "ForbiddenPair(" * string(Int64(fp.comp₁)) * " -> " * string(Int64(fp.comp₂)) * ")"
-# end
-#
-# function readable(fps::Vector{ForbiddenPair})::Vector{String}
-#     readable_vec = Vector{String}([])
-#     for fp in fps
-#         push!(readable_vec, readable(fp))
-#     end
-#     readable_vec
-# end
