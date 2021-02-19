@@ -28,6 +28,14 @@ function Base.hashindex(node::Node, sz)::Int
     (((node.hash %Int) & (sz-1)) + 1)
 end
 
+function hash_arr(arr::SubArray)
+    h = length(arr)
+    for i in 1:length(arr)
+        h = h * 17 + arr[i]
+    end
+    return h
+end
+
 ###
 
 function readable(edge::NodeEdge)::String

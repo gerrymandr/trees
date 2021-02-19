@@ -29,3 +29,12 @@ isequal(p::ForbiddenPair, q::ForbiddenPair) = isequal(p.comp₁,q.comp₁) & ise
 isless(p::ForbiddenPair, q::ForbiddenPair) = ifelse(!isequal(p.comp₁,q.comp₁), isless(p.comp₁,q.comp₁), isless(p.comp₂,q.comp₂))
 
 Base.hash(fp::ForbiddenPair, h::UInt) = hash(fp.comp₁, hash(fp.comp₂, h))
+
+function hash_arr(arr::Vector{ForbiddenPair})
+    h = length(arr)
+    for i in 1:length(arr)
+        h = h * 17 + arr[i].comp₁
+        h = h * 17 + arr[i].comp₂
+    end
+    return h
+end

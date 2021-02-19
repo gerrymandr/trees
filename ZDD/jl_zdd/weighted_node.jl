@@ -73,11 +73,19 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
     end
 end
 
-
 function Base.hash(n::Node)
+    """ Reference: https://stackoverflow.com/questions/3404715/c-sharp-hashcode-for-array-of-ints
+    """
     comp_weights = @view n.comp_weights[n.first_idx:end]
     comp_assign = @view n.comp_assign[n.first_idx:end]
-    hash(n.label, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign)))))
+
+    cw = hash_arr(comp_weights)
+    ca = hash_arr(comp_assign)
+    fps = hash_arr(n.fps)
+
+    total = 17 * cw + 34 * ca + 47 * fps + 71 * n.cc
+
+    hash(n.label, hash(total))
 end
 
 function node_summary(node::Node)
