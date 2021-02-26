@@ -1,3 +1,5 @@
+using Serialization
+
 struct ZDD_Node
     zero::Int
     one::Int
@@ -42,7 +44,11 @@ function construct_zdd(g::SimpleGraph,
                        d::Int64,
                        g_edges::Array{NodeEdge,1};
                        weights::Vector{Int64}=Vector{Int64}([1 for i in 1:nv(g)]),
-                       viz::Bool=false)::ZDD
+                       viz::Bool=false,
+                       save_fp::String="zdd_tree.txt")::ZDD
+    # delete file if it already exists
+    # rm(save_fp)
+
     weights = [convert(UInt32,i) for i in weights]
     root = Node(g_edges[1], g, weights)
 
@@ -62,6 +68,7 @@ function construct_zdd(g::SimpleGraph,
     reusable_set = Set{ForbiddenPair}([])
     recycler = Stack{Node}()
     lower_vs = Vector{UInt8}([])
+    graph_idx = 0
 
     for i = 1:ne(g)
         for n in N[i]
@@ -86,7 +93,7 @@ function construct_zdd(g::SimpleGraph,
                         index = Base.ht_keyindex2!(N[i+1].dict, n′)
                         N[i+1].dict.keys[index].paths += n.paths
                     else
-                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x, graph_idx)
                         push!(N[i+1], n′)
                         continue
                     end
@@ -94,10 +101,18 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
+        graph_idx += length(zdd.graph) - 2
+        save_tree_so_far!(zdd, save_fp)
         erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal) # release memory
-        N[i] = Set{Node}([])           # release memory
+        N[i] = Set{Node}([])                                          # release memory
     end
     return zdd
+end
+
+function save_tree_so_far!(zdd::ZDD, save_fp::String)
+    output_file = open(save_fp, "a")
+    serialize(output_file, zdd.graph[3:length(zdd.graph)]) # ignore the first two because they are terminals
+    close(output_file)
 end
 
 function erase_upper_levels!(zdd::ZDD, N::Set{Node}, zero_terminal::Node, one_terminal::Node)
@@ -107,6 +122,7 @@ function erase_upper_levels!(zdd::ZDD, N::Set{Node}, zero_terminal::Node, one_te
     for node in N
         push!(hashes, node.hash)
     end
+    # dont delete the terminal hashes!
     push!(hashes, zero_terminal.hash)
     push!(hashes, one_terminal.hash)
 
@@ -116,6 +132,9 @@ function erase_upper_levels!(zdd::ZDD, N::Set{Node}, zero_terminal::Node, one_te
             pop!(zdd.nodes, node_hash)
         end
     end
+
+    # delete everything but the terminals
+    resize!(zdd.graph, 2)
 end
 
 function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
@@ -208,13 +227,13 @@ function lower_vertices!(num::UInt8, arr::Vector{UInt8}, container::Vector{UInt8
     end
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
+function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8, graph_idx::Int)
     """
     """
     new_node = ZDD_Node(0, 0)
     push!(zdd.graph, new_node)
 
-    n′_idx = length(zdd.graph)
+    n′_idx = length(zdd.graph) + graph_idx - 2
     zdd.nodes[n′.hash] = n′_idx
 
     n′.paths = n.paths
