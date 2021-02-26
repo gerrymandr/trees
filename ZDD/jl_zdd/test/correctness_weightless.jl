@@ -38,8 +38,6 @@ function test_paths(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
     end
 end
 
-
-
 @testset "Weightless" begin
 
     @testset "Rook Contiguity" begin
@@ -50,6 +48,7 @@ end
         test_paths(solutions_queen, queen_grid, optimal_queen_grid_edge_order)
     end
 end
+
 end
 
 

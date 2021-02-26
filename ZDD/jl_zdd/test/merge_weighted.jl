@@ -18,8 +18,6 @@ const solutions_queen = Dict(
     ([5,5],0) => 1067538,
 )
 
-
-
 function test_merge(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
                     make_grid::Function,
                     make_edges::Function)
@@ -33,8 +31,6 @@ function test_merge(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
         @test calculated_size  == truth
     end
 end
-
-
 
 @testset "Weighted" begin
 

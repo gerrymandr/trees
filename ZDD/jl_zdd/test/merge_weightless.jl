@@ -1,24 +1,22 @@
-module merge_weighted
+module merge_weightless
 
 using Test
-include("../weighted.jl")
+include("../weightless.jl")
 include("./utils.jl")
 
 const solutions_rook = Dict(
-    ([2,2],0) => 9,
-    ([3,3],0) => 79,
-    ([4,4],0) => 1120,
-    ([5,5],0) => 21494,
+    ([2,2],0) => 12,
+    ([3,3],0) => 175,
+    ([4,4],0) => 2175,
+    ([5,5],0) => 26221,
 )
 
 const solutions_queen = Dict(
-    ([2,2],0) => 18,
-    ([3,3],0) => 336,
-    ([4,4],0) => 13883,
-    ([5,5],0) => 1067538,
+    ([2,2],0) => 29,
+    ([3,3],0) => 544,
+    ([4,4],0) => 9177,
+    ([5,5],0) => 170921,
 )
-
-
 
 function test_merge(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
                     make_grid::Function,
@@ -36,7 +34,7 @@ end
 
 
 
-@testset "Weighted" begin
+@testset "Weightless" begin
 
     @testset "Rook Contiguity" begin
         test_merge(solutions_rook, grid, optimal_grid_edge_order_diags)

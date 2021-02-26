@@ -1,14 +1,13 @@
+module test_environment
+
 using Test
-
 const testdir = dirname(@__FILE__)
-
 include("./utils.jl")
 
 const tests = Dict(
     "Correctness" => ["correctness_weighted", "correctness_weightless"],
     "Merge" => ["merge_weighted", "merge_weightless"]
 )
-
 
 @testset "ZDD Julia Tests" begin
     for (category,files) in tests
@@ -19,4 +18,6 @@ const tests = Dict(
             end
         end
     end
+end
+
 end

@@ -30,7 +30,6 @@ const solutions_queen = Dict(
     #([5,5], 3) => 2467619460
 )
 
-
 function test_paths(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
                     make_grid::Function,
                     make_edges::Function)
@@ -45,7 +44,6 @@ function test_paths(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
     end
 end
 
-
 @testset "Weighted" begin
 
     @testset "Rook Contiguity" begin
@@ -56,7 +54,6 @@ end
         test_paths(solutions_queen, queen_grid, optimal_queen_grid_edge_order)
     end
 end
-
 end
 
 
