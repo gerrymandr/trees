@@ -94,9 +94,28 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
-        N[i] = Set{Node}([]) # release memory
+        erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal) # release memory
+        N[i] = Set{Node}([])           # release memory
     end
     return zdd
+end
+
+function erase_upper_levels!(zdd::ZDD, N::Set{Node}, zero_terminal::Node, one_terminal::Node)
+
+    # collect hashes
+    hashes = Set{UInt64}()
+    for node in N
+        push!(hashes, node.hash)
+    end
+    push!(hashes, zero_terminal.hash)
+    push!(hashes, one_terminal.hash)
+
+    # delete everything not in hashes
+    for node_hash in keys(zdd.nodes)
+        if node_hash ∉ hashes
+            pop!(zdd.nodes, node_hash)
+        end
+    end
 end
 
 function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
