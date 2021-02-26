@@ -78,18 +78,12 @@ function Base.hash(n::Node, h::UInt)
     """
     comp_assign = @view n.comp_assign[n.first_idx:end]
 
-    ca = hash_arr(comp_assign)
-    fps = hash_arr(n.fps)
-
-    total = 17 * ca + 47 * fps + 71 * n.cc
-
-    hash(n.label, hash(total))
+    hash(n.label, hash(n.cc, hash(comp_assign, hash(n.fps))))
 end
 
 function node_summary(node::Node)
     println("Label: ", readable(node.label))
     println("cc: ", readable(node.cc))
-    println("comp: ", readable(node.comp))
     println("fps: ", readable(node.fps))
     println("comp_assign: ", readable(node.comp_assign))
     println()
