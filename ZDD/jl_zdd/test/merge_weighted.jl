@@ -26,7 +26,7 @@ function test_merge(solutions::Dict{Tuple{Array{Int64,1},Int64},Int64},
         d = case[2]
 
         zdd = prepare_zdd([n,k], d, make_grid, make_edges)
-        calculated_size = length(zdd.graph)
+        calculated_size = num_nodes(zdd)
 
         @test calculated_size  == truth
     end
@@ -44,11 +44,3 @@ end
 end
 
 end
-
-
-
-
-
-
-
-

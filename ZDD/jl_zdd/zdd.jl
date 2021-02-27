@@ -9,7 +9,8 @@ mutable struct ZDD{N<:Node, S<:SimpleGraph}
     # nodes_complete::Dict{N, Int64}    # used only when viz = True
     base_graph::S
     root::N
-    paths::Int
+    paths::UInt128
+    deleted_nodes::Int
     viz::Bool
 end
 
@@ -33,8 +34,9 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes[root.hash] = 3
 
     base_graph = g
-    paths = 0
-    return ZDD(graph, nodes, base_graph, root, paths, viz)
+    paths::UInt128 = 0
+    deleted_nodes = 0
+    return ZDD(graph, nodes, base_graph, root, paths, deleted_nodes, viz)
 end
 
 function construct_zdd(g::SimpleGraph,
@@ -66,7 +68,6 @@ function construct_zdd(g::SimpleGraph,
     reusable_set = Set{ForbiddenPair}([])
     recycler = Stack{Node}()
     lower_vs = Vector{UInt8}([])
-    deleted_nodes = 0
 
     for i = 1:ne(g)
         for n in N[i]
@@ -91,18 +92,20 @@ function construct_zdd(g::SimpleGraph,
                         index = Base.ht_keyindex2!(N[i+1].dict, n′)
                         N[i+1].dict.keys[index].paths += n.paths
                     else
-                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x, deleted_nodes)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x)
                         push!(N[i+1], n′)
                         continue
                     end
                 end
-                add_zdd_edge!(zdd, n, n′, n_idx, x, deleted_nodes)
+                add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
-        deleted_nodes += length(N[i])
+        zdd.deleted_nodes += length(N[i])
         # save_tree_so_far!(zdd, save_fp)
         erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal, length(N[i])) # release memory
         N[i] = Set{Node}([])   # release memory
+
+        # println(i, ": ", Base.summarysize(zdd))
     end
     return zdd
 end
@@ -228,17 +231,17 @@ function lower_vertices!(num::UInt8, arr::Vector{UInt8}, container::Vector{UInt8
     end
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8, deleted_nodes::Int)
+function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
     """
     """
     new_node = ZDD_Node(0, 0)
     push!(zdd.graph, new_node)
 
-    n′_idx = length(zdd.graph) + deleted_nodes
+    n′_idx = length(zdd.graph) + zdd.deleted_nodes
     zdd.nodes[n′.hash] = n′_idx
 
     n′.paths = n.paths
-    curr_n_idx = n_idx - deleted_nodes
+    curr_n_idx = n_idx - zdd.deleted_nodes
 
     # add to graph
     if x == 0
@@ -252,12 +255,11 @@ function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
                        node₂::Node,
                        node₁_idx::Int64,
-                       x::Int8,
-                       deleted_nodes::Int)
+                       x::Int8)
     """ Add an edge from node₁ to node₂.
     """
     node₂_idx = zdd.nodes[node₂.hash]
-    curr_node₁_idx = node₁_idx - deleted_nodes
+    curr_node₁_idx = node₁_idx - zdd.deleted_nodes
 
     # add to graph
     if x == 0
@@ -265,4 +267,12 @@ function add_zdd_edge!(zdd::ZDD,
     else
         zdd.graph[curr_node₁_idx] = ZDD_Node(zdd.graph[curr_node₁_idx].zero, node₂_idx)
     end
+end
+
+function num_nodes(zdd::ZDD)
+    """ This function is to be used only after a zdd has been completely built,
+        calling this function while the zdd is being constructed will almost
+        certainly provide the wrong answer.
+    """
+    zdd.deleted_nodes + 2
 end
