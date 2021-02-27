@@ -11,7 +11,7 @@ mutable struct Node
     deadend::Bool
     first_idx::UInt8
     hash::UInt64
-    paths::Int
+    paths::UInt128
 
     # allow for incomplete initialization
     function Node()::Node
@@ -19,7 +19,7 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0, 0)
+        node = new(NodeEdge(i, i), 0, Vector{ForbiddenPair}(), Vector{UInt8}([]), true, UInt8(1), 0, UInt128(0))
         node.hash = hash(node)
         return node
     end
@@ -29,14 +29,14 @@ mutable struct Node
             weighted zdds.
         """
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
-        node = new(root_edge, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, 1)
+        node = new(root_edge, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, UInt128(1))
         node.hash = hash(node)
         return node
     end
 
     function Node(label::NodeEdge,
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
-                  deadend::Bool, first_idx::UInt8, paths::Int)::Node
+                  deadend::Bool, first_idx::UInt8, paths::UInt128)::Node
         return new(label, cc, fps, comp_assign, deadend, first_idx, 0, paths)
     end
 end
@@ -74,7 +74,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
 end
 
 function Base.hash(n::Node, h::UInt)
-    """ 
+    """
     """
     comp_assign = @view n.comp_assign[n.first_idx:end]
 
