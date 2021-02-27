@@ -10,7 +10,7 @@ mutable struct Node
     deadend::Bool
     first_idx::UInt8
     hash::UInt64
-    paths::Int
+    paths::UInt128
 
     # allow for incomplete initialization
     function Node()::Node
@@ -18,7 +18,7 @@ mutable struct Node
     end
 
     function Node(i::Int)::Node # for Terminal Nodes
-        node = new(NodeEdge(i, i), Vector{UInt32}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1), 0, 0)
+        node = new(NodeEdge(i, i), Vector{UInt32}([1]), 0, Vector{ForbiddenPair}(), Vector{UInt8}([1]), true, UInt8(1), 0, UInt128(0))
         node.hash = hash(node)
         return node
     end
@@ -26,14 +26,14 @@ mutable struct Node
     function Node(root_edge::NodeEdge, base_graph::SimpleGraph, weights::Vector{UInt32})::Node
         comp_assign = Vector{UInt8}([i for i in 1:nv(base_graph)])
         comp_weights = weights # initialize each vertex's population based on user input
-        node = new(root_edge, comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, 1)
+        node = new(root_edge, comp_weights, 0, Vector{ForbiddenPair}(), comp_assign, true, UInt8(1), 0, UInt128(1))
         node.hash = hash(node)
         return node
     end
 
     function Node(label::NodeEdge, comp_weights::Vector{UInt32},
                   cc::UInt8, fps::Vector{ForbiddenPair}, comp_assign::Vector{UInt8},
-                  deadend::Bool, first_idx::UInt8, paths::Int)::Node
+                  deadend::Bool, first_idx::UInt8, paths::UInt128)::Node
         return new(label, comp_weights, cc, fps, comp_assign, deadend, first_idx, paths)
     end
 end
@@ -73,17 +73,18 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
     end
 end
 
-
 function Base.hash(n::Node)
+    """
+    """
     comp_weights = @view n.comp_weights[n.first_idx:end]
     comp_assign = @view n.comp_assign[n.first_idx:end]
-    hash(n.label, hash(n.cc, hash(n.fps, hash(comp_weights, hash(comp_assign)))))
+
+    hash(n.label, hash(n.cc, hash(comp_weights, hash(comp_assign, hash(n.fps)))))
 end
 
 function node_summary(node::Node)
     println("Label: ", readable(node.label))
     println("cc: ", readable(node.cc))
-    println("comp: ", readable(node.comp))
     println("fps: ", readable(node.fps))
     println("comp_assign: ", readable(node.comp_assign))
     println("comp_weights: ", readable(node.comp_weights))

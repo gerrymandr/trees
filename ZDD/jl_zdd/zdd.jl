@@ -9,7 +9,8 @@ mutable struct ZDD{N<:Node, S<:SimpleGraph}
     # nodes_complete::Dict{N, Int64}    # used only when viz = True
     base_graph::S
     root::N
-    paths::Int
+    paths::UInt128
+    deleted_nodes::Int
     viz::Bool
 end
 
@@ -33,8 +34,9 @@ function ZDD(g::SimpleGraph, root::Node; viz::Bool=false)::ZDD
     nodes[root.hash] = 3
 
     base_graph = g
-    paths = 0
-    return ZDD(graph, nodes, base_graph, root, paths, viz)
+    paths::UInt128 = 0
+    deleted_nodes = 0
+    return ZDD(graph, nodes, base_graph, root, paths, deleted_nodes, viz)
 end
 
 function construct_zdd(g::SimpleGraph,
@@ -42,7 +44,11 @@ function construct_zdd(g::SimpleGraph,
                        d::Int64,
                        g_edges::Array{NodeEdge,1};
                        weights::Vector{Int64}=Vector{Int64}([1 for i in 1:nv(g)]),
-                       viz::Bool=false)::ZDD
+                       viz::Bool=false,
+                       save_fp::String="zdd_tree.txt")::ZDD
+    # delete file if it already exists
+    # rm(save_fp)
+
     weights = [convert(UInt32,i) for i in weights]
     root = Node(g_edges[1], g, weights)
 
@@ -94,9 +100,45 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
-        N[i] = Set{Node}([]) # release memory
+        zdd.deleted_nodes += length(N[i])
+        # save_tree_so_far!(zdd, save_fp)
+        erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal, length(N[i])) # release memory
+        N[i] = Set{Node}([])   # release memory
+
+        # println(i, ": ", Base.summarysize(zdd))
     end
     return zdd
+end
+
+function save_tree_so_far!(zdd::ZDD, save_fp::String)
+    output_file = open(save_fp, "a")
+    serialize(output_file, zdd.graph[3:length(zdd.graph)]) # ignore the first two because they are terminals
+    close(output_file)
+end
+
+function erase_upper_levels!(zdd::ZDD, N::Set{Node}, zero_terminal::Node, one_terminal::Node, prev_layer_size::Int)
+    """ N is the layer you want to keep
+    """
+    # collect hashes
+    hashes = Set{UInt64}()
+    for node in N
+        push!(hashes, node.hash)
+    end
+    # dont delete the terminal hashes!
+    push!(hashes, zero_terminal.hash)
+    push!(hashes, one_terminal.hash)
+
+    # delete everything not in hashes
+    for node_hash in keys(zdd.nodes)
+        if node_hash ∉ hashes
+            pop!(zdd.nodes, node_hash)
+        end
+    end
+
+    # delete previous layer
+    for i in 1:prev_layer_size
+        deleteat!(zdd.graph, 3) # don't delete terminal layers at pos 1 and 2
+    end
 end
 
 function copy_to_vec!(vec::Vector{ForbiddenPair}, set::Set{ForbiddenPair})
@@ -189,38 +231,75 @@ function lower_vertices!(num::UInt8, arr::Vector{UInt8}, container::Vector{UInt8
     end
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
+function add_zdd_node_and_edge!(zdd::ZDD,
+                                n′::Node,
+                                n::Node,
+                                actual_n_idx::Int64,
+                                x::Int8)
+    """ Adds an edge from n to n′. n′ is a Node that did not previously exist in
+        the zdd.
+
+        Args:
+            zdd: ZDD object
+            n′: Destination Node, which doesn't exist in the zdd yet
+            n: Source Node, which already exists in the zdd
+            actual_node₁_idx: the position of node₁ in zdd.graph, if we were
+                              saving all the layers of the graph
+            x: [0, 1] denoting the decision arc of the edge.
     """
-    """
+    # make a new ZDD_Node object and store it in the zdd
     new_node = ZDD_Node(0, 0)
     push!(zdd.graph, new_node)
-
-    n′_idx = length(zdd.graph)
+    n′_idx = length(zdd.graph) + zdd.deleted_nodes
     zdd.nodes[n′.hash] = n′_idx
 
+    # the num paths of the new node is the same as parent.
     n′.paths = n.paths
+
+    # recalibrate the node's index to account for the nodes we have deleted so far
+    curr_n_idx = actual_n_idx - zdd.deleted_nodes
 
     # add to graph
     if x == 0
-        zdd.graph[n_idx] = ZDD_Node(n′_idx, zdd.graph[n_idx].one)
+        zdd.graph[curr_n_idx] = ZDD_Node(n′_idx, zdd.graph[curr_n_idx].one)
     else
-        zdd.graph[n_idx] = ZDD_Node(zdd.graph[n_idx].zero, n′_idx)
+        zdd.graph[curr_n_idx] = ZDD_Node(zdd.graph[curr_n_idx].zero, n′_idx)
     end
 end
 
 function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
                        node₂::Node,
-                       node₁_idx::Int64,
+                       actual_node₁_idx::Int64,
                        x::Int8)
-    """ Add an edge from node₁ to node₂.
+    """ Adds an edge from node₁ to node₂. Both node₁
+
+        Args:
+            zdd: ZDD object
+            node₁: Source Node
+            node₂: Destination Node
+            actual_node₁_idx: the position of node₁ in zdd.graph, if we were
+                              saving all the layers of the graph
+            x: [0, 1] denoting the decision arc of the edge.
+
     """
     node₂_idx = zdd.nodes[node₂.hash]
 
+    # recalibrate the node's index to account for the nodes we have deleted so far
+    curr_node₁_idx = actual_node₁_idx - zdd.deleted_nodes
+
     # add to graph
     if x == 0
-        zdd.graph[node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[node₁_idx].one)
+        zdd.graph[curr_node₁_idx] = ZDD_Node(node₂_idx, zdd.graph[curr_node₁_idx].one)
     else
-        zdd.graph[node₁_idx] = ZDD_Node(zdd.graph[node₁_idx].zero, node₂_idx)
+        zdd.graph[curr_node₁_idx] = ZDD_Node(zdd.graph[curr_node₁_idx].zero, node₂_idx)
     end
+end
+
+function num_nodes(zdd::ZDD)
+    """ This function is to be used only after a zdd has been completely built,
+        calling this function while the zdd is being constructed will almost
+        certainly provide the wrong answer.
+    """
+    zdd.deleted_nodes + 2
 end
