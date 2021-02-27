@@ -74,7 +74,7 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
 end
 
 function Base.hash(n::Node, h::UInt)
-    """ Reference: https://stackoverflow.com/questions/3404715/c-sharp-hashcode-for-array-of-ints
+    """ 
     """
     comp_assign = @view n.comp_assign[n.first_idx:end]
 
