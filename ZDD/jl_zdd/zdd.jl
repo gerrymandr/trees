@@ -231,17 +231,33 @@ function lower_vertices!(num::UInt8, arr::Vector{UInt8}, container::Vector{UInt8
     end
 end
 
-function add_zdd_node_and_edge!(zdd::ZDD, n′::Node, n::Node, n_idx::Int64, x::Int8)
+function add_zdd_node_and_edge!(zdd::ZDD,
+                                n′::Node,
+                                n::Node,
+                                actual_n_idx::Int64,
+                                x::Int8)
+    """ Adds an edge from n to n′. n′ is a Node that did not previously exist in
+        the zdd.
+
+        Args:
+            zdd: ZDD object
+            n′: Destination Node, which doesn't exist in the zdd yet
+            n: Source Node, which already exists in the zdd
+            actual_node₁_idx: the position of node₁ in zdd.graph, if we were
+                              saving all the layers of the graph
+            x: [0, 1] denoting the decision arc of the edge.
     """
-    """
+    # make a new ZDD_Node object and store it in the zdd
     new_node = ZDD_Node(0, 0)
     push!(zdd.graph, new_node)
-
     n′_idx = length(zdd.graph) + zdd.deleted_nodes
     zdd.nodes[n′.hash] = n′_idx
 
+    # the num paths of the new node is the same as parent.
     n′.paths = n.paths
-    curr_n_idx = n_idx - zdd.deleted_nodes
+
+    # recalibrate the node's index to account for the nodes we have deleted so far
+    curr_n_idx = actual_n_idx - zdd.deleted_nodes
 
     # add to graph
     if x == 0
@@ -254,12 +270,23 @@ end
 function add_zdd_edge!(zdd::ZDD,
                        node₁::Node,
                        node₂::Node,
-                       node₁_idx::Int64,
+                       actual_node₁_idx::Int64,
                        x::Int8)
-    """ Add an edge from node₁ to node₂.
+    """ Adds an edge from node₁ to node₂. Both node₁
+
+        Args:
+            zdd: ZDD object
+            node₁: Source Node
+            node₂: Destination Node
+            actual_node₁_idx: the position of node₁ in zdd.graph, if we were
+                              saving all the layers of the graph
+            x: [0, 1] denoting the decision arc of the edge.
+
     """
     node₂_idx = zdd.nodes[node₂.hash]
-    curr_node₁_idx = node₁_idx - zdd.deleted_nodes
+
+    # recalibrate the node's index to account for the nodes we have deleted so far
+    curr_node₁_idx = actual_node₁_idx - zdd.deleted_nodes
 
     # add to graph
     if x == 0
