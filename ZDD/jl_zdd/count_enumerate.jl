@@ -104,7 +104,7 @@ function count_paths(zdd::ZDD, prev_level::Dict{Int, Int}, curr_depth::Int, g_ed
     return count_paths(zdd, curr_level, curr_depth+1, g_edges, file)
 end
 
-function count_paths(zdd::ZDD)::Int
+function count_paths(zdd::ZDD)::UInt128
     """ Return the total number of plans that go to the 1 terminal
     """
     zdd.paths
