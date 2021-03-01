@@ -1,3 +1,5 @@
+Base.show(io::IO, x::T) where {T<:UInt128} = Base.print(io, x) # so we can see paths as decimal numbers instead of hex
+
 struct ZDD_Node
     zero::Int
     one::Int
