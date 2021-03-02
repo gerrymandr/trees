@@ -244,3 +244,5 @@ queen 6x6 grid -> 6 districts (size 6+/-99): 3628666881233030         (Julia enu
  rook 8x8 grid -> 8 districts (size 8+/-99): 556983247769141192388    (Julia enumpart, took 174.49272629, 17831232 bytes)
 queen 6x6 grid -> 6 districts (size 6+/-0): 6025727349               (Julia enumpart, took 539.584389133, 35655832 bytes)
 queen 7x7 grid -> 7 districts (size 7+/-99): 7291155679611862880190   (Julia enumpart, took 549.752723566, 35656993 bytes)
+ rook 8x8 grid -> 8 districts (size 8+/-0): 187497290034             (Julia enumpart, took 4920.912197484, 35657350 bytes)
+ rook 9x9 grid -> 9 districts (size 9+/-99): 163738881245258156011991945                  (Julia enumpart, took 4057.156376445, 76417 bytes)

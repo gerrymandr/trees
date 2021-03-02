@@ -34,7 +34,7 @@ g_edges = convert_lightgraphs_edges_to_node_edges(g_edges)
 ret = @timed zdd = construct_zdd(g, k, d, g_edges); nothing
 bytes = Base.summarysize(zdd)
 
-spaces = convert(Int,25 - (trunc(log(count_paths(zdd)) / log(10)) + 1))
+spaces = convert(Int,45 - (trunc(log(count_paths(zdd)) / log(10)) + 1))
 spacer = " "^spaces
 if !weighted
   d = 99

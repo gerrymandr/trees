@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -J zdd 
+#SBATCH -J zdd-9
 #SBATCH -p preempt 
 #SBATCH --time=4-0:00:00
 #SBATCH -n 4
