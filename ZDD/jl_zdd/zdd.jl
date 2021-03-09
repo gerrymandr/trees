@@ -49,9 +49,11 @@ function construct_zdd(g::SimpleGraph,
                        viz::Bool=false,
                        save_fp::String="zdd_tree.txt")::ZDD
     # delete file if it already exists
-    # rm(save_fp)
+    if isfile(save_fp)
+        rm(save_fp)
+    end
 
-    weights = [convert(UInt32,i) for i in weights]
+    weights = Vector{UInt32}([convert(UInt32,i) for i in weights])
     root = Node(g_edges[1], g, weights)
 
     lower_bound = Int32(floor(sum(weights)/k - d))
