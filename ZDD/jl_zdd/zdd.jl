@@ -103,18 +103,19 @@ function construct_zdd(g::SimpleGraph,
             end
         end
         zdd.deleted_nodes += length(N[i])
-        # save_tree_so_far!(zdd, save_fp)
+        save_tree_so_far!(zdd, save_fp, length(N[i]))
         erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal, length(N[i])) # release memory
         N[i] = Set{Node}([])   # release memory
-
         # println(i, ": ", Base.summarysize(zdd))
     end
     return zdd
 end
 
-function save_tree_so_far!(zdd::ZDD, save_fp::String)
+function save_tree_so_far!(zdd::ZDD, save_fp::String, layer_size::Int)
     output_file = open(save_fp, "a")
-    serialize(output_file, zdd.graph[3:length(zdd.graph)]) # ignore the first two because they are terminals
+    for zdd_node in zdd.graph[3:layer_size+2]
+        println(output_file, zdd_node.zero, ",", zdd_node.one)
+    end
     close(output_file)
 end
 
