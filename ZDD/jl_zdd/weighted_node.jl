@@ -43,7 +43,6 @@ function custom_deepcopy(n::Node, recycler::Stack{Node}, x::Int8)::Node
         return n
     end
     if isempty(recycler)
-        # comp_weights = Vector{UInt32}(undef, length(n.comp_weights))
         comp_weights = zeros(UInt32, length(n.comp_weights))
         comp_assign = zeros(UInt8, length(n.comp_assign))
         fps = Vector{ForbiddenPair}(undef, length(n.fps))
