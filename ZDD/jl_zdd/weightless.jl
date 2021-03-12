@@ -10,6 +10,7 @@ include("edge_ordering.jl")
 include("zdd.jl")
 include("count_enumerate.jl")
 include("visualization.jl")
+include("two_way_zdd.jl")
 
 
 function make_new_node(g::SimpleGraph,
