@@ -77,46 +77,93 @@ function construct_half_zdd(g::SimpleGraph,
     end
     # return zdd
 end
-                
-function all_vertices_connected_to(v, node)
-    representative_vertex = node.comp_assign[v]
-    return Set(findall(==(representative_vertex), node.comp_assign))
-end
 
-function setup(fnode, bnode, frontier)
-    fcomp, bcomp, intcomp = Dict(), Dict(), Dict() # add type annotations
-    ffrontier, bfrontier, frontier_span = Dict(), Dict(), Dict() # add type annotations
-    isolated_frontier_vtxs = Set()
-    
-    for v ∈ frontier
-        fcomp[v] = all_vertices_connected_to(v, fnode)
-        bcomp[v] = all_vertices_connected_to(v, bnode)
-        intcomp[v] = intersect(fcomp[v],bcomp[v])
-        
-        ffrontier[v] = intersect(fcomp[v], frontier)
-        bfrontier[v] = intersect(bcomp[v], frontier)
-        frontier_span[v] = union(ffrontier[v], bfrontier[v])
-        
-        push!(isolated_frontier_vtxs, maximum(frontier_span[v]))
-    end
-    return fcomp, bcomp, intcomp, isolated_frontier_vtxs
-end
-
-function check_weights(fcomp, bcomp, intcomp, frontier, acceptable, w)
-    for v ∈ frontier
-        if !(w(fcomp[v]) + w(bcomp[v]) - w(intcomp[v]) ∈ acceptable)
-            return false
+function frontier_sets(node, frontier)
+    """
+    Returns the sets of vertices in the frontier that are connected to each other.
+    """
+    sets = Set()
+    seen_vertices = Set()
+    frontier_list = reverse(collect(frontier)) # reverse probably unnecessary
+    for v ∈ frontier_list
+        if v ∈ seen_vertices
+            continue
+        end
+        set = Set(findall(n -> n == v, node.comp_assign))
+        if length(set) > 0
+            push!(sets, set)
+            for seen_vertex ∈ set
+                push!(seen_vertices, seen_vertex)
+            end
         end
     end
-    return true
+    return sets
 end
+
+function merge_nodes(fnode, bnode, frontier)
+    """
+    Use Union-Find type of thing to merge nodes....
+    """
+    local_fnode_comp_weights = deepcopy(fnode.comp_weights)
+    
+    ffrontier_sets = frontier_sets(fnode, frontier)
+    bfrontier_sets = frontier_sets(bnode, frontier)
+    
+    labels = Dict()
+    weights = Dict(v => -1 for v in frontier)
+    for set ∈ ffrontier_sets
+        for v ∈ set
+            labels[v] = maximum(set)
+        end
+    end
+    for bset ∈ bfrontier_sets
+        U = Set()
+        w = 0
+        for v ∈ bset
+            vgroup = findall(x -> (labels[x] == labels[v]), collect(frontier))
+            for g ∈ vgroup
+                push!(U,collect(frontier)[g])
+            end
+            w += local_fnode_comp_weights[labels[v]] # labels[v] in frontier so has a weight
+        end
+        w_bset = maximum(bnode.comp_weights[v] for v ∈ bset) # if you just pick one, you might hit a weird 0
+        w_intersection = length(bset) # TODO: generalize past unit weights
+        w += (w_bset - w_intersection)
+        U_frontier = intersect(U, frontier) # need this because `labels` only has frontier keys
+        max_label = maximum(labels[u] for u ∈ U_frontier)
+        for u ∈ U_frontier
+            labels[u] = max_label
+            weights[u] = w
+            local_fnode_comp_weights[labels[u]] = w
+        end
+    end
         
-function check_fps(fnode, bnode, fcomp, bcomp, intcomp, frontier)
-    for v ∈ frontier
-        for x ∈ fcomp[v]
-            for y ∈ bcomp[v]
-                if (x,y) ∈ union(fnode.fps, bnode.fps)
-                    return false
+    merged_fps = union(fnode.fps, bnode.fps)
+    connected_components = Set(values(labels))
+    return connected_components, labels, weights, merged_fps
+end
+
+function check_cc(fnode, bnode, connected_components, k)
+    if fnode.cc + bnode.cc + length(connected_components) == k
+        return true
+    else
+        return false
+    end
+end
+
+function check_fps(fnode, bnode, connected_components, labels, merged_fps, frontier)
+    for c ∈ connected_components
+        idxs = findall(x -> labels[x] == c, collect(frontier))
+        vtxs = [collect(frontier)[i] for i ∈ idxs]
+        for v₁ ∈ vtxs
+            for v₂ ∈ vtxs
+                if v₁ != v₂
+                    maybe_forbidden = ForbiddenPair(v₁, v₂)
+                    if maybe_forbidden ∈ merged_fps
+                        return false
+                    end
+                else
+                    continue
                 end
             end
         end
@@ -124,48 +171,33 @@ function check_fps(fnode, bnode, fcomp, bcomp, intcomp, frontier)
     return true
 end
 
-function check_cc(fnode, bnode, k, isolated_frontier_vtxs)
-    if fnode.cc + bnode.cc + length(isolated_frontier_vtxs) == k
-        return true
+function check_weights(fnode, bnode, weights, acceptable)
+    for w ∈ values(weights)
+        if w ∉ acceptable
+            return false
+        end
     end
-    return false
+    return true
 end
 
-function is_compatible(fnode, bnode, frontier, acceptable, w, k, checking)
-    fcomp, bcomp, intcomp, isolated_frontier_vtxs = setup(fnode, bnode, frontier)
-    weights = check_weights(fcomp, bcomp, intcomp, frontier, acceptable, w)
-    fps = check_fps(fnode, bnode, fcomp, bcomp, intcomp, frontier)
-    cc = check_cc(fnode, bnode, k, isolated_frontier_vtxs)
-    
-    checklist = []
-    if "weights" ∈ checking
-        push!(checklist, weights)
+function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k, verbose=false)
+    num_paths = 0
+    if verbose
+        println("Comparing $(length(fnodes)) fnodes to $(length(bnodes)) bnodes...\n")
     end
-    if "fps" ∈ checking
-        push!(checklist, fps)
-    end
-    if "cc" ∈ checking
-        push!(checklist, cc)
-    end
-    if all(checklist)
-        return true
-    end
-    return false
-end
-
-function w(v)
-    return 1
-end
-
-function number_compatible(fnodes, bnodes, frontier, acceptable, w, k, checking)
-    println("Total # of node pairs: $(length(fnodes)) * $(length(bnodes)) = $(length(fnodes) * length(bnodes))")
-    num_partitions = 0
-    for fnode ∈ fnodes
-        for bnode ∈ bnodes
-            if is_compatible(fnode, bnode, frontier, acceptable, w, k, checking)
-                num_partitions += 1
+    for (fi,fnode) ∈ enumerate(fnodes)
+        for (bi,bnode) ∈ enumerate(bnodes)
+            ccs, labels, weights, merged_fps = merge_nodes(fnode, bnode, middle_frontier)
+            cc = check_cc(fnode, bnode, ccs, k) 
+            fps = check_fps(fnode, bnode, ccs, labels, merged_fps, middle_frontier)
+            ws = check_weights(fnode, bnode, weights, acceptable)
+            if cc & fps & ws
+                num_paths += fnode.paths * bnode.paths
+                if verbose
+                    println("(fnode $fi, bnode $bi) contributes $(fnode.paths*bnode.paths) solns")
+                end
             end
         end
     end
-    return num_partitions
+    return num_paths
 end
