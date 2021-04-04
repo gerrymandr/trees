@@ -117,25 +117,38 @@ function merge_nodes(fnode, bnode, frontier)
         end
     end
     for bset ∈ bfrontier_sets
+        # println("bset is: $bset")
+        # println("Right now weights is: $weights")
         U = Set()
         w = 0
-        for v ∈ bset
+        # println("w is: $w")
+        seen_fcomps = Set()
+        for (i,v) ∈ enumerate(bset)
             vgroup = findall(x -> (labels[x] == labels[v]), collect(frontier))
             for g ∈ vgroup
                 push!(U,collect(frontier)[g])
             end
-            w += local_fnode_comp_weights[labels[v]] # labels[v] in frontier so has a weight
+            # println("inside enumerate bset, w is: $w")
+            if !(labels[v] in seen_fcomps)
+                w += local_fnode_comp_weights[labels[v]]
+                push!(seen_fcomps, labels[v])
+            end
+            # println("still inside, w is: $w")
         end
+        # println("after local_fnode etc. w is: $w")
         w_bset = maximum(bnode.comp_weights[v] for v ∈ bset) # if you just pick one, you might hit a weird 0
         w_intersection = length(bset) # TODO: generalize past unit weights
+        # println("w_bset is: $w_bset\nw_intersection is: $w_intersection")
         w += (w_bset - w_intersection)
         U_frontier = intersect(U, frontier) # need this because `labels` only has frontier keys
+        # println("U_frontier is $U_frontier")
         max_label = maximum(labels[u] for u ∈ U_frontier)
         for u ∈ U_frontier
             labels[u] = max_label
             weights[u] = w
             local_fnode_comp_weights[labels[u]] = w
         end
+        # println("End of loop block weights is: $weights")
     end
         
     merged_fps = union(fnode.fps, bnode.fps)
@@ -172,6 +185,7 @@ function check_fps(fnode, bnode, connected_components, labels, merged_fps, front
 end
 
 function check_weights(fnode, bnode, weights, acceptable)
+    # println(weights)
     for w ∈ values(weights)
         if w ∉ acceptable
             return false
@@ -181,6 +195,7 @@ function check_weights(fnode, bnode, weights, acceptable)
 end
 
 function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k, verbose=false)
+    flabels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
     num_paths = 0
     if verbose
         println("Comparing $(length(fnodes)) fnodes to $(length(bnodes)) bnodes...\n")
@@ -194,7 +209,7 @@ function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k
             if cc & fps & ws
                 num_paths += fnode.paths * bnode.paths
                 if verbose
-                    println("(fnode $fi, bnode $bi) contributes $(fnode.paths*bnode.paths) solns")
+                    println("($(flabels[fi]),$bi) contributes $(fnode.paths*bnode.paths) solns")
                 end
             end
         end
