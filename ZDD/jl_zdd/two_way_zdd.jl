@@ -80,75 +80,91 @@ end
 
 function frontier_sets(node, frontier)
     """
-    Returns the sets of vertices in the frontier that are connected to each other.
+    Returns Set(C₁, C₂, ..., Cₙ)  where every v ∈ Cᵢ is in the same connected component,
+    and Cᵢ ⊆ F where F is the set of all vertices in the frontier.
     """
-    sets = Set()
+    frontier_sets = Set()
     seen_vertices = Set()
-    frontier_list = reverse(collect(frontier)) # reverse probably unnecessary
-    for v ∈ frontier_list
+    for v ∈ collect(frontier)
         if v ∈ seen_vertices
             continue
         end
-        set = Set(findall(n -> n == v, node.comp_assign))
-        if length(set) > 0
-            push!(sets, set)
-            for seen_vertex ∈ set
+        Cᵥ = Set(findall(n -> n == v, node.comp_assign))
+        if length(Cᵥ) > 0
+            push!(frontier_sets, Cᵥ)
+            for seen_vertex ∈ Cᵥ
                 push!(seen_vertices, seen_vertex)
             end
         end
     end
-    return sets
+    return frontier_sets
 end
 
 function merge_nodes(fnode, bnode, frontier)
     """
-    Use Union-Find type of thing to merge nodes....
+    Merges two nodes and returns the following:
+        - labels  :: Dict({v:l}) where v ∈ F and l ∈ F is v's connected component number
+        - weights :: Dict({v:n}) where v ∈ F and n ∈ N is the weight of v's component
+        - connected_components :: Set(C₁, C₂, ..., Cₙ) frontier sets of the merged node
+        - merged_fps :: Array(ForbiddenPair) union of the FPS from each node
+    
+    Outline of algorithm:
+        0. Make a copy of fnode.comp_weights since we'll be modifying it later
+        1. Initialize `weights` dictionary to -1 for all v ∈ F
+        2. Initialize `labels` dictionary from fnode's perspective
+        3. For each connected component `bcomp` in bnode:
+            # We want to figure out the merged component `M`, which is all the vertices in F
+            # that are connected by the merge of bcomp and fnode. 
+            a. Initialize `M` = Set() and `w` = 0 (the weight of all vertices in `M`)
+            b. For each vertex v ∈ `bcomp`:
+                i.  Find the set `fvcomp`: {x ∈ F | x touches v from fnode's perspective},
+                    and add each x ∈ `fvcomp` to M
+                ii. Once per fcomp, add the weight of fcomp to `w`
+            c. The weight added to `w` by `bcomp` is the weight of bcomp minus the weight
+               of the intersection of bcomp and any components it touches in fnode.
+            d. Now that `M` and `w` are finalized, we store the information by:
+                i.   Relabel `labels` such that every v ∈ M has is connected
+                ii.  In `weights`, assign `w` to every v ∈ M 
+                iii. Update our copy of fnode.comp_weights to `w` for future bcomps
+        4. Make `merged_fps` — just the union of fnode.fps and bnode.fps
+        5. Make `connected_components` — just the Set(values(labels))
     """
     local_fnode_comp_weights = deepcopy(fnode.comp_weights)
     
-    ffrontier_sets = frontier_sets(fnode, frontier)
-    bfrontier_sets = frontier_sets(bnode, frontier)
-    
+    ### Initialize labels, weights ###
     labels = Dict()
-    weights = Dict(v => -1 for v in frontier)
-    for set ∈ ffrontier_sets
+    weights = Dict(v => -1 for v ∈ frontier)
+    for set ∈ frontier_sets(fnode, frontier)
         for v ∈ set
             labels[v] = maximum(set)
         end
     end
-    for bset ∈ bfrontier_sets
-        # println("bset is: $bset")
-        # println("Right now weights is: $weights")
-        U = Set()
+
+    for bcomp ∈ frontier_sets(bnode, frontier)
+        M = Set()
         w = 0
-        # println("w is: $w")
         seen_fcomps = Set()
-        for (i,v) ∈ enumerate(bset)
-            vgroup = findall(x -> (labels[x] == labels[v]), collect(frontier))
-            for g ∈ vgroup
-                push!(U,collect(frontier)[g])
+        for v ∈ bcomp
+            fvcomp = findall(x -> (labels[x] == labels[v]), collect(frontier))
+            for x ∈ fvcomp
+                push!(M,collect(frontier)[x])
             end
-            # println("inside enumerate bset, w is: $w")
-            if !(labels[v] in seen_fcomps)
+            if !(labels[v] ∈ seen_fcomps)
                 w += local_fnode_comp_weights[labels[v]]
                 push!(seen_fcomps, labels[v])
             end
-            # println("still inside, w is: $w")
         end
-        # println("after local_fnode etc. w is: $w")
-        w_bset = maximum(bnode.comp_weights[v] for v ∈ bset) # if you just pick one, you might hit a weird 0
-        w_intersection = length(bset) # TODO: generalize past unit weights
-        # println("w_bset is: $w_bset\nw_intersection is: $w_intersection")
-        w += (w_bset - w_intersection)
-        U_frontier = intersect(U, frontier) # need this because `labels` only has frontier keys
-        # println("U_frontier is $U_frontier")
-        max_label = maximum(labels[u] for u ∈ U_frontier)
-        for u ∈ U_frontier
-            labels[u] = max_label
-            weights[u] = w
-            local_fnode_comp_weights[labels[u]] = w
+
+        w_bcomp = maximum(bnode.comp_weights[v] for v ∈ bcomp) # if you just pick one, you might hit a weird 0
+        w_intersection = length(bcomp) # TODO: generalize past unit weights
+        w += (w_bcomp - w_intersection)
+
+        max_label = maximum(labels[v] for v ∈ M)
+        for v ∈ M
+            labels[v] = max_label
+            weights[v] = w
+            local_fnode_comp_weights[labels[v]] = w
         end
-        # println("End of loop block weights is: $weights")
     end
         
     merged_fps = union(fnode.fps, bnode.fps)
@@ -195,7 +211,7 @@ function check_weights(fnode, bnode, weights, acceptable)
 end
 
 function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k, verbose=false)
-    flabels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    # flabels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
     num_paths = 0
     if verbose
         println("Comparing $(length(fnodes)) fnodes to $(length(bnodes)) bnodes...\n")
@@ -209,7 +225,7 @@ function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k
             if cc & fps & ws
                 num_paths += fnode.paths * bnode.paths
                 if verbose
-                    println("($(flabels[fi]),$bi) contributes $(fnode.paths*bnode.paths) solns")
+                    println("($fi,$bi) contributes $(fnode.paths*bnode.paths) solns")
                 end
             end
         end
