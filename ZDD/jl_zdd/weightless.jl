@@ -1,6 +1,7 @@
 using DataStructures
 using LightGraphs
 import Base: Dict
+using JSON
 
 include("weightless_node.jl")
 include("node_auxillaries.jl")
@@ -85,7 +86,7 @@ end
 function connect_components!(n::Node, Cᵤ::UInt8, Cᵥ::UInt8)
     """
     If the two components are different, remove the smaller component from n.comp,
-    and update n.comp_assign. 
+    and update n.comp_assign.
     """
     assignment = max(Cᵤ, Cᵥ)
     to_change = min(Cᵤ, Cᵥ)

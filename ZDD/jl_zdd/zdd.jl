@@ -47,10 +47,14 @@ function construct_zdd(g::SimpleGraph,
                        g_edges::Array{NodeEdge,1};
                        weights::Vector{Int64}=Vector{Int64}([1 for i in 1:nv(g)]),
                        viz::Bool=false,
-                       save_fp::String="zdd_tree.txt")::ZDD
+                       tree_save_fp::String="zdd_tree.txt",
+                       meta_save_fp::String="zdd_metadata.json")::ZDD
     # delete file if it already exists
-    if isfile(save_fp)
-        rm(save_fp)
+    if isfile(tree_save_fp)
+        rm(tree_save_fp)
+    end
+    if isfile(meta_save_fp)
+        rm(meta_save_fp)
     end
 
     weights = Vector{UInt32}([convert(UInt32,i) for i in weights])
@@ -72,6 +76,7 @@ function construct_zdd(g::SimpleGraph,
     reusable_set = Set{ForbiddenPair}([])
     recycler = Stack{Node}()
     lower_vs = Vector{UInt8}([])
+    layer_sizes = Vector{Int}([])
 
     for i = 1:ne(g)
         for n in N[i]
@@ -104,14 +109,31 @@ function construct_zdd(g::SimpleGraph,
                 add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
+        push!(layer_sizes, length(N[i]))
         zdd.deleted_nodes += length(N[i])
-        save_tree_so_far!(zdd, save_fp, length(N[i]))
+        save_tree_so_far!(zdd, tree_save_fp, length(N[i]))
         erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal, length(N[i])) # release memory
         N[i] = Set{Node}([])   # release memory
         # println(i, ": ", Base.summarysize(zdd))
     end
+    save_metadata(meta_save_fp, g_edges, layer_sizes)
     return zdd
 end
+
+function save_metadata(save_fp::String, g_edges::Vector{NodeEdge}, layer_sizes::Vector{Int})
+    output_file = open(save_fp, "w")
+    # dictionary to write
+    dict = Dict("edges" => g_edges,
+                "layer_sizes" => layer_sizes)
+
+            # pass data as a json string (how it shall be displayed in a file)
+    stringdata = JSON.json(dict)
+
+    # write the file with the stringdata variable information
+    open(save_fp, "w") do f
+        write(f, stringdata)
+    end
+ end
 
 function save_tree_so_far!(zdd::ZDD, save_fp::String, layer_size::Int)
     output_file = open(save_fp, "a")
