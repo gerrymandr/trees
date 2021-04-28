@@ -2,6 +2,7 @@ using DataStructures
 using LightGraphs
 using Statistics
 import Base: Dict
+using JSON
 
 include("weighted_node.jl")
 include("node_auxillaries.jl")
