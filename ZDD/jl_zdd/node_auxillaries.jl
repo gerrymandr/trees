@@ -38,6 +38,10 @@ function readable(arr::Vector{UInt8})::Array{Int64, 1}
     Array{Int, 1}([Int64(x) for x in arr])
 end
 
+function readable(arr::Vector{UInt32})::Array{Int64, 1}
+    Array{Int, 1}([Int64(x) for x in arr])
+end
+
 function readable(cc::UInt8)::Int64
     Int64(cc)
 end
