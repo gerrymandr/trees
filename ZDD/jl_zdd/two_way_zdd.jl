@@ -100,8 +100,96 @@ function frontier_sets(node, frontier)
     return frontier_sets
 end
 
-function merge_nodes(fnode, bnode, frontier)
+function compute_frontier_sets(fnodes, bnodes, frontier)
+    frontier_sets_dictionary = Dict()
+    for fnode ∈ fnodes
+        frontier_sets_dictionary[fnode] = frontier_sets(fnode, frontier)
+    end
+    for bnode ∈ bnodes
+        frontier_sets_dictionary[bnode] = frontier_sets(bnode, frontier)
+    end
+    return frontier_sets_dictionary
+end
+
+function generate_dictionaries(fnodes, bnodes, frontier)
+    """ Pre-compute necessary lookup tables """
+    allnodes = union(fnodes, bnodes)
+    frontier_projection_dict = Dict(node => frontier_sets(node, frontier) for node ∈ allnodes)
+    fps_dict = Dict(node => node.fps for node ∈ allnodes)
+    ffps_dict = Dict(fnode => fnode.fps for fnode ∈ fnodes)
+    
+    merged_fps_dict = Dict()
+    for ffps ∈ values(ffps_dict)
+        for bfps ∈ values(ffps_dict)
+            merged_fps_dict[(ffps, bfps)] = union(ffps, bfps)
+        end
+    end
+    
+    merged_frontier_projection_dict = Dict()
+    fsets = Set([frontier_projection_dict[fnode] for fnode ∈ fnodes])
+    for fset ∈ fsets
+        for bset ∈ fsets
+            merged_frontier_projection_dict[(fset, bset)] = union_find(fset, bset, frontier)
+        end
+    end
+    
+    intersection_dict = Dict()
+    for connected_components ∈ Set(values(merged_frontier_projection_dict))
+        for comp ∈ connected_components
+            for sets_list ∈ Set(values(frontier_projection_dict))
+                for set ∈ sets_list
+                    intersection_dict[(set, comp)] = intersect(set, comp)
+                end
+            end
+        end
+    end
+    return frontier_projection_dict, merged_frontier_projection_dict, fps_dict, merged_fps_dict, intersection_dict
+end
+
+function union_find(fsets, bsets, frontier)
+    """ Given the projections for each node, compute the merged projection """
+    labels = Dict()
+    for fset ∈ fsets
+        for v ∈ fset
+            labels[v] = maximum(fset)
+        end
+    end
+    for bset ∈ bsets
+        M = Set()
+        for v ∈ bset
+            fvcomp = findall(x -> (labels[x] == labels[v]), collect(frontier))
+            for x ∈ fvcomp
+                push!(M, collect(frontier)[x])
+            end
+        end
+        max_label = maximum(labels[v] for v ∈ M)
+        for v ∈ M
+            labels[v] = max_label
+        end
+    end
+    connected_components = Set()
+    for v ∈ frontier
+        push!(connected_components, Set(findall(x -> (labels[x] == labels[v]), labels)))
+    end
+    return connected_components
+end
+
+
+function initialize(fnode, frontier, frontier_sets_dictionary)
+    """ DEPRECATED """
+    labels = Dict()
+    weights = Dict(v => -1 for v ∈ frontier)
+    for set ∈ frontier_sets_dictionary[fnode]
+        for v ∈ set
+            labels[v] = maximum(set)
+        end
+    end
+    return labels, weights
+end
+
+function merge_nodes(fnode, bnode, frontier, frontier_sets_dictionary) #, labels, weights, local_fnode_comp_weights)
     """
+    DEPRECATED
     Merges two nodes and returns the following:
         - labels  :: Dict({v:l}) where v ∈ F and l ∈ F is v's connected component number
         - weights :: Dict({v:n}) where v ∈ F and n ∈ N is the weight of v's component
@@ -129,18 +217,11 @@ function merge_nodes(fnode, bnode, frontier)
         4. Make `merged_fps` — just the union of fnode.fps and bnode.fps
         5. Make `connected_components` — just the Set(values(labels))
     """
-    local_fnode_comp_weights = deepcopy(fnode.comp_weights)
-    
-    ### Initialize labels, weights ###
-    labels = Dict()
-    weights = Dict(v => -1 for v ∈ frontier)
-    for set ∈ frontier_sets(fnode, frontier)
-        for v ∈ set
-            labels[v] = maximum(set)
-        end
-    end
 
-    for bcomp ∈ frontier_sets(bnode, frontier)
+    labels, weights = initialize(fnode, frontier, frontier_sets_dictionary)
+
+    local_fnode_comp_weights = deepcopy(fnode.comp_weights)
+    for bcomp ∈ frontier_sets_dictionary[bnode]
         M = Set()
         w = 0
         seen_fcomps = Set()
@@ -166,10 +247,8 @@ function merge_nodes(fnode, bnode, frontier)
             local_fnode_comp_weights[labels[v]] = w
         end
     end
-        
-    merged_fps = union(fnode.fps, bnode.fps)
-    connected_components = Set(values(labels))
-    return connected_components, labels, weights, merged_fps
+
+    return labels, weights
 end
 
 function check_cc(fnode, bnode, connected_components, k)
@@ -180,29 +259,21 @@ function check_cc(fnode, bnode, connected_components, k)
     end
 end
 
-function check_fps(fnode, bnode, connected_components, labels, merged_fps, frontier)
-    for c ∈ connected_components
-        idxs = findall(x -> labels[x] == c, collect(frontier))
-        vtxs = [collect(frontier)[i] for i ∈ idxs]
-        for v₁ ∈ vtxs
-            for v₂ ∈ vtxs
-                if v₁ != v₂
-                    maybe_forbidden = ForbiddenPair(v₁, v₂)
-                    if maybe_forbidden ∈ merged_fps
-                        return false
-                    end
-                else
-                    continue
+function check_weights(fnode, bnode, frontier_projection_dict, intersection_dict, connected_components, acceptable)
+    for comp ∈ connected_components
+        w = 0
+        if length(comp) > ceil(maximum(acceptable)/2) # needs rook contiguity and unit pop.
+            return false
+        end
+        for node ∈ [fnode, bnode]
+            for set ∈ frontier_projection_dict[node]
+                if length(intersection_dict[(set, comp)]) == length(set) # there should be no partial intersections
+                    wset = maximum(node.comp_weights[v] for v ∈ set)
+                    w += wset - length(set) # assumes unit pop
                 end
             end
         end
-    end
-    return true
-end
-
-function check_weights(fnode, bnode, weights, acceptable)
-    # println(weights)
-    for w ∈ values(weights)
+        w += length(comp)
         if w ∉ acceptable
             return false
         end
@@ -210,23 +281,42 @@ function check_weights(fnode, bnode, weights, acceptable)
     return true
 end
 
-function count_paths_from_halfway(fnodes, bnodes, middle_frontier, acceptable, k, verbose=false)
-    # flabels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-    num_paths = 0
-    if verbose
-        println("Comparing $(length(fnodes)) fnodes to $(length(bnodes)) bnodes...\n")
-    end
-    for (fi,fnode) ∈ enumerate(fnodes)
-        for (bi,bnode) ∈ enumerate(bnodes)
-            ccs, labels, weights, merged_fps = merge_nodes(fnode, bnode, middle_frontier)
-            cc = check_cc(fnode, bnode, ccs, k) 
-            fps = check_fps(fnode, bnode, ccs, labels, merged_fps, middle_frontier)
-            ws = check_weights(fnode, bnode, weights, acceptable)
-            if cc & fps & ws
-                num_paths += fnode.paths * bnode.paths
-                if verbose
-                    println("($fi,$bi) contributes $(fnode.paths*bnode.paths) solns")
+function check_fps(fnode, bnode, fps_dict, merged_fps_dict, connected_components)
+    merged_fps = merged_fps_dict[(fps_dict[fnode], fps_dict[bnode])]
+    for comp ∈ connected_components
+        for v₁ ∈ comp
+            for v₂ ∈ comp
+                if v₁ != v₂
+                    if ForbiddenPair(v₁, v₂) ∈ merged_fps
+                        return false
+                    end
                 end
+            end
+        end
+    end
+    return true
+end
+
+function count_paths_from_halfway(fnodes, bnodes, 
+                                  frontier_projection_dict, 
+                                  merged_frontier_projection_dict,
+                                  fps_dict, merged_fps_dict,
+                                  intersection_dict,
+                                  acceptable, k, verbose=false)
+                                  num_paths = 0
+    for (fi, fnode) ∈ enumerate(fnodes)
+        fset = frontier_projection_dict[fnode]
+        for (bi, bnode) ∈ enumerate(bnodes)
+            bset = frontier_projection_dict[bnode]
+            connected_components = merged_frontier_projection_dict[(fset, bset)]
+            cc = check_cc(fnode, bnode, connected_components, k)
+            w = check_weights(fnode, bnode, frontier_projection_dict, intersection_dict, connected_components, acceptable)
+            fps = check_fps(fnode, bnode, fps_dict, merged_fps_dict, connected_components)
+            if cc & w & fps
+                num_paths += fnode.paths * bnode.paths
+            end
+            if verbose
+                println("($fi,$bi) contributes $(fnode.paths*bnode.paths) solns")
             end
         end
     end
