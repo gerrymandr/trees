@@ -1,3 +1,5 @@
+Base.show(io::IO, x::T) where {T<:UInt128} = Base.print(io, x) # so we can see paths as decimal numbers instead of hex
+
 struct ZDD_Node
     zero::Int
     one::Int
@@ -89,12 +91,12 @@ function construct_zdd(g::SimpleGraph,
                         index = Base.ht_keyindex2!(N[i+1].dict, n′)
                         N[i+1].dict.keys[index].paths += n.paths
                     else
-                        add_zdd_node_and_edge!(zdd, n, n′, x)
+                        add_zdd_node_and_edge!(zdd, n′, n, n_idx, x)
                         push!(N[i+1], n′)
                         continue
                     end
                 end
-                add_zdd_edge!(zdd, n, n′, x)
+                add_zdd_edge!(zdd, n, n′, n_idx, x)
             end
         end
         erase_upper_levels!(zdd, N[i+1], zero_terminal, one_terminal) # release memory
@@ -237,7 +239,7 @@ function add_zdd_edge!(zdd::ZDD,
                        x::Int8)
     """ Add an edge from node₁ to node₂.
     """
-    node₁_idx = zdd.nodes[node₁.hash]
+    # node₁_idx = zdd.nodes[node₁.hash]
     node₂_idx = zdd.nodes[node₂.hash]
 
     # add to graph
