@@ -15,6 +15,14 @@ function convert_lightgraphs_edges_to_node_edges(g_edges::Array{LightGraphs.Simp
     return node_edges
 end
 
+function convert_node_edges_to_lightgraphs_edges(node_edges::Vector{NodeEdge})::Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1}
+    lg_edges = Array{LightGraphs.SimpleGraphs.SimpleEdge{Int64},1}([])
+    for node_edge in node_edges
+        push!(lg_edges, LightGraphs.SimpleGraphs.SimpleEdge{Int64}(node_edge.edge₁, node_edge.edge₂))
+    end
+    return lg_edges
+end
+
 ######################## ForbiddenPair #########################
 
 # comp₁ < comp₂ by requirement
