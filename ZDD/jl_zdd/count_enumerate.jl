@@ -10,9 +10,9 @@ end
 Enumerating Plans
 """
 function enumerate_plans(zdd::ZDD)
+    """ This function is definitely wasteful, but it gets the job done.
     """
-    """
-    # get plans
+    # get plans as NodeEdges
     plans = Vector{Vector{NodeEdge}}()
     plan = Vector{NodeEdge}()
     traverse_zdd(zdd, zdd.graph[3], plans, plan, 1)
@@ -24,6 +24,14 @@ function enumerate_plans(zdd::ZDD)
         push!(lg_plans, lg_plan)
     end
     lg_plans
+
+    # turn LightGraphs Edges into LightGraphs
+    graphs = Vector{SimpleGraph}()
+    for plan in lg_plans
+        g = SimpleGraphFromIterator(plan)
+        push!(graphs, g)
+    end
+    graphs
 end
 
 function traverse_zdd(zdd::ZDD, node, plans, plan, idx)
